@@ -28,6 +28,18 @@ struct LyoHeaderView: View {
                 unreadMessages: $viewModel.unreadMessagesCount
             )
         }
+        .fullScreenCover(isPresented: $viewModel.isShowingStoryViewer) {
+            StoryViewerView(
+                story: $viewModel.selectedStory,
+                isPresented: $viewModel.isShowingStoryViewer
+            )
+        }
+        .fullScreenCover(isPresented: $viewModel.isShowingChatView) {
+            ChatView(
+                conversation: $viewModel.selectedConversation,
+                isPresented: $viewModel.isShowingChatView
+            )
+        }
         .sheet(isPresented: $viewModel.showProfileSheet) {
             HeaderProfileView(isPresented: $viewModel.showProfileSheet)
         }
@@ -59,7 +71,6 @@ struct LyoHeaderView: View {
                         startPoint: .leading,
                         endPoint: .trailing
                     )
-                )
                 )
         )
         .overlay(
