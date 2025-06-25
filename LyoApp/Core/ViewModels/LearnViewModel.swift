@@ -39,7 +39,7 @@ class LearnViewModel: ObservableObject {
         
         // Update course enrollment status
         if let index = featuredCourses.firstIndex(where: { $0.id == course.id }) {
-            var updatedCourse = featuredCourses[index]
+            _ = featuredCourses[index]
             // Note: In a real app, you'd create a new Course instance with updated properties
             // featuredCourses[index] = updatedCourse
         }
