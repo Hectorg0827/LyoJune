@@ -299,18 +299,17 @@ struct GroupStatItem: View {
 
 struct CommunityMapView: View {
     let locations: [LearningLocation]
-    @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 37.7749, longitude: -122.4194),
-        span: MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
-    )
     
     var body: some View {
         ZStack {
-            Map(coordinateRegion: $region, annotationItems: locations) { location in
-                MapAnnotation(coordinate: location.coordinate) {
-                    MapPinView(location: location)
+            Map {
+                ForEach(locations) { location in
+                    Annotation(location.name, coordinate: location.coordinate) {
+                        MapPinView(location: location)
+                    }
                 }
             }
+            .mapStyle(.standard)
             .cornerRadius(0)
             
             // Floating info card
