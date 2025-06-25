@@ -13,9 +13,11 @@ struct DiscoverView: View {
                 GlassBackground()
                 
                 VStack(spacing: 0) {
-                    // Header with search and categories
-                    DiscoverHeader(
-                        searchText: $searchText,
+                    // Dynamic Header
+                    LyoHeaderView()
+                    
+                    // Category selector
+                    CategorySelector(
                         selectedCategory: $selectedCategory,
                         categories: categories
                     )
@@ -55,60 +57,26 @@ struct DiscoverView: View {
     }
 }
 
-struct DiscoverHeader: View {
-    @Binding var searchText: String
+struct CategorySelector: View {
     @Binding var selectedCategory: String
     let categories: [String]
     
     var body: some View {
-        VStack(spacing: 16) {
-            // Search bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.white.opacity(0.7))
-                
-                TextField("Discover posts and insights...", text: $searchText)
-                    .foregroundColor(.white)
-                    .autocapitalization(.none)
-                    .disableAutocorrection(true)
-                
-                if !searchText.isEmpty {
-                    Button(action: {
-                        searchText = ""
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.white.opacity(0.7))
-                    }
-                }
-            }
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Material.ultraThin)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
-                    )
-            )
-            .padding(.horizontal)
-            
-            // Category chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(categories, id: \.self) { category in
-                        CategoryChip(
-                            title: category,
-                            isSelected: selectedCategory == category,
-                            action: {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    selectedCategory = category
-                                }
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(categories, id: \.self) { category in
+                    CategoryChip(
+                        title: category,
+                        isSelected: selectedCategory == category,
+                        action: {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                selectedCategory = category
                             }
-                        )
-                    }
+                        }
+                    )
                 }
-                .padding(.horizontal)
             }
+            .padding(.horizontal)
         }
         .padding(.vertical, 8)
     }
