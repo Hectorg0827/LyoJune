@@ -1,23 +1,36 @@
 import SwiftUI
 
-// MARK: - Design System for LyoApp
+// MARK: - Enhanced Design System for LyoApp Phase 2
+// Building on the existing design system with modern enhancements
 
 struct DesignSystem {
     
-    // MARK: - Colors
+    // MARK: - Modern Colors (Enhanced)
     
     struct Colors {
-        // Primary colors
+        // Primary colors - Enhanced with accessibility
         static let primary = Color.blue
         static let secondary = Color.purple
         static let accent = Color.cyan
         
-        // Glass effect colors
+        // Modern semantic colors using DesignTokens
+        static let surfacePrimary = DesignTokens.Colors.surface
+        static let surfaceSecondary = DesignTokens.Colors.surfaceVariant
+        static let textPrimary = DesignTokens.Colors.textPrimary
+        static let textSecondary = DesignTokens.Colors.textSecondary
+        
+        // Glass effect colors - Enhanced
         static let glassPrimary = Color.white.opacity(0.1)
         static let glassSecondary = Color.white.opacity(0.05)
         static let glassBorder = Color.white.opacity(0.2)
+        static let glassBackground = Color.black.opacity(0.3)
         
-        // Background gradients
+        // Interactive states
+        static let interactive = DesignTokens.Colors.interactive
+        static let interactiveHover = DesignTokens.Colors.interactiveHover
+        static let interactivePressed = DesignTokens.Colors.interactivePressed
+        
+        // Background gradients - Enhanced
         static let backgroundPrimary = LinearGradient(
             gradient: Gradient(colors: [
                 Color.black,
