@@ -2,12 +2,17 @@
 import Foundation
 
 @MainActor
-class UserAPIService: APIService {
+class UserAPIService: BaseAPIService {
     static let shared = UserAPIService()
-    let apiClient: APIClientProtocol
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
 
-    init(apiClient: APIClientProtocol = APIClient()) {
-        self.apiClient = apiClient
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
     }
 
     func fetchUserProfile(_ userId: String? = nil) async throws -> UserProfile {
