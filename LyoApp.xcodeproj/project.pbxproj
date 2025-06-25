@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		05A047150D9C703AA5434D64 /* AIAudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 098F09BD4B79D7EFD3ABAB50 /* AIAudioPlayer.swift */; };
+		BF3EFC05EED94A3389F00ECE /* KeychainHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AACEF8A2F2EC4F56BE351F4F /* KeychainHelper.swift */; };
 		0F0518D952A4BA2944D992C5 /* LearningAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DF4F72681BC4DF8A73FBC9C /* LearningAPIService.swift */; };
 		151BB524ED574E82937D703D /* EnhancedAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C6BDF46AD6451CB55AAFAB /* EnhancedAIService.swift */; };
 		16EF280647C7A6644747D020 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB29047FF782BC3FBB3D45A /* DesignSystem.swift */; };
@@ -57,6 +58,7 @@
 
 /* Begin PBXFileReference section */
 		018E5ACC56793A9532698967 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		AACEF8A2F2EC4F56BE351F4F /* KeychainHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainHelper.swift; sourceTree = "<group>"; };
 		04E5D7825F2C0CFDD77E2375 /* ProactiveAIManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProactiveAIManager.swift; sourceTree = "<group>"; };
 		05BD2AF98614324B03D3B561 /* ErrorHandlingViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorHandlingViews.swift; sourceTree = "<group>"; };
 		070BF34E8E8551EDA8815305 /* HeaderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderViewModel.swift; sourceTree = "<group>"; };
