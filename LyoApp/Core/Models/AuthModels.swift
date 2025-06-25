@@ -34,6 +34,3 @@ public struct UpdateProfileRequest: Codable {
     let lastName: String
     let bio: String?
 }
-
-public struct EmptyRequest: Codable {}
-public struct EmptyResponse: Codable {}
