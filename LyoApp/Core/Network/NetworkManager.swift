@@ -40,15 +40,6 @@ enum NetworkError: Error, LocalizedError {
     }
 }
 
-// MARK: - HTTP Methods
-enum HTTPMethod: String {
-    case GET = "GET"
-    case POST = "POST"
-    case PUT = "PUT"
-    case DELETE = "DELETE"
-    case PATCH = "PATCH"
-}
-
 // MARK: - API Response
 struct APIResponse<T: Codable>: Codable {
     let data: T?
