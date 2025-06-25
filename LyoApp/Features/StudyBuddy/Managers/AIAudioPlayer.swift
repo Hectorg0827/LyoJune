@@ -189,8 +189,13 @@ class AIAudioPlayer: NSObject, ObservableObject {
     }
     
     private func startMouthAnimationTimer() {
+        speechTimer?.invalidate()
         speechTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            self?.updateMouthAnimation()
+            guard let self = self else { return }
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.updateMouthAnimation()
+            }
         }
     }
     
@@ -294,16 +299,20 @@ extension AIAudioPlayer: AVSpeechSynthesizerDelegate {
     }
     
     nonisolated func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, willSpeakRangeOfSpeechString characterRange: NSRange, utterance: AVSpeechUtterance) {
-        DispatchQueue.main.async {
+        let speechString = utterance.speechString
+        let totalLength = speechString.count
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            
             // Update progress based on character range
-            let totalLength = utterance.speechString.count
             if totalLength > 0 {
                 self.speechProgress = Double(characterRange.location + characterRange.length) / Double(totalLength)
             }
             
             // Extract current word being spoken
-            let speechString = utterance.speechString as NSString
-            let currentWord = speechString.substring(with: characterRange)
+            let speechStringNS = speechString as NSString
+            let currentWord = speechStringNS.substring(with: characterRange)
             
             // Analyze current word for mouth animation
             let intensity = self.calculateMouthIntensity(for: currentWord)
