@@ -84,7 +84,7 @@ class KeychainHelper {
 
 // MARK: - Auth Service
 @MainActor
-class AuthService: ObservableObject {
+class AuthService: BaseAPIService, ObservableObject {
     static let shared = AuthService()
 
     @Published var isAuthenticated = false
@@ -92,12 +92,19 @@ class AuthService: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let apiClient: APIClientProtocol
     private let keychain = KeychainHelper.shared
     private var cancellables = Set<AnyCancellable>()
 
-    init(apiClient: APIClientProtocol = APIClient()) {
-        self.apiClient = apiClient
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+        checkAuthStatus()
+        setupNotifications()
+    }
+    
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
         checkAuthStatus()
         setupNotifications()
     }
