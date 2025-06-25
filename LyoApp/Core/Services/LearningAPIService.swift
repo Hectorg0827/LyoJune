@@ -1,15 +1,36 @@
 import Foundation
 import Combine
 
+// Import required protocols and models
+// Note: In a real project, these would be properly imported through modules
+
 // MARK: - Learning API Service
 @MainActor
-class LearningAPIService: APIService {
+class LearningAPIService: BaseAPIService {
     static let shared = LearningAPIService()
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
+    
+    // MARK: - Convenience initializer for dependency injection
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
+    }
 
     // MARK: - Courses
     func getCourses(category: String? = nil, difficulty: String? = nil) async throws -> [LearningCourse] {
-        var endpoint = Endpoint(path: "/courses")
-        // Add filter logic here
+        var queryParams: [String: String] = [:]
+        if let category = category {
+            queryParams["category"] = category
+        }
+        if let difficulty = difficulty {
+            queryParams["difficulty"] = difficulty
+        }
+        
+        let endpoint = Endpoint(path: "/courses", queryParameters: queryParams)
         return try await apiClient.request(endpoint)
     }
 
