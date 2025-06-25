@@ -2,12 +2,17 @@
 import Foundation
 
 @MainActor
-class MessagesAPIService: APIService {
+class MessagesAPIService: BaseAPIService {
     static let shared = MessagesAPIService()
-    let apiClient: APIClientProtocol
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
 
-    init(apiClient: APIClientProtocol = APIClient()) {
-        self.apiClient = apiClient
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
     }
 
     func fetchConversations() async throws -> [Conversation] {
