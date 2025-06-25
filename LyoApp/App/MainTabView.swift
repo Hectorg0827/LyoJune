@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 struct MainTabView: View {
     @EnvironmentObject var appState: AppState
@@ -62,6 +63,9 @@ struct MainTabView: View {
         }
         .accentColor(.blue)
         .opacity(tabBarOpacity)
+        .overlay {
+            GamificationOverlay()
+        }
         .onChange(of: appState.selectedTab) { _, newValue in
             withAnimation(.easeInOut(duration: 0.2)) {
                 tabBarOpacity = 0.8
@@ -79,5 +83,5 @@ struct MainTabView: View {
 #Preview {
     MainTabView()
         .environmentObject(AppState())
-        .environmentObject(LyoAuthService())
+        .environmentObject(AuthService.shared)
 }
