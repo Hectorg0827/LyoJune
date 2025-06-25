@@ -243,8 +243,9 @@ class GemmaVoiceManager: NSObject, ObservableObject {
         // a dedicated wake word detection library
         
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.checkForWakeWord()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.checkForWakeWord()
             }
         }
     }
