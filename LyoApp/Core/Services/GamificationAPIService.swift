@@ -3,8 +3,19 @@ import Combine
 
 // MARK: - Gamification API Service
 @MainActor
-class GamificationAPIService: APIService {
+class GamificationAPIService: BaseAPIService {
     static let shared = GamificationAPIService()
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
+    
+    // MARK: - Convenience initializer for dependency injection
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
+    }
 
     // MARK: - XP and Levels
     func getUserXP() async throws -> UserXP {
