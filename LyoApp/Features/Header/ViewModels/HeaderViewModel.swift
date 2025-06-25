@@ -20,6 +20,10 @@ class HeaderViewModel: ObservableObject {
     @Published var isSearchActive = false
     @Published var searchText = ""
     @Published var isListeningForVoice = false
+    @Published var selectedStory: Story?
+    @Published var isShowingStoryViewer = false
+    @Published var selectedConversation: Conversation?
+    @Published var isShowingChatView = false
     
     // MARK: - Animation State
     @Published var lastInteractionTime = Date()
@@ -31,10 +35,11 @@ class HeaderViewModel: ObservableObject {
     private let autoMinimizeDelay: TimeInterval = 5.0
     
     // MARK: - Services
-    private let storiesService = StoriesService()
-    private let messagesService = MessagesService()
-    private let searchService = SearchService()
-    private let userService = UserService()
+    private let storiesService = StoriesAPIService.shared
+    private let messagesService = MessagesAPIService.shared
+    private let searchService = SearchAPIService.shared
+    private let userService = UserAPIService.shared
+    private let voiceManager = GemmaVoiceManager.shared
     
     // MARK: - Initialization
     init() {
@@ -74,20 +79,59 @@ class HeaderViewModel: ObservableObject {
     }
     
     private func loadInitialData() {
-        // Load stories
-        stories = Story.sampleStories
-        
-        // Load conversations
-        conversations = Conversation.sampleConversations
-        
-        // Load search suggestions
-        searchSuggestions = SearchSuggestion.sampleSuggestions
-        
-        // Load user profile
-        userProfile = UserProfile.sampleProfile
-        
-        // Simulate real-time updates
-        startRealTimeUpdates()
+        Task {
+            await loadStories()
+            await loadConversations()
+            await loadUserProfile()
+            await loadSearchSuggestions()
+            
+            // Start real-time updates after initial data is loaded
+            startRealTimeUpdates()
+        }
+    }
+    
+    private func loadStories() async {
+        do {
+            let fetchedStories = try await storiesService.fetchStories()
+            stories = fetchedStories
+        } catch {
+            // Fall back to sample data if API fails
+            stories = Story.sampleStories
+            print("Failed to load stories: \(error.localizedDescription)")
+        }
+    }
+    
+    private func loadConversations() async {
+        do {
+            let fetchedConversations = try await messagesService.fetchConversations()
+            conversations = fetchedConversations
+        } catch {
+            // Fall back to sample data if API fails
+            conversations = Conversation.sampleConversations
+            print("Failed to load conversations: \(error.localizedDescription)")
+        }
+    }
+    
+    private func loadUserProfile() async {
+        do {
+            let fetchedProfile = try await userService.fetchUserProfile()
+            userProfile = fetchedProfile
+        } catch {
+            // Fall back to sample data if API fails
+            userProfile = UserProfile.sampleProfile
+            print("Failed to load user profile: \(error.localizedDescription)")
+        }
+    }
+    
+    private func loadSearchSuggestions() async {
+        do {
+            let fetchedSuggestions = try await searchService.getSuggestions(for: "")
+            searchSuggestions = fetchedSuggestions
+        } catch {
+            // Fall back to sample data if API fails
+            searchSuggestions = SearchSuggestion.sampleSuggestions
+            print("Failed to load search suggestions: \(error.localizedDescription)")
+        }
     }
     
     // MARK: - Public Methods
@@ -137,7 +181,6 @@ class HeaderViewModel: ObservableObject {
         showSearch = false
         isSearchActive = false
         searchText = ""
-        isListeningForVoice = false
     }
     
     func openMessages() {
@@ -181,8 +224,9 @@ class HeaderViewModel: ObservableObject {
             )
         }
         
-        // TODO: Open story viewer
-        print("Opening story for: \(story.displayName)")
+        // Open story viewer
+        selectedStory = story
+        isShowingStoryViewer = true
     }
     
     func handleConversationTap(_ conversation: Conversation) {
@@ -193,33 +237,136 @@ class HeaderViewModel: ObservableObject {
             conversations[index].hasUnreadMessages = false
         }
         
-        // TODO: Open chat view
-        print("Opening conversation with: \(conversation.name)")
+        // Open chat view
+        selectedConversation = conversation
+        isShowingChatView = true
     }
     
     func startVoiceSearch() {
         recordInteraction()
         isListeningForVoice = true
         
-        // TODO: Implement voice recognition
-        
-        // Simulate voice input
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.isListeningForVoice = false
-            self.searchText = "What is quantum physics?"
+        // Implement voice recognition
+        Task {
+            await voiceManager.startListening()
+            
+            // Wait for the transcript to be updated
+            try await Task.sleep(for: .seconds(0.5))
+            
+            await MainActor.run {
+                let transcript = voiceManager.currentTranscript
+                self.isListeningForVoice = false
+                if !transcript.isEmpty {
+                    self.searchText = transcript
+                    self.executeSearch(transcript)
+                }
+            }
         }
     }
     
     func stopVoiceSearch() {
         isListeningForVoice = false
+        voiceManager.stopListening()
     }
     
     func executeSearch(_ query: String) {
         recordInteraction()
         searchText = query
         
-        // TODO: Implement AI-powered search
-        print("Executing search for: \(query)")
+        // Implement AI-powered search
+        Task {
+            do {
+                let results = try await searchService.performAISearch(query: query)
+                await MainActor.run {
+                    self.searchSuggestions = results.suggestions
+                    // Navigate to search results or update UI accordingly
+                    self.isSearchActive = true
+                    self.showSearch = true
+                }
+            } catch {
+                print("Search failed: \(error)")
+            }
+        }
+    }
+    
+    // MARK: - Public API Methods
+    
+    func markStoryAsWatched(_ storyId: UUID) {
+        Task {
+            do {
+                try await storiesService.markStoryAsWatched(storyId)
+                
+                // Update local state
+                if let index = stories.firstIndex(where: { $0.id == storyId }) {
+                    stories[index] = Story(
+                        id: stories[index].id,
+                        username: stories[index].username,
+                        avatarColors: stories[index].avatarColors,
+                        hasUnwatchedStory: false,
+                        storyType: stories[index].storyType,
+                        timestamp: stories[index].timestamp,
+                        previewImageURL: stories[index].previewImageURL
+                    )
+                }
+            } catch {
+                print("Failed to mark story as watched: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func markConversationAsRead(_ conversationId: UUID) {
+        Task {
+            do {
+                try await messagesService.markConversationAsRead(conversationId)
+                
+                // Update local state
+                if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
+                    conversations[index] = Conversation(
+                        id: conversations[index].id,
+                        otherParticipant: conversations[index].otherParticipant,
+                        lastMessage: conversations[index].lastMessage,
+                        timestamp: conversations[index].timestamp,
+                        hasUnreadMessages: false,
+                        unreadCount: 0
+                    )
+                }
+            } catch {
+                print("Failed to mark conversation as read: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func sendMessage(_ message: String, to conversationId: UUID) {
+        Task {
+            do {
+                let newMessage = try await messagesService.sendMessage(message, to: conversationId)
+                
+                // Update local conversation
+                if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
+                    conversations[index] = Conversation(
+                        id: conversations[index].id,
+                        otherParticipant: conversations[index].otherParticipant,
+                        lastMessage: message,
+                        timestamp: newMessage.timestamp,
+                        hasUnreadMessages: false,
+                        unreadCount: 0
+                    )
+                }
+            } catch {
+                print("Failed to send message: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func performSearch(_ query: String) {
+        Task {
+            do {
+                try await searchService.saveSearch(query)
+                // Additional search logic can be added here
+            } catch {
+                print("Failed to save search: \(error.localizedDescription)")
+            }
+        }
     }
     
     // MARK: - Private Methods
@@ -263,24 +410,43 @@ class HeaderViewModel: ObservableObject {
     
     private func updateSearchSuggestions(for searchText: String) {
         guard !searchText.isEmpty else {
-            searchSuggestions = SearchSuggestion.sampleSuggestions
+            Task {
+                await loadSearchSuggestions()
+            }
             return
         }
         
-        // Filter suggestions based on search text
-        let filtered = SearchSuggestion.sampleSuggestions.filter { suggestion in
-            suggestion.query.localizedCaseInsensitiveContains(searchText)
+        Task {
+            do {
+                let suggestions = try await searchService.getSuggestions(for: searchText)
+                
+                // Add dynamic suggestion at the top
+                let dynamicSuggestion = SearchSuggestion(
+                    query: searchText,
+                    category: .general,
+                    popularity: 0,
+                    isPersonalized: false
+                )
+                
+                searchSuggestions = [dynamicSuggestion] + suggestions
+                
+            } catch {
+                // Fall back to filtered sample data
+                let filtered = SearchSuggestion.sampleSuggestions.filter { suggestion in
+                    suggestion.query.localizedCaseInsensitiveContains(searchText)
+                }
+                
+                let dynamicSuggestion = SearchSuggestion(
+                    query: searchText,
+                    category: .general,
+                    popularity: 0,
+                    isPersonalized: false
+                )
+                
+                searchSuggestions = [dynamicSuggestion] + filtered
+                print("Failed to load search suggestions: \(error.localizedDescription)")
+            }
         }
-        
-        // Add dynamic suggestions
-        let dynamicSuggestion = SearchSuggestion(
-            query: searchText,
-            category: .general,
-            popularity: 0,
-            isPersonalized: false
-        )
-        
-        searchSuggestions = [dynamicSuggestion] + filtered
     }
     
     private func markAllMessagesAsRead() {
@@ -290,17 +456,29 @@ class HeaderViewModel: ObservableObject {
     }
     
     private func startRealTimeUpdates() {
-        // Simulate new messages
-        Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
+        // Set up periodic refresh for stories and conversations
+        Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
             guard let self = self else { return }
             
             Task { @MainActor in
-                if Bool.random() {
-                    self.simulateNewMessage()
+                // Refresh data periodically
+                await self.loadStories()
+                await self.loadConversations()
+            }
+        }
+        
+        // Simulate occasional new content for demo purposes
+        Timer.scheduledTimer(withTimeInterval: 120.0, repeats: true) { [weak self] _ in
+            guard let self = self else { return }
+            
+            Task { @MainActor in
+                // Randomly add demo content occasionally
+                if Bool.random() && self.stories.count < 10 {
+                    self.simulateNewStory()
                 }
                 
-                if Bool.random() {
-                    self.simulateNewStory()
+                if Bool.random() && self.conversations.count < 10 {
+                    self.simulateNewMessage()
                 }
             }
         }
@@ -335,96 +513,14 @@ class HeaderViewModel: ObservableObject {
             )
         }
     }
-}
-
-// MARK: - Mock Services
-
-class StoriesService {
-    func fetchStories() async -> [Story] {
-        // Simulate network delay
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-        return Story.sampleStories
+    
+    func closeStoryViewer() {
+        selectedStory = nil
+        isShowingStoryViewer = false
     }
     
-    func markStoryAsWatched(_ storyId: UUID) async {
-        // Simulate API call
-        try? await Task.sleep(nanoseconds: 500_000_000)
-    }
-}
-
-class MessagesService {
-    func fetchConversations() async -> [Conversation] {
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-        return Conversation.sampleConversations
-    }
-    
-    func markConversationAsRead(_ conversationId: UUID) async {
-        try? await Task.sleep(nanoseconds: 500_000_000)
-    }
-    
-    func sendMessage(_ message: String, to conversationId: UUID) async {
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-    }
-}
-
-class SearchService {
-    func searchContent(_ query: String) async -> [SearchResult] {
-        try? await Task.sleep(nanoseconds: 1_500_000_000)
-        return [] // TODO: Implement search results
-    }
-    
-    func getSuggestions(for query: String) async -> [SearchSuggestion] {
-        try? await Task.sleep(nanoseconds: 500_000_000)
-        return SearchSuggestion.sampleSuggestions.filter { suggestion in
-            suggestion.query.localizedCaseInsensitiveContains(query)
-        }
-    }
-}
-
-class UserService {
-    func fetchUserProfile() async -> UserProfile? {
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-        return UserProfile.sampleProfile
-    }
-    
-    func updateUserProfile(_ profile: UserProfile) async {
-        try? await Task.sleep(nanoseconds: 1_000_000_000)
-    }
-}
-
-// MARK: - Search Result Model
-
-struct SearchResult: Identifiable {
-    let id: UUID
-    let title: String
-    let description: String
-    let type: ResultType
-    let relevanceScore: Double
-    let url: String?
-    
-    enum ResultType: String, CaseIterable {
-        case course = "course"
-        case video = "video"
-        case article = "article"
-        case book = "book"
-        case user = "user"
-        case discussion = "discussion"
-        
-        var icon: String {
-            switch self {
-            case .course:
-                return "graduationcap"
-            case .video:
-                return "play.rectangle"
-            case .article:
-                return "doc.text"
-            case .book:
-                return "book"
-            case .user:
-                return "person"
-            case .discussion:
-                return "bubble.left.and.bubble.right"
-            }
-        }
+    func closeChatView() {
+        selectedConversation = nil
+        isShowingChatView = false
     }
 }
