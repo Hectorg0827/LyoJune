@@ -94,10 +94,13 @@ struct StudyBuddyFAB: View {
                 
                 // Avatar or activity indicator
                 if voiceManager.isListening || audioPlayer.isSpeaking {
-                    LyoAvatarView(
+                    EnhancedLyoAvatarView(
                         animationState: $animationState,
                         mouthIntensity: $mouthIntensity,
-                        size: 50
+                        size: 50,
+                        enableAdvancedFeatures: false,
+                        enableParticles: false,
+                        enableThoughts: false
                     )
                 } else {
                     Image(systemName: "brain.head.profile")
@@ -174,11 +177,14 @@ struct StudyBuddyFAB: View {
                 // Main content
                 GeometryReader { geometry in
                     VStack(spacing: 20) {
-                        // Avatar
-                        LyoAvatarView(
+                        // Enhanced Avatar
+                        EnhancedLyoAvatarView(
                             animationState: $animationState,
                             mouthIntensity: $mouthIntensity,
-                            size: 120
+                            size: 120,
+                            enableAdvancedFeatures: true,
+                            enableParticles: true,
+                            enableThoughts: true
                         )
                         .padding(.top, 20)
                         
@@ -522,11 +528,11 @@ struct StudyBuddyFAB: View {
         // Process with AI
         Task {
             if let response = await voiceManager.processTextInput(userInput) {
-                await handleAIResponse(response)
+                handleAIResponse(response)
             } else {
                 // Use mock response for development
                 let mockResponse = voiceManager.getMockResponse(for: userInput)
-                await handleAIResponse(mockResponse)
+                handleAIResponse(mockResponse)
             }
         }
     }
