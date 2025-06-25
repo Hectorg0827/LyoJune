@@ -2,6 +2,7 @@ import Foundation
 import AVFoundation
 import Speech
 import Combine
+import SwiftUI
 
 @MainActor
 class GemmaVoiceManager: NSObject, ObservableObject {
@@ -11,42 +12,352 @@ class GemmaVoiceManager: NSObject, ObservableObject {
     @Published var currentTranscript = ""
     @Published var lastError: String?
     @Published var voiceEnabled = true
-    @Published var connectionStatus: ConnectionStatus = .disconnected
+    @Published var connectionStatus: ConnectionStatus = .connected
+    @Published var conversationHistory: [ConversationMessage] = []
+    @Published var currentContext: LearningContext?
     
     // MARK: - Private Properties
-    private var speechRecognizer: SFSpeechRecognizer?
-    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
-    private var recognitionTask: SFSpeechRecognitionTask?
-    private var audioEngine = AVAudioEngine()
-    
-    // API Configuration
-    private let gemmaAPIEndpoint = "https://api.gemini.google.com/v1/chat/completions" // Placeholder - replace with actual Gemma endpoint
-    private let apiKey = "YOUR_GEMMA_API_KEY" // Should be loaded from secure storage
-    
-    // Session Management
-    private var session = URLSession.shared
+    private let aiService = EnhancedAIService.shared
     private var cancellables = Set<AnyCancellable>()
+    
+    // Secure API configuration
+    private var gemmaAPIEndpoint: String {
+        return ConfigurationManager.shared.string(for: .gemmaApiEndpoint) ?? "https://api.google.com/gemma/v1/generate"
+    }
+    
+    private var apiKey: String {
+        return ConfigurationManager.shared.gemmaApiKey ?? "YOUR_GEMMA_API_KEY"
+    }
     
     enum ConnectionStatus {
         case connected
         case connecting
         case disconnected
         case error(String)
+        
+        var description: String {
+            switch self {
+            case .connected: return "Connected"
+            case .connecting: return "Connecting..."
+            case .disconnected: return "Disconnected"
+            case .error(let message): return "Error: \(message)"
+            }
+        }
     }
+    
+    // MARK: - Singleton
+    static let shared = GemmaVoiceManager()
     
     // MARK: - Initialization
     override init() {
         super.init()
-        setupSpeechRecognizer()
-        setupAudioSession()
+        setupBindings()
+        connectionStatus = .connected
     }
     
-    // MARK: - Speech Recognition Setup
-    private func setupSpeechRecognizer() {
-        speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
-        speechRecognizer?.delegate = self
+    deinit {
+        cancellables.removeAll()
+    }
+    
+    // MARK: - Setup Methods
+    private func setupBindings() {
+        // Bind to AI service properties
+        aiService.$isListening
+            .assign(to: \.isListening, on: self)
+            .store(in: &cancellables)
         
-        // Request speech recognition permission
+        aiService.$isProcessing
+            .assign(to: \.isProcessing, on: self)
+            .store(in: &cancellables)
+        
+        aiService.$transcript
+            .assign(to: \.currentTranscript, on: self)
+            .store(in: &cancellables)
+        
+        aiService.$errorMessage
+            .assign(to: \.lastError, on: self)
+            .store(in: &cancellables)
+        
+        aiService.$conversationHistory
+            .assign(to: \.conversationHistory, on: self)
+            .store(in: &cancellables)
+    }
+    
+    // MARK: - Voice Control Methods
+    func startListening() async {
+        guard voiceEnabled else {
+            lastError = "Voice recognition is disabled"
+            return
+        }
+        
+        do {
+            try await aiService.startListening()
+            connectionStatus = .connected
+        } catch {
+            lastError = error.localizedDescription
+            connectionStatus = .error(error.localizedDescription)
+        }
+    }
+    
+    func stopListening() {
+        aiService.stopListening()
+    }
+    
+    func toggleListening() async {
+        if isListening {
+            stopListening()
+        } else {
+            await startListening()
+        }
+    }
+    
+    // MARK: - Text Interaction
+    func sendTextMessage(_ text: String) async {
+        await aiService.sendTextMessage(text)
+        
+        // Track interaction analytics
+        await AnalyticsAPIService.shared.trackEvent(
+            "voice_assistant_text_interaction",
+            parameters: [
+                "message_length": text.count,
+                "has_context": currentContext != nil,
+                "course_id": currentContext?.courseId ?? "",
+                "lesson_id": currentContext?.lessonId ?? ""
+            ]
+        )
+    }
+    
+    // MARK: - Context Management
+    func updateLearningContext(
+        courseId: String? = nil,
+        lessonId: String? = nil,
+        currentTopic: String? = nil,
+        userProgress: UserProgress? = nil,
+        difficulty: String? = nil
+    ) {
+        currentContext = LearningContext(
+            courseId: courseId,
+            lessonId: lessonId,
+            currentTopic: currentTopic,
+            userProgress: userProgress,
+            difficulty: difficulty
+        )
+        
+        // Update AI service context
+        aiService.updateContext(
+            courseId: courseId,
+            lessonId: lessonId,
+            userProgress: userProgress
+        )
+    }
+    
+    func clearContext() {
+        currentContext = nil
+        clearConversation()
+    }
+    
+    // MARK: - Conversation Management
+    func clearConversation() {
+        aiService.clearConversation()
+    }
+    
+    func getLastAIResponse() -> String? {
+        return conversationHistory.last(where: { $0.role == .assistant })?.content
+    }
+    
+    // MARK: - Learning Assistant Features
+    func explainConcept(_ concept: String) async {
+        let prompt = generateExplanationPrompt(for: concept)
+        await sendTextMessage(prompt)
+    }
+    
+    func askForHelp(with topic: String) async {
+        let prompt = generateHelpPrompt(for: topic)
+        await sendTextMessage(prompt)
+    }
+    
+    func requestQuiz(on topic: String? = nil) async {
+        let prompt = generateQuizPrompt(for: topic)
+        await sendTextMessage(prompt)
+    }
+    
+    func getStudyTips() async {
+        let prompt = generateStudyTipsPrompt()
+        await sendTextMessage(prompt)
+    }
+    
+    func checkProgress() async {
+        let prompt = generateProgressPrompt()
+        await sendTextMessage(prompt)
+    }
+    
+    // MARK: - Voice Settings
+    func toggleVoiceEnabled() {
+        voiceEnabled.toggle()
+        if !voiceEnabled && isListening {
+            stopListening()
+        }
+    }
+    
+    func setVoiceEnabled(_ enabled: Bool) {
+        voiceEnabled = enabled
+        if !enabled && isListening {
+            stopListening()
+        }
+    }
+    
+    // MARK: - Connection Management
+    func reconnect() async {
+        connectionStatus = .connecting
+        
+        // Simulate reconnection delay
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        
+        connectionStatus = .connected
+    }
+    
+    func disconnect() {
+        stopListening()
+        connectionStatus = .disconnected
+    }
+    
+    // MARK: - Prompt Generation
+    private func generateExplanationPrompt(for concept: String) -> String {
+        var prompt = "Please explain the concept of \(concept)"
+        
+        if let context = currentContext {
+            if let topic = context.currentTopic {
+                prompt += " in the context of \(topic)"
+            }
+            if let difficulty = context.difficulty {
+                prompt += " at a \(difficulty) level"
+            }
+        }
+        
+        prompt += ". Use simple language and provide examples if possible."
+        return prompt
+    }
+    
+    private func generateHelpPrompt(for topic: String) -> String {
+        var prompt = "I need help with \(topic)"
+        
+        if let context = currentContext {
+            if let courseId = context.courseId {
+                prompt += " in my current course"
+            }
+            if let lessonId = context.lessonId {
+                prompt += " for this lesson"
+            }
+        }
+        
+        prompt += ". Can you break it down step by step?"
+        return prompt
+    }
+    
+    private func generateQuizPrompt(for topic: String?) -> String {
+        let subject = topic ?? currentContext?.currentTopic ?? "the current topic"
+        return "Can you create a quick quiz to test my understanding of \(subject)? Please ask me one question at a time."
+    }
+    
+    private func generateStudyTipsPrompt() -> String {
+        var prompt = "Can you give me some study tips"
+        
+        if let context = currentContext {
+            if let topic = context.currentTopic {
+                prompt += " for learning \(topic)"
+            }
+        }
+        
+        prompt += "? Focus on effective techniques I can use right now."
+        return prompt
+    }
+    
+    private func generateProgressPrompt() -> String {
+        var prompt = "How am I doing with my learning progress?"
+        
+        if let context = currentContext, let progress = context.userProgress {
+            prompt += " I've completed \(progress.coursesCompleted) courses and have a \(progress.currentStreak) day streak."
+        }
+        
+        return prompt
+    }
+    
+    // MARK: - Analytics Tracking
+    func trackInteraction(type: String, details: [String: Any] = [:]) async {
+        var parameters = details
+        parameters["interaction_type"] = type
+        parameters["voice_enabled"] = voiceEnabled
+        parameters["has_context"] = currentContext != nil
+        
+        if let context = currentContext {
+            parameters["course_id"] = context.courseId ?? ""
+            parameters["lesson_id"] = context.lessonId ?? ""
+            parameters["current_topic"] = context.currentTopic ?? ""
+        }
+        
+        await AnalyticsAPIService.shared.trackEvent("voice_assistant_interaction", parameters: parameters)
+    }
+}
+
+// MARK: - Public Interface Extensions
+extension GemmaVoiceManager {
+    
+    var isConnected: Bool {
+        if case .connected = connectionStatus {
+            return true
+        }
+        return false
+    }
+    
+    var hasError: Bool {
+        if case .error = connectionStatus {
+            return true
+        }
+        return false
+    }
+    
+    var canListen: Bool {
+        return voiceEnabled && isConnected && !isProcessing
+    }
+    
+    var statusColor: Color {
+        switch connectionStatus {
+        case .connected:
+            return .green
+        case .connecting:
+            return .orange
+        case .disconnected:
+            return .gray
+        case .error:
+            return .red
+        }
+    }
+}
+
+// MARK: - Convenience Methods
+extension GemmaVoiceManager {
+    
+    func quickHelp() async {
+        await sendTextMessage("I need help with what I'm currently learning. Can you assist me?")
+    }
+    
+    func explainLastConcept() async {
+        if let topic = currentContext?.currentTopic {
+            await explainConcept(topic)
+        } else {
+            await sendTextMessage("Can you explain the last concept we were discussing?")
+        }
+    }
+    
+    func motivationalMessage() async {
+        await sendTextMessage("I could use some motivation with my learning. Can you encourage me?")
+    }
+    
+    func summarizeSession() async {
+        await sendTextMessage("Can you summarize what we've learned in this session?")
+    }
+    
+    private func checkSpeechAuthorization() {
         SFSpeechRecognizer.requestAuthorization { [weak self] status in
             DispatchQueue.main.async {
                 switch status {
@@ -61,6 +372,7 @@ class GemmaVoiceManager: NSObject, ObservableObject {
                 }
             }
         }
+    }
     }
     
     private func setupAudioSession() {
@@ -274,7 +586,6 @@ class GemmaVoiceManager: NSObject, ObservableObject {
             actions: nil
         )
     }
-}
 
 // MARK: - SFSpeechRecognizerDelegate
 extension GemmaVoiceManager: SFSpeechRecognizerDelegate {
