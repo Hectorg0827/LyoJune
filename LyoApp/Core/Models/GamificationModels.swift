@@ -1,4 +1,3 @@
-
 import Foundation
 
 // MARK: - Request Models
@@ -86,6 +85,13 @@ public struct Leaderboard: Codable {
 
 public typealias LeaderboardType = Leaderboard.LeaderboardType
 
+public enum TimeFrame: String, Codable {
+    case daily = "daily"
+    case weekly = "weekly"
+    case monthly = "monthly"
+    case allTime = "all_time"
+}
+
 public struct LeaderboardEntry: Codable {
     let rank: Int
     let userId: String
@@ -145,6 +151,21 @@ public struct Badge: Codable, Identifiable {
         case epic = "epic"
         case legendary = "legendary"
     }
+}
+
+public struct Achievement: Codable, Identifiable {
+    public let id: String
+    let title: String
+    let description: String
+    let iconURL: String
+    let xpReward: Int
+    let badgeReward: String?
+    let category: String
+    let requirements: [String]
+    let isUnlocked: Bool
+    let unlockedAt: Date?
+    let progress: Double
+    let rarity: Badge.BadgeRarity
 }
 
 public struct StudyAnalytics: Codable {
