@@ -39,7 +39,7 @@ class CommunityViewModel: ObservableObject {
         try? await Task.sleep(nanoseconds: 500_000_000)
         
         // Update event attendance
-        if let index = localEvents.firstIndex(where: { $0.id == event.id }) {
+        if localEvents.contains(where: { $0.id == event.id }) {
             // In a real app, you'd update the event's attendee count
         }
     }
@@ -49,7 +49,7 @@ class CommunityViewModel: ObservableObject {
         try? await Task.sleep(nanoseconds: 500_000_000)
         
         // Update group membership
-        if let index = studyGroups.firstIndex(where: { $0.id == group.id }) {
+        if studyGroups.contains(where: { $0.id == group.id }) {
             // In a real app, you'd update the group's member count
         }
     }
