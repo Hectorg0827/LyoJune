@@ -145,6 +145,10 @@ enum ConfigKey: String, CaseIterable {
 extension ConfigurationManager {
     
     // MARK: - API Configuration
+    var apiBaseURL: String {
+        return string(for: .backendBaseURL) ?? "https://api.lyo.app/v1"
+    }
+    
     var backendBaseURL: String {
         return string(for: .backendBaseURL) ?? "https://api.lyo.app/v1"
     }
