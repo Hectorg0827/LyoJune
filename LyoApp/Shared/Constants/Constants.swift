@@ -15,7 +15,14 @@ struct Constants {
     // MARK: - API Configuration
     
     struct API {
-        static let baseURL = "https://api.lyo.app/v1"
+        static var baseURL: String {
+            ConfigurationManager.shared.backendBaseURL
+        }
+        
+        static var websocketURL: String {
+            ConfigurationManager.shared.backendWebSocketURL
+        }
+        
         static let timeout: TimeInterval = 30.0
         static let maxRetryAttempts = 3
         
@@ -27,6 +34,13 @@ struct Constants {
             static let community = "/community"
             static let profile = "/profile"
             static let analytics = "/analytics"
+            static let stories = "/stories"
+            static let conversations = "/conversations"
+            static let search = "/search"
+            static let notifications = "/notifications"
+            static let achievements = "/achievements"
+            static let leaderboard = "/leaderboard"
+            static let ai = "/ai"
         }
     }
     
@@ -82,8 +96,14 @@ struct Constants {
     // MARK: - File Paths
     
     struct FilePaths {
-        static let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        static let caches = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        static var documents: URL {
+            return FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
+        }
+        
+        static var caches: URL {
+            return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first ?? FileManager.default.temporaryDirectory
+        }
+        
         static let temporary = FileManager.default.temporaryDirectory
         
         static var offlineContent: URL {
