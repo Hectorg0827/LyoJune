@@ -28,9 +28,9 @@ struct HomeFeedView: View {
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .ignoresSafeArea()
             
-            // Floating Header
+            // Dynamic Header
             VStack {
-                GlassHeader()
+                LyoHeaderView()
                 Spacer()
             }
             
@@ -52,44 +52,6 @@ struct HomeFeedView: View {
     }
 }
 
-struct GlassHeader: View {
-    var body: some View {
-        HStack {
-            Text("For You")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-            
-            Spacer()
-            
-            HStack(spacing: 16) {
-                Button(action: {}) {
-                    Image(systemName: "tv")
-                        .font(.title2)
-                        .foregroundColor(.white.opacity(0.9))
-                }
-                
-                Button(action: {}) {
-                    Image(systemName: "person.crop.circle")
-                        .font(.title2)
-                        .foregroundColor(.white.opacity(0.9))
-                }
-            }
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Material.ultraThin)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
-                )
-        )
-        .padding(.horizontal)
-        .padding(.top, 8)
-    }
-}
 
 struct TikTokVideoView: View {
     let video: EducationalVideo
