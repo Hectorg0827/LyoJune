@@ -2,12 +2,17 @@
 import Foundation
 
 @MainActor
-class SearchAPIService: APIService {
+class SearchAPIService: BaseAPIService {
     static let shared = SearchAPIService()
-    let apiClient: APIClientProtocol
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
 
-    init(apiClient: APIClientProtocol = APIClient()) {
-        self.apiClient = apiClient
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
     }
 
     func searchContent(_ query: String, filters: SearchFilters? = nil) async throws -> SearchResults {
