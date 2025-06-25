@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @EnvironmentObject var authService: LyoAuthService
+    @EnvironmentObject var authService: AuthService
     @StateObject private var viewModel = ProfileViewModel()
     @State private var showingSettings = false
     @State private var showingEditProfile = false
@@ -20,7 +20,7 @@ struct ProfileView: View {
                         )
                         
                         // Stats section
-                        if let stats = authService.currentUser?.learningStats {
+                        if let stats = viewModel.userStats {
                             ProfileStatsSection(stats: stats)
                         }
                         
@@ -70,7 +70,7 @@ struct ProfileView: View {
 }
 
 struct ProfileHeader: View {
-    let user: LyoAuthService.User?
+    let user: User?
     @Binding var showingEditProfile: Bool
     
     var body: some View {
@@ -88,7 +88,7 @@ struct ProfileHeader: View {
                 .overlay(
                     Group {
                         if let user = user {
-                            Text(String(user.displayName.prefix(1)))
+                            Text(String(user.fullName.prefix(1)))
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
@@ -103,7 +103,7 @@ struct ProfileHeader: View {
             
             // User info
             VStack(spacing: 8) {
-                Text(user?.displayName ?? "User")
+                Text(user?.fullName ?? "User")
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -112,8 +112,8 @@ struct ProfileHeader: View {
                     .font(.body)
                     .foregroundColor(.white.opacity(0.8))
                 
-                if let joinedDate = user?.joinedDate {
-                    Text("Joined \(joinedDate, formatter: dateFormatter)")
+                if let createdAt = user?.createdAt {
+                    Text("Joined \(createdAt)")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.6))
                 }
@@ -539,5 +539,5 @@ struct EditProfileView: View {
 
 #Preview {
     ProfileView()
-        .environmentObject(LyoAuthService())
+        .environmentObject(AuthService.shared)
 }
