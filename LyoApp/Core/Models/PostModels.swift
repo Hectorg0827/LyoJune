@@ -1,5 +1,67 @@
 import SwiftUI
 
+// MARK: - Media Type
+enum MediaType: String, Codable {
+    case image = "image"
+    case video = "video"
+    case audio = "audio"
+    
+    var mimeType: String {
+        switch self {
+        case .image: return "image/jpeg"
+        case .video: return "video/mp4"
+        case .audio: return "audio/mp3"
+        }
+    }
+    
+    var fileExtension: String {
+        switch self {
+        case .image: return "jpg"
+        case .video: return "mp4"
+        case .audio: return "mp3"
+        }
+    }
+}
+
+// MARK: - Post Model
+struct Post: Identifiable, Codable {
+    var id = UUID()
+    let author: String
+    let content: String
+    let timeAgo: String
+    var isLiked: Bool = false
+    var likeCount: Int
+    var commentCount: Int
+    var shareCount: Int
+    let hasMedia: Bool
+    let mediaType: MediaType?
+    let category: VideoCategory
+    let tags: [String]
+    let createdAt: Date
+    let updatedAt: Date
+    
+    // Convert from DiscoverPost
+    init(from discoverPost: DiscoverPost) {
+        self.id = discoverPost.id
+        self.author = discoverPost.author
+        self.content = discoverPost.content
+        self.timeAgo = discoverPost.timeAgo
+        self.likeCount = discoverPost.likes
+        self.commentCount = discoverPost.comments
+        self.shareCount = discoverPost.shares
+        self.hasMedia = discoverPost.hasMedia
+        self.mediaType = discoverPost.mediaType
+        self.category = discoverPost.category
+        self.tags = discoverPost.tags
+        self.createdAt = discoverPost.createdAt
+        self.updatedAt = discoverPost.updatedAt
+    }
+    
+    static var samplePosts: [Post] {
+        return DiscoverPost.mockPosts().map { Post(from: $0) }
+    }
+}
+
 struct DiscoverPost: Identifiable, Codable {
     var id = UUID()
     let author: String
