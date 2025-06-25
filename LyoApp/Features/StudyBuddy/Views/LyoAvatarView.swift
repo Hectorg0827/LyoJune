@@ -297,23 +297,6 @@ struct MouthView: View {
     }
 }
 
-struct Arc: Shape {
-    let startAngle: Angle
-    let endAngle: Angle
-    let clockwise: Bool
-    
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-        path.addArc(
-            center: CGPoint(x: rect.midX, y: rect.midY),
-            radius: rect.width / 2,
-            startAngle: startAngle,
-            endAngle: endAngle,
-            clockwise: clockwise
-        )
-        return path
-    }
-}
 
 struct LyoAvatarView_Previews: PreviewProvider {
     static var previews: some View {
