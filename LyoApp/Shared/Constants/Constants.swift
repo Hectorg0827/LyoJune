@@ -139,8 +139,11 @@ struct Constants {
         
         static var hasNotch: Bool {
             if #available(iOS 11.0, *) {
-                let window = UIApplication.shared.windows.first
-                return window?.safeAreaInsets.top ?? 0 > 24
+                guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                      let window = windowScene.windows.first else {
+                    return false
+                }
+                return window.safeAreaInsets.top > 24
             }
             return false
         }
