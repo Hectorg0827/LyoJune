@@ -3,8 +3,18 @@ import Foundation
 import Combine
 
 @MainActor
-class CommunityAPIService: APIService {
+class CommunityAPIService: BaseAPIService {
     static let shared = CommunityAPIService()
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
+    
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
+    }
 
     // MARK: - Posts
     func getPosts(filter: PostFilter? = nil) async throws -> [Post] {
