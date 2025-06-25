@@ -3,12 +3,22 @@ import Combine
 
 // MARK: - Enhanced AI Service
 @MainActor
-class EnhancedAIService: APIService {
+class EnhancedAIService: BaseAPIService {
     static let shared = EnhancedAIService()
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
+    
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
+    }
     
     // MARK: - Configuration
     private let gemmaAPIEndpoint = "https://api.gemma.ai/v1/chat"
-    private let openAIEndpoint = "https://api.openai.com/v1/chat/completions"
+    private let openAIapiEndpoint = "https://api.openai.com/v1/chat/completions"
     private let anthropicEndpoint = "https://api.anthropic.com/v1/messages"
     
     private var currentProvider: AIProvider = .gemma
