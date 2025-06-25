@@ -48,9 +48,11 @@ class ProactiveAIManager: ObservableObject {
     // MARK: - Idle Time Monitoring
     
     private func startIdleTimeMonitoring() {
+        idleTimer?.invalidate()
         idleTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.updateIdleTime()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.updateIdleTime()
             }
         }
     }
@@ -80,9 +82,11 @@ class ProactiveAIManager: ObservableObject {
     // MARK: - Screen Focus Monitoring
     
     private func startScreenFocusMonitoring() {
+        screenFocusTimer?.invalidate()
         screenFocusTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                self?.updateScreenFocusTime()
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.updateScreenFocusTime()
             }
         }
     }
@@ -196,7 +200,7 @@ class ProactiveAIManager: ObservableObject {
                 return ("Need help with anything? I'm here when you're ready!", .neutral)
             }
             
-        case .lowPerformance(let score):
+        case .lowPerformance(_):
             return ("I see you're working hard! Let me suggest some strategies that might help improve your understanding.", .encouraging)
             
         case .repeatedErrors(let count):
