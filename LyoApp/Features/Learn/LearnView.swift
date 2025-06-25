@@ -10,6 +10,9 @@ struct LearnView: View {
                 GlassBackground()
                 
                 VStack(spacing: 0) {
+                    // Dynamic Header
+                    LyoHeaderView()
+                    
                     // Custom tab selector
                     LearnTabSelector(selectedTab: $selectedTab)
                     
