@@ -1,8 +1,13 @@
 import SwiftUI
+import Foundation
 
 struct ContentView: View {
-    @EnvironmentObject var authService: LyoAuthService
+    @EnvironmentObject var authService: AuthService
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var networkManager: NetworkManager
+    @StateObject private var errorManager = ErrorManager.shared
+    @StateObject private var offlineManager = OfflineManager.shared
+    @State private var showingOfflineAlert = false
     
     var body: some View {
         Group {
@@ -10,12 +15,52 @@ struct ContentView: View {
                 LoadingView()
             } else if authService.isAuthenticated {
                 MainTabView()
+                    .overlay(alignment: .top) {
+                        if !networkManager.isOnline {
+                            OfflineIndicatorView()
+                        }
+                    }
             } else {
                 AuthenticationView()
             }
         }
         .animation(.easeInOut(duration: 0.3), value: authService.isAuthenticated)
         .animation(.easeInOut(duration: 0.3), value: authService.isLoading)
+        .errorHandling() // Add global error handling
+        .environmentObject(errorManager)
+        .environmentObject(offlineManager)
+        .onReceive(networkManager.$isOnline) { isOnline in
+            if !isOnline && authService.isAuthenticated {
+                showingOfflineAlert = true
+            }
+        }
+        .onReceive(authService.$errorMessage) { errorMessage in
+            if let errorMessage = errorMessage {
+                errorManager.handle(AuthError.invalidCredentials, context: "Authentication")
+            }
+        }
+        .alert("Offline Mode", isPresented: $showingOfflineAlert) {
+            Button("OK") { }
+        } message: {
+            Text("You're currently offline. Some features may be limited, but you can still access your downloaded content.")
+        }
+    }
+}
+
+struct OfflineIndicatorView: View {
+    var body: some View {
+        HStack {
+            Image(systemName: "wifi.slash")
+                .foregroundColor(.white)
+            Text("Offline")
+                .font(.caption)
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.red.opacity(0.7))
+        .cornerRadius(16)
+        .padding(.top, 8)
     }
 }
 
@@ -80,6 +125,7 @@ struct LoadingView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(LyoAuthService())
+        .environmentObject(AuthService.shared)
         .environmentObject(AppState())
+        .environmentObject(NetworkManager.shared)
 }
