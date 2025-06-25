@@ -2,12 +2,17 @@
 import Foundation
 
 @MainActor
-class StoriesAPIService: APIService {
+class StoriesAPIService: BaseAPIService {
     static let shared = StoriesAPIService()
-    let apiClient: APIClientProtocol
+    
+    private override init(apiClient: APIClientProtocol = {
+        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
+    }()) {
+        super.init(apiClient: apiClient)
+    }
 
-    init(apiClient: APIClientProtocol = APIClient()) {
-        self.apiClient = apiClient
+    init(apiClient: APIClientProtocol) {
+        super.init(apiClient: apiClient)
     }
 
     func fetchStories() async throws -> [Story] {
