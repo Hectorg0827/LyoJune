@@ -147,13 +147,104 @@ public struct LearningRecommendation: Codable {
 }
 
 public struct Comment: Codable {
-    let id: String
-    let postId: String
-    let authorId: String
-    let authorName: String
-    let authorAvatar: String?
+    let id: UUID
+    let postId: UUID
+    let userId: UUID
     let content: String
     let createdAt: Date
     let likesCount: Int
     let isLiked: Bool
+}
+
+// MARK: - Community Models
+public struct StudyGroup: Codable, Identifiable {
+    public let id: UUID
+    let name: String
+    let description: String
+    let category: String
+    let memberCount: Int
+    let maxMembers: Int
+    let isPrivate: Bool
+    let createdBy: UUID
+    let createdAt: Date
+    let imageURL: String?
+    let tags: [String]
+    let membershipStatus: MembershipStatus?
+    
+    public enum MembershipStatus: String, Codable {
+        case member = "member"
+        case pending = "pending"
+        case invited = "invited"
+        case banned = "banned"
+    }
+}
+
+public struct Story: Codable, Identifiable {
+    public let id: UUID
+    let userId: UUID
+    let username: String
+    let userAvatar: String?
+    let mediaURL: String
+    let mediaType: MediaType
+    let duration: TimeInterval?
+    let caption: String?
+    let createdAt: Date
+    let viewsCount: Int
+    let isViewed: Bool
+    
+    public enum MediaType: String, Codable {
+        case image = "image"
+        case video = "video"
+    }
+}
+
+public struct Conversation: Codable, Identifiable {
+    public let id: UUID
+    let participantIds: [UUID]
+    let lastMessage: Message?
+    let lastActivity: Date
+    let unreadCount: Int
+    let isGroup: Bool
+    let title: String?
+    let avatar: String?
+}
+
+public struct Message: Codable, Identifiable {
+    public let id: UUID
+    let conversationId: UUID
+    let senderId: UUID
+    let content: String
+    let messageType: MessageType
+    let sentAt: Date
+    let readAt: Date?
+    let mediaURL: String?
+    
+    public enum MessageType: String, Codable {
+        case text = "text"
+        case image = "image"
+        case video = "video"
+        case file = "file"
+        case voice = "voice"
+    }
+}
+
+public struct UserProfile: Codable, Identifiable {
+    public let id: UUID
+    let username: String
+    let displayName: String
+    let bio: String?
+    let avatar: String?
+    let level: Int
+    let xp: Int
+    let joinedAt: Date
+    let coursesCompleted: Int
+    let badgesEarned: Int
+    let followersCount: Int
+    let followingCount: Int
+    let isFollowing: Bool?
+}
+
+public struct AvatarUploadResponse: Codable {
+    let avatarURL: String
+    let message: String
 }
