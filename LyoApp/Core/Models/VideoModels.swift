@@ -97,6 +97,7 @@ enum VideoCategory: String, Codable, CaseIterable {
     case economics = "Economics"
     case literature = "Literature"
     case philosophy = "Philosophy"
+    case study = "Study"
     
     var name: String {
         return rawValue
@@ -119,6 +120,7 @@ enum VideoCategory: String, Codable, CaseIterable {
         case .economics: return .gray
         case .literature: return .secondary
         case .philosophy: return .primary
+        case .study: return .accentColor
         }
     }
     
@@ -147,6 +149,7 @@ enum VideoCategory: String, Codable, CaseIterable {
         case .economics: return "chart.line.uptrend.xyaxis"
         case .literature: return "book"
         case .philosophy: return "quote.bubble"
+        case .study: return "book.closed"
         }
     }
     
@@ -182,6 +185,8 @@ enum VideoCategory: String, Codable, CaseIterable {
             return ["poetry", "novels", "drama", "classics", "analysis"]
         case .philosophy:
             return ["ethics", "logic", "metaphysics", "epistemology", "wisdom"]
+        case .study:
+            return ["learning", "education", "academic", "knowledge", "skills"]
         }
     }
 }
