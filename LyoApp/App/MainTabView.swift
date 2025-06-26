@@ -4,77 +4,147 @@ import Foundation
 struct MainTabView: View {
     @EnvironmentObject var appState: AppState
     @State private var tabBarOpacity: Double = 1.0
+    @State private var previousTab: AppState.TabItem = .home
+    @Namespace private var tabAnimation
     
     var body: some View {
-        TabView(selection: $appState.selectedTab) {
-            HomeFeedView()
-                .tabItem {
-                    Image(systemName: appState.selectedTab == .home ? 
-                          AppState.TabItem.home.selectedIcon : 
-                          AppState.TabItem.home.icon)
-                    Text(AppState.TabItem.home.title)
-                }
-                .tag(AppState.TabItem.home)
+        ZStack {
+            // Dynamic background that adapts to selected tab
+            tabBackground
+                .ignoresSafeArea()
             
-            DiscoverView()
-                .tabItem {
-                    Image(systemName: appState.selectedTab == .discover ? 
-                          AppState.TabItem.discover.selectedIcon : 
-                          AppState.TabItem.discover.icon)
-                    Text(AppState.TabItem.discover.title)
-                }
-                .tag(AppState.TabItem.discover)
-            
-            LearnView()
-                .tabItem {
-                    Image(systemName: appState.selectedTab == .learn ? 
-                          AppState.TabItem.learn.selectedIcon : 
-                          AppState.TabItem.learn.icon)
-                    Text(AppState.TabItem.learn.title)
-                }
-                .tag(AppState.TabItem.learn)
-            
-            PostView()
-                .tabItem {
-                    Image(systemName: appState.selectedTab == .post ? 
-                          AppState.TabItem.post.selectedIcon : 
-                          AppState.TabItem.post.icon)
-                    Text(AppState.TabItem.post.title)
-                }
-                .tag(AppState.TabItem.post)
-            
-            CommunityView()
-                .tabItem {
-                    Image(systemName: appState.selectedTab == .community ? 
-                          AppState.TabItem.community.selectedIcon : 
-                          AppState.TabItem.community.icon)
+            TabView(selection: $appState.selectedTab) {
+                HomeFeedView()
+                    .tabItem {
+                        tabItemView(for: .home)
+                    }
+                    .tag(AppState.TabItem.home)
+                
+                DiscoverView()
+                    .tabItem {
+                        tabItemView(for: .discover)
+                    }
+                    .tag(AppState.TabItem.discover)
+                
+                LearnView()
+                    .tabItem {
+                        tabItemView(for: .learn)
+                    }
+                    .tag(AppState.TabItem.learn)
+                
+                PostView()
+                    .tabItem {
+                        tabItemView(for: .post)
+                    }
+                    .tag(AppState.TabItem.post)
+                
+                CommunityView()
+                    .tabItem {
+                        tabItemView(for: .community)
                     Text(AppState.TabItem.community.title)
                 }
                 .tag(AppState.TabItem.community)
             
             ProfileView()
                 .tabItem {
-                    Image(systemName: appState.selectedTab == .profile ? 
-                          AppState.TabItem.profile.selectedIcon : 
-                          AppState.TabItem.profile.icon)
-                    Text(AppState.TabItem.profile.title)
+                    tabItemView(for: .profile)
                 }
                 .tag(AppState.TabItem.profile)
         }
-        .accentColor(.blue)
-        .opacity(tabBarOpacity)
+        .accentColor(ModernDesignSystem.Colors.primary)
+        .onAppear {
+            configureTabBarAppearance()
+        }
+        .onChange(of: appState.selectedTab) { _, newValue in
+            handleTabChange(from: previousTab, to: newValue)
+            previousTab = newValue
+        }
         .overlay {
             GamificationOverlay()
         }
-        .onChange(of: appState.selectedTab) { _, newValue in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                tabBarOpacity = 0.8
-            }
+    } // End of ZStack
+    } // End of body property
+    
+    // MARK: - Private Views
+    
+    @ViewBuilder
+    private func tabItemView(for tab: AppState.TabItem) -> some View {
+        VStack(spacing: ModernDesignSystem.Spacing.xs) {
+            Image(systemName: appState.selectedTab == tab ? tab.selectedIcon : tab.icon)
+                .font(.system(size: 22, weight: .medium))
+                .foregroundColor(appState.selectedTab == tab ? ModernDesignSystem.Colors.primary : ModernDesignSystem.Colors.neutral400)
+                .scaleEffect(appState.selectedTab == tab ? 1.1 : 1.0)
+                .animation(ModernDesignSystem.Animations.springSnappy, value: appState.selectedTab)
             
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    tabBarOpacity = 1.0
-                }
+            Text(tab.title)
+                .font(ModernDesignSystem.Typography.caption)
+                .foregroundColor(appState.selectedTab == tab ? ModernDesignSystem.Colors.primary : ModernDesignSystem.Colors.neutral400)
+        }
+    }
+    
+    @ViewBuilder
+    private var tabBackground: some View {
+        LinearGradient(
+            gradient: Gradient(stops: [
+                .init(color: backgroundColorTop, location: 0.0),
+                .init(color: backgroundColorBottom, location: 1.0)
+            ]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        .animation(ModernDesignSystem.Animations.easeInOut, value: appState.selectedTab)
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var backgroundColorTop: Color {
+        switch appState.selectedTab {
+        case .home:
+            return ModernDesignSystem.Colors.backgroundSecondary
+        case .discover:
+            return ModernDesignSystem.Colors.accent.opacity(0.1)
+        case .learn:
+            return ModernDesignSystem.Colors.success.opacity(0.1)
+        case .post:
+            return ModernDesignSystem.Colors.secondary.opacity(0.1)
+        case .community:
+            return ModernDesignSystem.Colors.warning.opacity(0.1)
+        case .profile:
+            return ModernDesignSystem.Colors.primary.opacity(0.1)
+        }
+    }
+    
+    private var backgroundColorBottom: Color {
+        ModernDesignSystem.Colors.backgroundPrimary
+    }
+    
+    // MARK: - Private Methods
+    
+    private func configureTabBarAppearance() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundColor = UIColor.black.withAlphaComponent(0.1)
+        
+        // Modern blur effect
+        let blurEffect = UIBlurEffect(style: .systemUltraThinMaterialDark)
+        appearance.backgroundEffect = blurEffect
+        
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+    
+    private func handleTabChange(from previousTab: AppState.TabItem, to newTab: AppState.TabItem) {
+        // Haptic feedback for tab changes
+        HapticManager.shared.selectionChanged()
+        
+        // Smooth animation
+        withAnimation(ModernDesignSystem.Animations.springSnappy) {
+            tabBarOpacity = 0.9
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            withAnimation(ModernDesignSystem.Animations.springSnappy) {
+                tabBarOpacity = 1.0
             }
         }
     }
@@ -83,5 +153,5 @@ struct MainTabView: View {
 #Preview {
     MainTabView()
         .environmentObject(AppState())
-        .environmentObject(AuthService.shared)
+        .environmentObject(EnhancedAuthService.shared)
 }
