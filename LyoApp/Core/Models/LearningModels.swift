@@ -1,4 +1,8 @@
 import Foundation
+import Security
+
+// MARK: - Learning Models defined here that work with AppModels.swift types
+// Course is defined in AppModels.swift and can be used directly
 
 // Learning requests
 public struct EnrollCourseRequest: Codable {
@@ -57,6 +61,19 @@ public struct LikePostRequest: Codable {
 public struct AddCommentRequest: Codable {
     let postId: String
     let content: String
+}
+
+public struct CreateCommentRequest: Codable {
+    let content: String
+}
+
+public struct SharePostRequest: Codable {
+    let postId: String
+    let message: String?
+}
+
+public struct ReportPostRequest: Codable {
+    let reason: String
 }
 
 public struct JoinGroupRequest: Codable {
@@ -248,3 +265,372 @@ public struct AvatarUploadResponse: Codable {
     let avatarURL: String
     let message: String
 }
+
+// MARK: - Additional Types for Compilation
+
+// HTTP Method
+public enum HTTPMethod: String, CaseIterable {
+    case GET = "GET"
+    case POST = "POST"
+    case PUT = "PUT"
+    case DELETE = "DELETE"
+    case PATCH = "PATCH"
+}
+
+// API Endpoint
+public struct APIEndpoint {
+    public let path: String
+    public let method: HTTPMethod
+    public let headers: [String: String]
+    public let queryParameters: [String: String]
+    public let queryItems: [URLQueryItem]?
+    public let body: Data?
+    
+    public init(
+        path: String, 
+        method: HTTPMethod = .GET, 
+        headers: [String: String] = [:], 
+        queryParameters: [String: String] = [:],
+        queryItems: [URLQueryItem]? = nil,
+        body: Data? = nil
+    ) {
+        self.path = path
+        self.method = method
+        self.headers = headers
+        self.queryParameters = queryParameters
+        self.queryItems = queryItems
+        self.body = body
+    }
+}
+
+// Network Connection Type
+public enum NetworkConnectionType: String, Codable, CaseIterable {
+    case wifi = "wifi"
+    case cellular = "cellular"
+    case ethernet = "ethernet"
+    case none = "none"
+}
+
+// Empty Response
+public struct EmptyResponse: Codable {
+    public init() {}
+}
+
+// Network Errors
+public enum NetworkError: Error, LocalizedError {
+    case noInternetConnection
+    case requestTimeout
+    case serverError(statusCode: Int)
+    case invalidResponse
+    case decodingError(String)
+    case encodingError(String)
+    case invalidURL
+    case unauthorizedAccess
+    case rateLimitExceeded
+    case networkUnavailable
+    case sslError
+    case networkError(String)
+    case timeout
+    case unauthorized
+    case forbidden
+    case notFound
+    case noData
+    case custom(String)
+    
+    public var errorDescription: String? {
+        switch self {
+        case .noInternetConnection:
+            return "No internet connection available"
+        case .requestTimeout, .timeout:
+            return "Request timed out"
+        case .serverError(let statusCode):
+            return "Server error with status code: \(statusCode)"
+        case .invalidResponse:
+            return "Invalid response received"
+        case .decodingError(let message):
+            return "Failed to decode response: \(message)"
+        case .encodingError(let message):
+            return "Failed to encode request: \(message)"
+        case .invalidURL:
+            return "Invalid URL"
+        case .unauthorizedAccess, .unauthorized:
+            return "Unauthorized access"
+        case .forbidden:
+            return "Access forbidden"
+        case .notFound:
+            return "Resource not found"
+        case .noData:
+            return "No data received from server"
+        case .rateLimitExceeded:
+            return "Rate limit exceeded"
+        case .networkUnavailable:
+            return "Network unavailable"
+        case .sslError:
+            return "SSL connection error"
+        case .networkError(let message):
+            return "Network error: \(message)"
+        case .custom(let message):
+            return message
+        }
+    }
+}
+
+// User Model (Basic)
+public struct User: Codable, Identifiable, Hashable {
+    public let id: String
+    public let email: String
+    public let firstName: String?
+    public let lastName: String?
+    public let username: String?
+    public let profileImageURL: String?
+    public let isVerified: Bool
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(
+        id: String,
+        email: String,
+        firstName: String? = nil,
+        lastName: String? = nil,
+        username: String? = nil,
+        profileImageURL: String? = nil,
+        isVerified: Bool = false,
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.email = email
+        self.firstName = firstName
+        self.lastName = lastName
+        self.username = username
+        self.profileImageURL = profileImageURL
+        self.isVerified = isVerified
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+    
+    public var fullName: String {
+        let components = [firstName, lastName].compactMap { $0 }
+        return components.isEmpty ? (username ?? email) : components.joined(separator: " ")
+    }
+}
+
+// Auth Error Types
+public enum AuthError: Error, LocalizedError {
+    case invalidCredentials
+    case networkError
+    case serverError(String)
+    case invalidToken
+    case tokenInvalid
+    case userNotFound
+    case emailAlreadyExists
+    case weakPassword
+    case validationFailed(String)
+    case biometricNotAvailable
+    case biometricNotEnabled
+    case biometricNotEnrolled
+    case biometricAuthFailed
+    case sessionExpired
+    case twoFactorRequired
+    case accountLocked
+    case registrationFailed
+    case loginFailed(String)
+    case tokenRefreshFailed
+    case noRefreshToken
+    case unknown(Error)
+
+    public var errorDescription: String? {
+        switch self {
+        case .invalidCredentials:
+            return "Invalid email or password"
+        case .networkError:
+            return "Network connection error"
+        case .serverError(let message):
+            return "Server error: \(message)"
+        case .invalidToken, .tokenInvalid:
+            return "Invalid authentication token"
+        case .userNotFound:
+            return "User not found"
+        case .emailAlreadyExists:
+            return "Email already exists"
+        case .weakPassword:
+            return "Password is too weak"
+        case .validationFailed(let message):
+            return "Authentication validation failed: \(message)"
+        case .biometricNotAvailable:
+            return "Biometric authentication is not available on this device"
+        case .biometricNotEnabled:
+            return "Biometric authentication is not enabled"
+        case .biometricNotEnrolled:
+            return "Biometric authentication is not enrolled"
+        case .biometricAuthFailed:
+            return "Biometric authentication failed"
+        case .sessionExpired:
+            return "Your session has expired. Please sign in again."
+        case .twoFactorRequired:
+            return "Two-factor authentication is required"
+        case .accountLocked:
+            return "Account is temporarily locked. Please try again later."
+        case .registrationFailed:
+            return "Account registration failed"
+        case .loginFailed(let message):
+            return "Login failed: \(message)"
+        case .tokenRefreshFailed:
+            return "Token refresh failed"
+        case .noRefreshToken:
+            return "No refresh token available"
+        case .unknown(let error):
+            return error.localizedDescription
+        }
+    }
+}
+
+// Service Protocols
+public protocol EnhancedAPIService {
+    func request<T: Codable>(_ endpoint: APIEndpoint, responseType: T.Type) async throws -> T
+}
+
+public protocol CoreDataManager: AnyObject {
+    func save() throws
+}
+
+// Basic implementation for CoreDataManager
+public class BasicCoreDataManager: CoreDataManager {
+    public static let shared = BasicCoreDataManager()
+    
+    private init() {}
+    
+    public func save() throws {
+        // Basic implementation - would need actual Core Data context
+        print("Core Data save called")
+    }
+}
+
+// Keychain Helper
+public final class KeychainHelper {
+    public static let shared = KeychainHelper()
+    
+    private init() {}
+    
+    private let service = Bundle.main.bundleIdentifier ?? "com.lyo.app"
+    
+    // MARK: - Save
+    @discardableResult
+    public func save(_ data: String, for key: String) -> Bool {
+        guard let data = data.data(using: .utf8) else { return false }
+        return save(data, for: key)
+    }
+    
+    @discardableResult
+    public func save(_ data: Data, for key: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecValueData as String: data
+        ]
+        
+        // Delete existing item first
+        SecItemDelete(query as CFDictionary)
+        
+        // Add new item
+        let status = SecItemAdd(query as CFDictionary, nil)
+        return status == errSecSuccess
+    }
+    
+    // MARK: - Retrieve
+    public func retrieve(for key: String) -> String? {
+        guard let data = retrieveData(for: key) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+    
+    public func retrieveData(for key: String) -> Data? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+        
+        var dataTypeRef: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
+        
+        return status == errSecSuccess ? (dataTypeRef as? Data) : nil
+    }
+    
+    // MARK: - Delete
+    @discardableResult
+    public func delete(for key: String) -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: key
+        ]
+        
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess
+    }
+    
+    // MARK: - Clear All
+    @discardableResult
+    public func clearAll() -> Bool {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service
+        ]
+        
+        let status = SecItemDelete(query as CFDictionary)
+        return status == errSecSuccess
+    }
+}
+
+// Bundle extension for app version
+extension Bundle {
+    public var appVersion: String {
+        return infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+    }
+    
+    public var buildNumber: String {
+        return infoDictionary?["CFBundleVersion"] as? String ?? "1"
+    }
+}
+
+// MARK: - Course Type Alias
+// Course model is available from AppModels.swift
+
+// MARK: - API Response Models
+// Models needed by API services that don't exist elsewhere
+
+public struct UserProgress: Codable {
+    public let totalCoursesEnrolled: Int
+    public let totalCoursesCompleted: Int
+    public let totalLessonsCompleted: Int
+    public let totalTimeSpent: TimeInterval
+    public let streakDays: Int
+    public let level: Int
+    public let xp: Int
+    
+    public init(totalCoursesEnrolled: Int, totalCoursesCompleted: Int, totalLessonsCompleted: Int, totalTimeSpent: TimeInterval, streakDays: Int, level: Int, xp: Int) {
+        self.totalCoursesEnrolled = totalCoursesEnrolled
+        self.totalCoursesCompleted = totalCoursesCompleted
+        self.totalLessonsCompleted = totalLessonsCompleted
+        self.totalTimeSpent = totalTimeSpent
+        self.streakDays = streakDays
+        self.level = level
+        self.xp = xp
+    }
+}
+
+public struct EnrollmentResponse: Codable {
+    public let success: Bool
+    public let enrollmentId: String
+    public let message: String
+    
+    public init(success: Bool, enrollmentId: String, message: String) {
+        self.success = success
+        self.enrollmentId = enrollmentId
+        self.message = message
+    }
+}
+
