@@ -1,6 +1,29 @@
 import SwiftUI
 import Combine
 
+// MARK: - Feed Type Definitions
+struct PostUpdate: Codable {
+    let type: UpdateType
+    let post: Post?
+    let postId: String?
+    let timestamp: Date
+    
+    enum UpdateType: String, CaseIterable, Codable {
+        case newPost = "new_post"
+        case likeUpdate = "like_update"
+        case commentUpdate = "comment_update"
+        case shareUpdate = "share_update"
+        case postDeleted = "post_deleted"
+    }
+    
+    init(type: UpdateType, post: Post? = nil, postId: String? = nil, timestamp: Date = Date()) {
+        self.type = type
+        self.post = post
+        self.postId = postId
+        self.timestamp = timestamp
+    }
+}
+
 @MainActor
 class FeedViewModel: ObservableObject {
     @Published var posts: [Post] = []
