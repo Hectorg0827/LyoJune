@@ -28,7 +28,7 @@ class ServiceFactory {
     }()
     
     // Service instances
-    lazy var authService = AuthService(apiClient: apiClient)
+    lazy var authService = EnhancedAuthService.shared
     lazy var learningService = LearningAPIService(apiClient: apiClient)
     lazy var gamificationService = GamificationAPIService(apiClient: apiClient)
     lazy var communityService = CommunityAPIService(apiClient: apiClient)
