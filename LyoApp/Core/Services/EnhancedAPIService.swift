@@ -384,17 +384,7 @@ struct UserProfileUpdate: Codable {
     let interests: [String]?
 }
 
-struct AnalyticsEvent: Codable {
-    let name: String
-    let properties: [String: AnyCodable]
-    let timestamp: Date
-    
-    init(name: String, properties: [String: Any] = [:]) {
-        self.name = name
-        self.properties = properties.mapValues { AnyCodable($0) }
-        self.timestamp = Date()
-    }
-}
+// Note: AnalyticsEvent is now defined in Core/Models/AppModels.swift
 
 struct NotificationSettings: Codable {
     let pushEnabled: Bool
@@ -622,46 +612,7 @@ enum NotificationType: String, Codable {
     case reminder = "reminder"
 }
 
-// MARK: - AnyCodable Helper
-struct AnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let intValue = try? container.decode(Int.self) {
-            value = intValue
-        } else if let doubleValue = try? container.decode(Double.self) {
-            value = doubleValue
-        } else if let stringValue = try? container.decode(String.self) {
-            value = stringValue
-        } else if let boolValue = try? container.decode(Bool.self) {
-            value = boolValue
-        } else {
-            value = NSNull()
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        if let intValue = value as? Int {
-            try container.encode(intValue)
-        } else if let doubleValue = value as? Double {
-            try container.encode(doubleValue)
-        } else if let stringValue = value as? String {
-            try container.encode(stringValue)
-        } else if let boolValue = value as? Bool {
-            try container.encode(boolValue)
-        } else {
-            try container.encodeNil()
-        }
-    }
-}
+// Note: AnyCodable is now defined in Core/Utilities/AnyCodable.swift
 
 // MARK: - Publisher Extension
 extension Publisher {
