@@ -344,12 +344,6 @@ struct ShimmerEffect: ViewModifier {
     }
 }
 
-extension View {
-    func shimmer() -> some View {
-        self.modifier(ShimmerEffect())
-    }
-}
-
 // MARK: - Loading States
 
 struct SkeletonLoadingView: View {
