@@ -24,12 +24,28 @@ struct ConfigurationManager {
     }
     
     private mutating func loadFromEnvironmentFile() {
-        guard let envPath = bundle.path(forResource: ".env", ofType: nil),
-              let envContent = try? String(contentsOfFile: envPath) else {
+        // Try multiple locations for .env file
+        var envContent: String?
+        
+        // First try bundle resource (added to Xcode project)
+        if let envPath = bundle.path(forResource: ".env", ofType: nil) {
+            envContent = try? String(contentsOfFile: envPath)
+        }
+        
+        // Fallback to project root (development)
+        if envContent == nil {
+            let projectRoot = bundle.bundlePath.replacingOccurrences(of: "/build/", with: "/")
+            let envPath = projectRoot + "/.env"
+            envContent = try? String(contentsOfFile: envPath)
+        }
+        
+        guard let content = envContent else {
+            print("⚠️ .env file not found - using default configuration")
             return
         }
         
-        let lines = envContent.components(separatedBy: .newlines)
+        
+        let lines = content.components(separatedBy: .newlines)
         for line in lines {
             let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
             
@@ -46,6 +62,8 @@ struct ConfigurationManager {
                 configDictionary[key] = value
             }
         }
+        
+        print("✅ Loaded configuration from .env file")
     }
     
     private mutating func loadFromInfoPlist() {
