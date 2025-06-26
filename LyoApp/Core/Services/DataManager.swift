@@ -3,6 +3,14 @@ import Combine
 import CoreData
 import UIKit
 
+// MARK: - Offline Analytics Event
+struct OfflineAnalyticsEvent: Codable {
+    let event: String
+    let parameters: [String: String]
+    let timestamp: TimeInterval
+    let userId: String
+}
+
 // MARK: - Data Manager
 @MainActor
 class DataManager: ObservableObject {
@@ -144,7 +152,7 @@ class DataManager: ObservableObject {
     
     // MARK: - Sync Management
     func syncData() async {
-        guard NetworkManager.shared.isOnline else { return }
+        guard NetworkManager.shared.connectivityState.isConnected else { return }
         
         isLoading = true
         defer { isLoading = false }
@@ -220,12 +228,21 @@ class DataManager: ObservableObject {
     func trackEvent(_ event: String, parameters: [String: Any] = [:]) {
         guard Constants.FeatureFlags.enableAnalytics else { return }
         
-        let eventData: [String: Any] = [
-            "event": event,
-            "parameters": parameters,
-            "timestamp": Date().timeIntervalSince1970,
-            "userId": EnhancedAuthService.shared.currentUser?.id ?? "anonymous"
-        ]
+        // Convert Any parameters to String for Codable compliance
+        let stringParameters = parameters.compactMapValues { value in
+            if let stringValue = value as? String {
+                return stringValue
+            } else {
+                return String(describing: value)
+            }
+        }
+        
+        let eventData = OfflineAnalyticsEvent(
+            event: event,
+            parameters: stringParameters,
+            timestamp: Date().timeIntervalSince1970,
+            userId: EnhancedAuthService.shared.currentUser?.id ?? "anonymous"
+        )
         
         // Store locally and sync later
         saveForOffline(eventData, key: "analytics_\(UUID().uuidString)")
