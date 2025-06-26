@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES">
+    <entity name="CachedCourse" representedClassName="CachedCourse" syncable="YES" codeGenerationType="class">
+        <attribute name="courseId" optional="NO" attributeType="String"/>
+        <attribute name="title" optional="NO" attributeType="String"/>
+        <attribute name="subtitle" optional="YES" attributeType="String"/>
+        <attribute name="courseDescription" optional="YES" attributeType="String"/>
+        <attribute name="imageURL" optional="YES" attributeType="String"/>
+        <attribute name="difficulty" optional="NO" attributeType="String"/>
+        <attribute name="duration" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="category" optional="NO" attributeType="String"/>
+        <attribute name="tags" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName" customClassName="[String]"/>
+        <attribute name="isFeatured" optional="NO" attributeType="Boolean" defaultValue="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncStatus" optional="NO" attributeType="String" defaultValue="synced"/>
+        <relationship name="lessons" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CachedLesson" inverseName="course" inverseEntity="CachedLesson"/>
+        <relationship name="userProgress" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedUserProgress" inverseName="course" inverseEntity="CachedUserProgress"/>
+    </entity>
+    <entity name="CachedLesson" representedClassName="CachedLesson" syncable="YES" codeGenerationType="class">
+        <attribute name="lessonId" optional="NO" attributeType="String"/>
+        <attribute name="title" optional="NO" attributeType="String"/>
+        <attribute name="content" optional="YES" attributeType="String"/>
+        <attribute name="duration" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="order" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="isCompleted" optional="NO" attributeType="Boolean" defaultValue="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncStatus" optional="NO" attributeType="String" defaultValue="synced"/>
+        <relationship name="course" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedCourse" inverseName="lessons" inverseEntity="CachedCourse"/>
+    </entity>
+    <entity name="CachedPost" representedClassName="CachedPost" syncable="YES" codeGenerationType="class">
+        <attribute name="postId" optional="NO" attributeType="String"/>
+        <attribute name="authorId" optional="NO" attributeType="String"/>
+        <attribute name="authorName" optional="NO" attributeType="String"/>
+        <attribute name="authorAvatar" optional="YES" attributeType="String"/>
+        <attribute name="content" optional="NO" attributeType="String"/>
+        <attribute name="imageURL" optional="YES" attributeType="String"/>
+        <attribute name="likesCount" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="commentsCount" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="isLiked" optional="NO" attributeType="Boolean" defaultValue="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncStatus" optional="NO" attributeType="String" defaultValue="synced"/>
+    </entity>
+    <entity name="CachedUserProgress" representedClassName="CachedUserProgress" syncable="YES" codeGenerationType="class">
+        <attribute name="userId" optional="NO" attributeType="String"/>
+        <attribute name="courseId" optional="NO" attributeType="String"/>
+        <attribute name="completedLessons" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="totalLessons" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="progressPercentage" optional="NO" attributeType="Double" defaultValue="0.0"/>
+        <attribute name="lastAccessedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncStatus" optional="NO" attributeType="String" defaultValue="synced"/>
+        <relationship name="course" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CachedCourse" inverseName="userProgress" inverseEntity="CachedCourse"/>
+    </entity>
+    <entity name="CachedUser" representedClassName="CachedUser" syncable="YES" codeGenerationType="class">
+        <attribute name="userId" optional="NO" attributeType="String"/>
+        <attribute name="email" optional="NO" attributeType="String"/>
+        <attribute name="fullName" optional="NO" attributeType="String"/>
+        <attribute name="username" optional="YES" attributeType="String"/>
+        <attribute name="avatarURL" optional="YES" attributeType="String"/>
+        <attribute name="bio" optional="YES" attributeType="String"/>
+        <attribute name="level" optional="NO" attributeType="Integer 32" defaultValue="1"/>
+        <attribute name="points" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="streak" optional="NO" attributeType="Integer 32" defaultValue="0"/>
+        <attribute name="badges" optional="YES" attributeType="Transformable" valueTransformerName="NSSecureUnarchiveFromDataTransformerName" customClassName="[String]"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="syncStatus" optional="NO" attributeType="String" defaultValue="synced"/>
+    </entity>
+</model>
