@@ -13,24 +13,90 @@ class DiscoverViewModel: ObservableObject {
     @Published var searchText = ""
     @Published var selectedCategory = "All"
     @Published var isSearching = false
+    @Published var isOffline = false
+    @Published var lastSyncTime: Date?
+    @Published var syncProgress: Double = 0.0
     
     private var currentPage = 1
     private let pageSize = 20
     private var cancellables = Set<AnyCancellable>()
-    private let postService = PostAPIService.shared
-    private let dataManager = DataManager.shared
-    private let analyticsService = AnalyticsAPIService.shared
+    private let apiService: EnhancedAPIService
+    private let coreDataManager: CoreDataManager  
+    private let webSocketManager: WebSocketManager
     
     let categories = ["All", "Programming", "Design", "Data Science", "Marketing", "Business", "Art", "Music", "Language"]
     
-    init() {
+    // MARK: - Initialization
+    init(serviceFactory: EnhancedServiceFactory = .shared) {
+        self.apiService = serviceFactory.apiService
+        self.coreDataManager = serviceFactory.coreDataManager
+        self.webSocketManager = serviceFactory.webSocketManager
+        
         setupNotifications()
+        setupWebSocketListeners()
         setupSearchDebounce()
         loadCachedData()
     }
     
     deinit {
         cancellables.removeAll()
+    }
+    
+    // MARK: - Setup Methods
+    private func setupWebSocketListeners() {
+        webSocketManager.messagesPublisher
+            .compactMap { [weak self] message in
+                self?.handleWebSocketMessage(message)
+            }
+            .sink { _ in }
+            .store(in: &cancellables)
+    }
+    
+    private func handleWebSocketMessage(_ message: WebSocketMessage) {
+        switch message.type {
+        case "new_post":
+            Task { await refreshContent() }
+        case "trending_update":
+            Task { await loadTrendingTopics() }
+        case "featured_creators_update":
+            Task { await loadFeaturedCreators() }
+        default:
+            break
+        }
+    }
+    
+    private func setupNotifications() {
+        NotificationCenter.default.publisher(for: .networkStatusChanged)
+            .sink { [weak self] notification in
+                if let isConnected = notification.object as? Bool {
+                    self?.isOffline = !isConnected
+                    if isConnected {
+                        Task { await self?.syncData() }
+                    }
+                }
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func loadCachedData() {
+        // Load cached discover data
+        if let cachedPosts = coreDataManager.fetchCachedPosts() {
+            self.posts = cachedPosts
+        }
+        
+        if let cachedDiscoverPosts = coreDataManager.fetchCachedDiscoverPosts() {
+            self.discoverPosts = cachedDiscoverPosts
+        }
+        
+        if let cachedTopics = coreDataManager.fetchCachedTrendingTopics() {
+            self.trendingTopics = cachedTopics
+        }
+        
+        if let cachedCreators = coreDataManager.fetchCachedFeaturedCreators() {
+            self.featuredCreators = cachedCreators
+        }
+        
+        self.lastSyncTime = coreDataManager.getLastSyncTime(for: "discover")
     }
     
     // MARK: - Public Methods
@@ -40,16 +106,26 @@ class DiscoverViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         currentPage = 1
+        syncProgress = 0.0
         
-        async let postsTask = loadPosts()
-        async let trendingTask = loadTrendingTopics()
-        async let creatorsTask = loadFeaturedCreators()
-        
-        await postsTask
-        await trendingTask
-        await creatorsTask
+        do {
+            async let postsTask = loadPosts()
+            async let trendingTask = loadTrendingTopics()
+            async let creatorsTask = loadFeaturedCreators()
+            
+            await postsTask
+            await trendingTask
+            await creatorsTask
+            
+            await syncData()
+            
+        } catch {
+            errorMessage = error.localizedDescription
+            NotificationCenter.default.post(name: .showError, object: error)
+        }
         
         isLoading = false
+        syncProgress = 1.0
     }
     
     func loadMoreContent() async {
@@ -71,6 +147,29 @@ class DiscoverViewModel: ObservableObject {
         await loadContent()
     }
     
+    func syncData() async {
+        guard !isOffline else { return }
+        
+        do {
+            // Sync discover data for offline access
+            let syncResult = try await coreDataManager.syncDiscoverData()
+            lastSyncTime = Date()
+            
+            // Update UI with synced data
+            if !syncResult.posts.isEmpty {
+                posts = syncResult.posts
+            }
+            if !syncResult.discoverPosts.isEmpty {
+                discoverPosts = syncResult.discoverPosts
+            }
+            
+            NotificationCenter.default.post(name: .dataSynced, object: "discover")
+            
+        } catch {
+            print("Discover sync failed: \(error)")
+        }
+    }
+    
     func searchContent() async {
         guard !searchText.isEmpty else {
             discoverPosts = []
@@ -80,22 +179,14 @@ class DiscoverViewModel: ObservableObject {
         isSearching = true
         
         do {
-            // In a real app, you'd have a dedicated search endpoint
-            let searchResults: [Post] = try await postService.getFeed(page: 1, limit: 50).posts
-            
-            // Filter results based on search text and category
-            let filtered = searchResults.filter { post in
-                let matchesSearch = post.content.localizedCaseInsensitiveContains(searchText) ||
-                                  post.author.username.localizedCaseInsensitiveContains(searchText)
-                
-                let matchesCategory = selectedCategory == "All" || 
-                                    post.content.localizedCaseInsensitiveContains(selectedCategory)
-                
-                return matchesSearch && matchesCategory
-            }
+            let searchResults = try await apiService.searchPosts(
+                query: searchText,
+                category: selectedCategory == "All" ? nil : selectedCategory,
+                limit: 50
+            )
             
             // Convert to DiscoverPost format for compatibility
-            discoverPosts = filtered.compactMap { post in
+            discoverPosts = searchResults.compactMap { post in
                 DiscoverPost(
                     id: UUID(),
                     content: post.content,
@@ -115,14 +206,11 @@ class DiscoverViewModel: ObservableObject {
             }
             
             // Track search analytics
-            await analyticsService.trackEvent(
-                Constants.AnalyticsEvents.searchPerformed,
-                parameters: [
-                    "query": searchText,
-                    "category": selectedCategory,
-                    "results_count": discoverPosts.count
-                ]
-            )
+            try await apiService.trackAnalytics(event: "search_performed", properties: [
+                "query": searchText,
+                "category": selectedCategory,
+                "results_count": discoverPosts.count
+            ])
             
         } catch {
             errorMessage = "Search failed: \(error.localizedDescription)"
@@ -167,28 +255,38 @@ class DiscoverViewModel: ObservableObject {
         // Update bookmark status locally
         if let index = discoverPosts.firstIndex(where: { $0.id == post.id }) {
             discoverPosts[index].isBookmarked.toggle()
+            
+            // Track analytics
+            try? await apiService.trackAnalytics(
+                event: discoverPosts[index].isBookmarked ? "post_bookmarked" : "post_unbookmarked",
+                properties: ["post_id": post.id.uuidString]
+            )
         }
-        
-        // Track analytics
-        await analyticsService.trackEvent(
-            discoverPosts.first(where: { $0.id == post.id })?.isBookmarked == true ? "post_bookmarked" : "post_unbookmarked",
-            parameters: ["post_id": post.id.uuidString]
-        )
     }
     
     func followCreator(_ creator: User) async {
-        // In a real app, you'd have a follow/unfollow endpoint
-        // For now, just track analytics
-        await analyticsService.trackEvent(
-            "creator_followed",
-            parameters: ["creator_id": creator.id, "creator_username": creator.username]
-        )
+        do {
+            try await apiService.followUser(userId: creator.id)
+            
+            // Track analytics
+            try await apiService.trackAnalytics(event: "creator_followed", properties: [
+                "creator_id": creator.id,
+                "creator_name": creator.username
+            ])
+            
+        } catch {
+            errorMessage = "Failed to follow creator: \(error.localizedDescription)"
+        }
     }
     
     // MARK: - Private Methods
     private func loadPosts() async {
         do {
-            let response: FeedResponse = try await postService.getFeed(page: currentPage, limit: pageSize)
+            let response = try await apiService.getDiscoverPosts(
+                page: currentPage,
+                limit: pageSize,
+                category: selectedCategory == "All" ? nil : selectedCategory
+            )
             
             if currentPage == 1 {
                 posts = response.posts
@@ -196,10 +294,10 @@ class DiscoverViewModel: ObservableObject {
                 posts.append(contentsOf: response.posts)
             }
             
-            hasMoreContent = response.pagination.hasNextPage
+            hasMoreContent = response.hasNextPage
             
             // Cache data
-            dataManager.saveForOffline(posts, key: "discover_posts")
+            coreDataManager.cachePosts(posts)
             
         } catch {
             errorMessage = "Failed to load posts: \(error.localizedDescription)"
@@ -211,34 +309,30 @@ class DiscoverViewModel: ObservableObject {
     }
     
     private func loadTrendingTopics() async {
-        // For now, generate trending topics from posts
-        // In a real app, this would come from a dedicated endpoint
-        let allContent = posts.map { $0.content }.joined(separator: " ")
-        trendingTopics = extractTrendingTopics(from: allContent)
-        dataManager.saveForOffline(trendingTopics, key: "trending_topics")
+        do {
+            let topics = try await apiService.getTrendingTopics()
+            trendingTopics = topics
+            coreDataManager.cacheTrendingTopics(topics)
+        } catch {
+            // Generate from cached posts if API fails
+            let allContent = posts.map { $0.content }.joined(separator: " ")
+            trendingTopics = extractTrendingTopics(from: allContent)
+        }
     }
     
     private func loadFeaturedCreators() async {
-        // For now, extract unique creators from posts
-        // In a real app, this would come from a dedicated endpoint
-        featuredCreators = Array(Set(posts.map { $0.author })).prefix(10).map { $0 }
-        dataManager.saveForOffline(featuredCreators, key: "featured_creators")
-    }
-    
-    private func loadCachedData() {
-        loadCachedPosts()
-        
-        if let cached: [String] = dataManager.loadFromOffline([String].self, key: "trending_topics") {
-            trendingTopics = cached
-        }
-        
-        if let cached: [User] = dataManager.loadFromOffline([User].self, key: "featured_creators") {
-            featuredCreators = cached
+        do {
+            let creators = try await apiService.getFeaturedCreators()
+            featuredCreators = creators
+            coreDataManager.cacheFeaturedCreators(creators)
+        } catch {
+            // Use unique creators from posts as fallback
+            featuredCreators = Array(Set(posts.map { $0.author })).prefix(10).map { $0 }
         }
     }
     
     private func loadCachedPosts() {
-        if let cached: [Post] = dataManager.loadFromOffline([Post].self, key: "discover_posts") {
+        if let cached = coreDataManager.fetchCachedPosts() {
             posts = cached
         }
     }
@@ -252,12 +346,16 @@ class DiscoverViewModel: ObservableObject {
         
         do {
             if posts[index].isLiked {
-                let response: LikeResponse = try await postService.likePost(postId: post.id)
+                let response = try await apiService.likePost(postId: post.id)
                 posts[index].likeCount = response.likeCount
             } else {
-                let response: LikeResponse = try await postService.unlikePost(postId: post.id)
+                let response = try await apiService.unlikePost(postId: post.id)
                 posts[index].likeCount = response.likeCount
             }
+            
+            // Update cache
+            coreDataManager.cachePosts(posts)
+            
         } catch {
             // Revert on error
             posts[index].isLiked.toggle()
@@ -268,10 +366,11 @@ class DiscoverViewModel: ObservableObject {
     
     private func shareOriginalPost(_ post: Post) async {
         do {
-            let _: ShareResponse = try await postService.sharePost(postId: post.id)
+            try await apiService.sharePost(postId: post.id)
             
             if let index = posts.firstIndex(where: { $0.id == post.id }) {
                 posts[index].shareCount += 1
+                coreDataManager.cachePosts(posts)
             }
         } catch {
             errorMessage = "Failed to share post"
@@ -298,24 +397,6 @@ class DiscoverViewModel: ObservableObject {
             .sorted { $0.value > $1.value }
             .prefix(10)
             .map { $0.key.capitalized }
-    }
-    
-    private func setupNotifications() {
-        NotificationCenter.default.publisher(for: Constants.NotificationNames.userDidLogin)
-            .sink { [weak self] _ in
-                Task {
-                    await self?.refreshContent()
-                }
-            }
-            .store(in: &cancellables)
-        
-        NotificationCenter.default.publisher(for: Constants.NotificationNames.dataDidSync)
-            .sink { [weak self] _ in
-                Task {
-                    await self?.loadContent()
-                }
-            }
-            .store(in: &cancellables)
     }
     
     private func setupSearchDebounce() {
