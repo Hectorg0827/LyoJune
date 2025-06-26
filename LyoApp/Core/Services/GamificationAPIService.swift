@@ -157,21 +157,21 @@ class GamificationAPIService {
     }
 
     func getStreak(for activityType: GamificationAPI.StreakType) async throws -> GamificationAPI.StreakInfo {
-        return try await networkManager.get("/gamification/streaks/\(activityType.rawValue)")
+        return try await networkManager.get(endpoint: "/gamification/streaks/\(activityType.rawValue)")
     }
 
     // MARK: - Leaderboards
     func getLeaderboard(type: GamificationAPI.LeaderboardType, timeframe: GamificationAPI.TimeFrame) async throws -> GamificationAPI.Leaderboard {
-        return try await networkManager.get("/gamification/leaderboard/\(type.rawValue)/\(timeframe.rawValue)")
+        return try await networkManager.get(endpoint: "/gamification/leaderboard/\(type.rawValue)/\(timeframe.rawValue)")
     }
 
     func getUserRank(type: GamificationAPI.LeaderboardType, timeframe: GamificationAPI.TimeFrame) async throws -> GamificationAPI.UserRank {
-        return try await networkManager.get("/gamification/leaderboard/\(type.rawValue)/\(timeframe.rawValue)/rank")
+        return try await networkManager.get(endpoint: "/gamification/leaderboard/\(type.rawValue)/\(timeframe.rawValue)/rank")
     }
 
     // MARK: - Challenges
     func getActiveChallenges() async throws -> [GamificationAPI.Challenge] {
-        return try await networkManager.get("/gamification/challenges/active")
+        return try await networkManager.get(endpoint: "/gamification/challenges/active")
     }
 
     func joinChallenge(_ challengeId: String) async throws -> GamificationAPI.ChallengeParticipation {
