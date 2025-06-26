@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct EducationalVideo: Identifiable, Codable {
-    var id = UUID()
+public struct EducationalVideo: Identifiable, Codable {
+    public var id = UUID()
     let title: String
     let author: String
     let category: VideoCategory
@@ -188,5 +188,60 @@ enum VideoCategory: String, Codable, CaseIterable {
         case .study:
             return ["learning", "education", "academic", "knowledge", "skills"]
         }
+    }
+}
+
+// MARK: - Video API Models
+public typealias Video = EducationalVideo
+
+public struct VideoTranscript: Codable, Identifiable {
+    public let id: UUID
+    public let videoId: String
+    public let segments: [TranscriptSegment]
+    public let language: String
+    public let accuracy: Double
+    
+    public init(id: UUID = UUID(), videoId: String, segments: [TranscriptSegment], language: String = "en", accuracy: Double = 0.95) {
+        self.id = id
+        self.videoId = videoId
+        self.segments = segments
+        self.language = language
+        self.accuracy = accuracy
+    }
+}
+
+public struct TranscriptSegment: Codable, Identifiable {
+    public let id: UUID
+    public let startTime: TimeInterval
+    public let endTime: TimeInterval
+    public let text: String
+    public let confidence: Double
+    
+    public init(id: UUID = UUID(), startTime: TimeInterval, endTime: TimeInterval, text: String, confidence: Double = 0.95) {
+        self.id = id
+        self.startTime = startTime
+        self.endTime = endTime
+        self.text = text
+        self.confidence = confidence
+    }
+}
+
+public struct VideoNote: Codable, Identifiable {
+    public let id: UUID
+    public let videoId: String
+    public let userId: String
+    public let content: String
+    public let timestamp: TimeInterval
+    public let createdAt: Date
+    public let updatedAt: Date
+    
+    public init(id: UUID = UUID(), videoId: String, userId: String, content: String, timestamp: TimeInterval, createdAt: Date = Date(), updatedAt: Date = Date()) {
+        self.id = id
+        self.videoId = videoId
+        self.userId = userId
+        self.content = content
+        self.timestamp = timestamp
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
     }
 }
