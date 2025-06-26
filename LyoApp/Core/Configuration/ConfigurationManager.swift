@@ -175,6 +175,10 @@ extension ConfigurationManager {
         return string(for: .backendWebSocketURL) ?? "wss://api.lyo.app/v1/ws"
     }
     
+    var webSocketURL: String {
+        return backendWebSocketURL
+    }
+    
     // MARK: - API Keys (Secure Access)
     var gemmaApiKey: String? {
         // First try to get from Keychain (production)
