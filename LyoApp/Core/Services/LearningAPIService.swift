@@ -169,7 +169,7 @@ class LearningAPIService {
         return try await networkManager.post(endpoint: "/ai/study-plan", body: request)
     }
 
-    func updateStudyPlan(_ planId: String, progress: LearningAPIStudyPlanProgress) async throws -> LearningAPIStudyPlan {
+    func updateStudyPlan(_ planId: String, progress: StudyPlanProgress) async throws -> LearningAPIStudyPlan {
         let request = UpdateStudyPlanRequest(
             planId: planId,
             progress: progress
