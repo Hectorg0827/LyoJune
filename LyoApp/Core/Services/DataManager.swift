@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import CoreData
+import UIKit
 
 // MARK: - Data Manager
 @MainActor
@@ -223,7 +224,7 @@ class DataManager: ObservableObject {
             "event": event,
             "parameters": parameters,
             "timestamp": Date().timeIntervalSince1970,
-            "userId": AuthService.shared.currentUser?.id ?? "anonymous"
+            "userId": EnhancedAuthService.shared.currentUser?.id ?? "anonymous"
         ]
         
         // Store locally and sync later
