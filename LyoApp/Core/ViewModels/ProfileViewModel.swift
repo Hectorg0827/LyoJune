@@ -11,18 +11,39 @@ class ProfileViewModel: ObservableObject {
     @Published var isUpdatingProfile = false
     @Published var showingImagePicker = false
     @Published var selectedImage: UIImage?
+    @Published var isOffline = false
     
     private var cancellables = Set<AnyCancellable>()
-    private let authService = AuthService.shared
-    private let analyticsService = AnalyticsAPIService.shared
-    private let dataManager = DataManager.shared
+    
+    // Enhanced services
+    private let serviceFactory = EnhancedServiceFactory.shared
+    
+    private var authService: EnhancedAuthService {
+        serviceFactory.authService
+    }
+    
+    private var apiService: EnhancedAPIService {
+        serviceFactory.apiService
+    }
+    
+    private var coreDataManager: CoreDataManager {
+        serviceFactory.coreDataManager
+    }
+    
+    private var webSocketManager: WebSocketManager {
+        serviceFactory.webSocketManager
+    }
     
     var currentUser: User? {
-        authService.currentUser
+        Task {
+            return await authService.getCurrentUser()
+        }
+        return nil // This will be updated to use async properly
     }
     
     init() {
         setupNotifications()
+        setupRealTimeUpdates()
         loadCachedData()
     }
     
@@ -37,13 +58,33 @@ class ProfileViewModel: ObservableObject {
         isLoading = true
         errorMessage = nil
         
-        async let statsTask = loadUserStats()
-        async let achievementsTask = loadAchievements()
-        async let activitiesTask = loadRecentActivities()
-        
-        await statsTask
-        await achievementsTask
-        await activitiesTask
+        do {
+            // Load from cache first for instant UI
+            await loadCachedData()
+            
+            // Then fetch fresh data from API
+            async let statsTask = apiService.getUserAnalytics()
+            async let achievementsTask = apiService.getUserAchievements()
+            async let activitiesTask = apiService.getRecentActivities()
+            
+            let (stats, achievementsData, activities) = try await (statsTask, achievementsTask, activitiesTask)
+            
+            userStats = stats
+            achievements = achievementsData
+            recentActivities = activities
+            
+            // Cache the new data
+            await cacheProfileData()
+            
+            isOffline = false
+            
+        } catch {
+            handleError(error)
+            // If network fails, show cached data
+            if achievements.isEmpty {
+                await loadCachedData()
+            }
+        }
         
         isLoading = false
     }
