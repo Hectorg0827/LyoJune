@@ -1,6 +1,36 @@
 import SwiftUI
 import Combine
 
+// MARK: - Profile Type Definitions
+struct RecentActivity: Identifiable, Codable {
+    let id = UUID()
+    let type: ActivityType
+    let title: String
+    let description: String
+    let timestamp: Date
+    let points: Int?
+    
+    enum ActivityType: String, CaseIterable, Codable {
+        case courseCompleted = "course_completed"
+        case lessonFinished = "lesson_finished"
+        case achievementUnlocked = "achievement_unlocked"
+        case postCreated = "post_created"
+        case commentAdded = "comment_added"
+        case studyStreak = "study_streak"
+    }
+    
+    init(type: ActivityType, title: String, description: String, timestamp: Date = Date(), points: Int? = nil) {
+        self.type = type
+        self.title = title
+        self.description = description
+        self.timestamp = timestamp
+        self.points = points
+    }
+}
+
+// Add Activity typealias for backward compatibility
+typealias Activity = RecentActivity
+
 @MainActor
 class ProfileViewModel: ObservableObject {
     @Published var achievements: [Achievement] = []
