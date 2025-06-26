@@ -1,20 +1,53 @@
 import Foundation
 import Combine
 
+// MARK: - Local Type Definitions
+struct LearningContext: Codable {
+    let subject: String
+    let difficulty: String
+    let topic: String?
+    let userLevel: String
+    
+    init(subject: String, difficulty: String, topic: String? = nil, userLevel: String = "beginner") {
+        self.subject = subject
+        self.difficulty = difficulty
+        self.topic = topic
+        self.userLevel = userLevel
+    }
+}
+
+enum QuestionType: String, CaseIterable, Codable {
+    case multipleChoice = "multiple_choice"
+    case trueFalse = "true_false"
+    case shortAnswer = "short_answer"
+    case essay = "essay"
+}
+
+struct QuizQuestion: Codable, Identifiable {
+    let id = UUID()
+    let question: String
+    let type: QuestionType
+    let options: [String]?
+    let correctAnswer: String
+    let explanation: String?
+    
+    init(question: String, type: QuestionType, options: [String]? = nil, correctAnswer: String, explanation: String? = nil) {
+        self.question = question
+        self.type = type
+        self.options = options
+        self.correctAnswer = correctAnswer
+        self.explanation = explanation
+    }
+}
+
 // MARK: - Enhanced AI Service
 @MainActor
-class EnhancedAIService: BaseAPIService {
+class EnhancedAIService {
     static let shared = EnhancedAIService()
     
-    private override init(apiClient: APIClientProtocol = {
-        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
-    }()) {
-        super.init(apiClient: apiClient)
-    }
+    private let networkManager = EnhancedNetworkManager.shared
     
-    init(apiClient: APIClientProtocol) {
-        super.init(apiClient: apiClient)
-    }
+    private init() {}
     
     // MARK: - Configuration
     private let gemmaAPIEndpoint = "https://api.gemma.ai/v1/chat"
