@@ -57,9 +57,9 @@ struct ModernLoadingView: View {
 
 /// Enhanced version of ContentView with modern design system
 struct EnhancedContentView: View {
-    @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var authService: EnhancedAuthService
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var networkManager: NetworkManager
+    @EnvironmentObject var networkManager: EnhancedNetworkManager
     @StateObject private var errorManager = ErrorManager.shared
     @StateObject private var offlineManager = OfflineManager.shared
     @State private var showingOfflineAlert = false
