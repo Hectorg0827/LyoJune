@@ -26,7 +26,7 @@
 		3D597E3376180740752F104B /* LearnViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94C617BCC505EF0A83BACDE3 /* LearnViewModel.swift */; };
 		4B01CE1FC6241AC4811A7E41 /* AuthenticationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 360AFEB9474C8D304DBEAFBC /* AuthenticationView.swift */; };
 		4F74B09AE12ADEF2DCD12334 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3F3381293896AFD20B82262 /* ContentView.swift */; };
-		512EB513EB94915BE8D61445 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1729A7CAD9C4CC8BF698D6E7 /* AuthService.swift */; };
+
 		530B0A19534EA45C2DA24C66 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 018E5ACC56793A9532698967 /* MainTabView.swift */; };
 		53A64B98BF075B25321DDB06 /* ModernLearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70E4C7F832E1E096FCD1568 /* ModernLearnView.swift */; };
 		5936DC9B2B44FE891645BEDA /* OfflineManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17EBA13D88C24E2190623910 /* OfflineManager.swift */; };
@@ -58,7 +58,7 @@
 		D33363744E55F2486C52EE96 /* VideoModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0C8F912929D95B25C890AF2 /* VideoModels.swift */; };
 		DB08EE7F93BE8E7819177F4B /* HeaderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070BF34E8E8551EDA8815305 /* HeaderViewModel.swift */; };
 		E6D44BE23A26B98F5389F527 /* LearnView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51EAC7B388DFF091BFDD1DD /* LearnView.swift */; };
-		EDE5F8CE71BB46B1B72211EE /* NetworkManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBD0C572FF2F4A9DA77B7355 /* NetworkManager.swift */; };
+
 		EE2E4F89A83024C23B930651 /* WebSocketManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7E14D6C8B04E3E09E76D64A /* WebSocketManager.swift */; };
 		F32E27CE74DC9A8A10BFCB28 /* LyoHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA8A241ACCC725D6D6B92D18 /* LyoHeaderView.swift */; };
 		F471EEC68F972DBD8636F23A /* PostModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F23D1F69832965A282013711 /* PostModels.swift */; };
@@ -77,7 +77,7 @@
 		098F09BD4B79D7EFD3ABAB50 /* AIAudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAudioPlayer.swift; sourceTree = "<group>"; };
 		0C9A4E53AC3FA9256043E750 /* SkeletonLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SkeletonLoader.swift; path = LyoApp/DesignSystem/SkeletonLoader.swift; sourceTree = SOURCE_ROOT; };
 		0D73DCE368336E776806436C /* ProfileViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModel.swift; sourceTree = "<group>"; };
-		1729A7CAD9C4CC8BF698D6E7 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
+
 		17EBA13D88C24E2190623910 /* OfflineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineManager.swift; sourceTree = "<group>"; };
 		1A3A4B969D779C193FF8AC53 /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = HapticManager.swift; path = LyoApp/DesignSystem/HapticManager.swift; sourceTree = SOURCE_ROOT; };
 		22023324C36486CA49A29560 /* GamificationAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamificationAPIService.swift; sourceTree = "<group>"; };
@@ -124,7 +124,7 @@
 		DE923AE148C04C0452798A1C /* PostView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostView.swift; sourceTree = "<group>"; };
 		E4B547E8996A839C18A6A11B /* .env */ = {isa = PBXFileReference; lastKnownFileType = text; path = .env; sourceTree = SOURCE_ROOT; };
 		E69B3D46262E4BB5B744B9CF /* ErrorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorManager.swift; sourceTree = "<group>"; };
-		EBD0C572FF2F4A9DA77B7355 /* NetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkManager.swift; sourceTree = "<group>"; };
+
 		ED2D3D78F77643D9B4AA3FB9 /* APIServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIServices.swift; sourceTree = "<group>"; };
 		F23D1F69832965A282013711 /* PostModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostModels.swift; sourceTree = "<group>"; };
 		F2B8719E43A023ABBD4C1B77 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -407,7 +407,6 @@
 		E9B7F4D3A2C8F5E6B1A9D2C4 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				EBD0C572FF2F4A9DA77B7355 /* NetworkManager.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -437,7 +436,6 @@
 		FF8A6D29C4E8A5B6F2D1C3E7 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				1729A7CAD9C4CC8BF698D6E7 /* AuthService.swift */,
 				2BCCBB9375404EB9B7EC40A7 /* DataManager.swift */,
 				ED2D3D78F77643D9B4AA3FB9 /* APIServices.swift */,
 				2DF4F72681BC4DF8A73FBC9C /* LearningAPIService.swift */,
@@ -548,8 +546,8 @@
 				28EBC99646209B0446FE51BB /* StudyBuddyFAB.swift in Sources */,
 				F6F77FC00568AACBA3839D08 /* StudyBuddyModels.swift in Sources */,
 				D33363744E55F2486C52EE96 /* VideoModels.swift in Sources */,
-				512EB513EB94915BE8D61445 /* AuthService.swift in Sources */,
-				EDE5F8CE71BB46B1B72211EE /* NetworkManager.swift in Sources */,
+
+
 				96B192AB257A4488A1DE51DC /* ErrorManager.swift in Sources */,
 				5936DC9B2B44FE891645BEDA /* OfflineManager.swift in Sources */,
 				78C392689D8640F68FC6BAF5 /* DataManager.swift in Sources */,
