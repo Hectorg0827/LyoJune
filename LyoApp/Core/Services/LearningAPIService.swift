@@ -124,11 +124,11 @@ class LearningAPIService {
             queryParams["difficulty"] = difficulty
         }
         
-        return try await networkManager.get("/courses", queryParameters: queryParams)
+        return try await networkManager.get(endpoint: "/courses", queryParameters: queryParams)
     }
 
     func getUserCourses() async throws -> [UserCourse] {
-        return try await networkManager.get("/courses/enrolled")
+        return try await networkManager.get(endpoint: "/courses/enrolled")
     }
 
     func enrollInCourse(_ courseId: String) async throws -> UserCourse {
