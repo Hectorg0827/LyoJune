@@ -1,6 +1,28 @@
 import SwiftUI
 import Foundation
 
+// MARK: - Local Type Definitions
+
+// Simple Achievement definition for HeaderModels
+struct Achievement: Identifiable, Codable {
+    let id: UUID
+    let title: String
+    let description: String
+    let iconName: String
+    let isUnlocked: Bool
+    
+    static func mockAchievements() -> [Achievement] {
+        return [
+            Achievement(id: UUID(), title: "First Course", description: "Completed first course", iconName: "trophy", isUnlocked: true),
+            Achievement(id: UUID(), title: "Study Streak", description: "7 day study streak", iconName: "calendar", isUnlocked: false)
+        ]
+    }
+}
+
+// Typealiases for backward compatibility - import types from AppModels
+typealias Conversation = HeaderConversation
+typealias UserProfile = HeaderUserProfile
+
 // MARK: - Header State Models
 
 enum HeaderState {
@@ -37,57 +59,67 @@ enum HeaderState {
 }
 
 // MARK: - Story Models
+// Header-specific Story model with properties needed for the header UI
 
-struct Story: Identifiable, Codable {
-    let id: UUID
-    let username: String
-    let displayName: String
-    let initials: String
-    let avatarColors: [String] // Store as hex strings for Codable
-    let hasUnwatchedStory: Bool
-    let storyType: StoryType
-    let timestamp: Date
-    let previewImageURL: String?
+public struct Story: Identifiable, Codable {
+    public let id: UUID
+    public let username: String
+    public let displayName: String
+    public let initials: String
+    public let avatarColors: [String]
+    public let hasUnwatchedStory: Bool
+    public let storyType: HeaderStoryType
+    public let timestamp: Date
+    public let previewImageURL: String?
     
-    var colorGradient: [Color] {
-        avatarColors.compactMap { hex in
-            Color(hex: hex)
+    public init(id: UUID, username: String, displayName: String, initials: String, avatarColors: [String], hasUnwatchedStory: Bool, storyType: HeaderStoryType, timestamp: Date, previewImageURL: String?) {
+        self.id = id
+        self.username = username
+        self.displayName = displayName
+        self.initials = initials
+        self.avatarColors = avatarColors
+        self.hasUnwatchedStory = hasUnwatchedStory
+        self.storyType = storyType
+        self.timestamp = timestamp
+        self.previewImageURL = previewImageURL
+    }
+}
+
+enum HeaderStoryType: String, Codable, CaseIterable {
+    case educational = "educational"
+    case achievement = "achievement"
+    case social = "social"
+    case announcement = "announcement"
+    
+    var icon: String {
+        switch self {
+        case .educational:
+            return "book.fill"
+        case .achievement:
+            return "trophy.fill"
+        case .social:
+            return "person.2.fill"
+        case .announcement:
+            return "megaphone.fill"
         }
     }
     
-    enum StoryType: String, Codable, CaseIterable {
-        case educational = "educational"
-        case achievement = "achievement"
-        case social = "social"
-        case announcement = "announcement"
-        
-        var icon: String {
-            switch self {
-            case .educational:
-                return "book.fill"
-            case .achievement:
-                return "trophy.fill"
-            case .social:
-                return "person.2.fill"
-            case .announcement:
-                return "megaphone.fill"
-            }
-        }
-        
-        var color: Color {
-            switch self {
-            case .educational:
-                return .blue
-            case .achievement:
-                return .yellow
-            case .social:
-                return .green
-            case .announcement:
-                return .red
-            }
+    var color: Color {
+        switch self {
+        case .educational:
+            return .blue
+        case .achievement:
+            return .yellow
+        case .social:
+            return .green
+        case .announcement:
+            return .red
         }
     }
-    
+}
+
+// MARK: - Sample Data
+struct HeaderSampleData {
     static let sampleStories: [Story] = [
         Story(
             id: UUID(),
@@ -160,7 +192,7 @@ struct Story: Identifiable, Codable {
 
 // MARK: - Message Models
 
-struct Conversation: Identifiable, Codable {
+struct HeaderConversation: Identifiable, Codable {
     let id: UUID
     let name: String
     let initials: String
@@ -205,8 +237,8 @@ struct Conversation: Identifiable, Codable {
         }
     }
     
-    static let sampleConversations: [Conversation] = [
-        Conversation(
+    static let sampleConversations: [HeaderConversation] = [
+        HeaderHeaderConversation(
             id: UUID(),
             name: "Swift Study Group",
             initials: "SSG",
@@ -218,7 +250,7 @@ struct Conversation: Identifiable, Codable {
             conversationType: .studyGroup,
             participants: ["alice", "bob", "charlie", "diana"]
         ),
-        Conversation(
+        HeaderHeaderConversation(
             id: UUID(),
             name: "Emma Wilson",
             initials: "EW",
@@ -230,7 +262,7 @@ struct Conversation: Identifiable, Codable {
             conversationType: .individual,
             participants: ["emma"]
         ),
-        Conversation(
+        HeaderConversation(
             id: UUID(),
             name: "Prof. Johnson",
             initials: "PJ",
@@ -242,7 +274,7 @@ struct Conversation: Identifiable, Codable {
             conversationType: .individual,
             participants: ["prof_johnson"]
         ),
-        Conversation(
+        HeaderConversation(
             id: UUID(),
             name: "Math Tutoring - Advanced",
             initials: "MTA",
@@ -254,7 +286,7 @@ struct Conversation: Identifiable, Codable {
             conversationType: .tutoring,
             participants: ["tutor_mike", "student_jane"]
         ),
-        Conversation(
+        HeaderConversation(
             id: UUID(),
             name: "CS Department Updates",
             initials: "CSD",
@@ -266,7 +298,7 @@ struct Conversation: Identifiable, Codable {
             conversationType: .announcement,
             participants: ["cs_admin"]
         ),
-        Conversation(
+        HeaderConversation(
             id: UUID(),
             name: "Physics Lab Partners",
             initials: "PLP",
@@ -380,7 +412,7 @@ struct SearchSuggestion: Identifiable {
 
 // MARK: - User Profile Models
 
-struct UserProfile: Identifiable, Codable {
+struct HeaderUserProfile: Identifiable, Codable {
     let id: UUID
     let username: String
     let displayName: String
@@ -477,7 +509,7 @@ struct UserProfile: Identifiable, Codable {
         }
     }
     
-    static let sampleProfile = UserProfile(
+    static let sampleProfile = HeaderUserProfile(
         id: UUID(),
         username: "john_doe_student",
         displayName: "John Doe",
