@@ -228,9 +228,18 @@ class AnalyticsAPIService: ObservableObject {
     func trackEvent(_ event: String, parameters: [String: Any] = [:]) async {
         guard Constants.FeatureFlags.enableAnalytics else { return }
         
+        // Convert Any parameters to String for Codable compliance
+        let stringParameters = parameters.compactMapValues { value in
+            if let stringValue = value as? String {
+                return stringValue
+            } else {
+                return String(describing: value)
+            }
+        }
+        
         let request = AnalyticsEventRequest(
             event: event,
-            parameters: parameters,
+            parameters: stringParameters,
             timestamp: Date(),
             sessionId: getSessionId()
         )
