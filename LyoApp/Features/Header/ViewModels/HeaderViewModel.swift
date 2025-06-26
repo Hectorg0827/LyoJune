@@ -2,6 +2,10 @@ import SwiftUI
 import Foundation
 import Combine
 
+// Use Header-specific types to avoid ambiguity
+typealias Conversation = HeaderConversation
+typealias UserProfile = HeaderUserProfile
+
 @MainActor
 class HeaderViewModel: ObservableObject {
     // MARK: - Published Properties
@@ -43,10 +47,11 @@ class HeaderViewModel: ObservableObject {
     private let voiceManager = GemmaVoiceManager.shared
     
     // MARK: - Initialization
-    init(serviceFactory: EnhancedServiceFactory = .shared) {
-        self.apiService = serviceFactory.apiService
-        self.coreDataManager = serviceFactory.coreDataManager
-        self.webSocketManager = serviceFactory.webSocketManager
+    init(serviceFactory: EnhancedServiceFactory? = nil) {
+        let factory = serviceFactory ?? EnhancedServiceFactory.shared
+        self.apiService = factory.apiService
+        self.coreDataManager = factory.coreDataManager
+        self.webSocketManager = factory.webSocketManager
         setupBindings()
         setupWebSocketListeners()
         loadInitialData()
