@@ -2,10 +2,6 @@ import SwiftUI
 import Foundation
 import Combine
 
-// Use Header-specific types to avoid ambiguity
-typealias Conversation = HeaderConversation
-typealias UserProfile = HeaderUserProfile
-
 @MainActor
 class HeaderViewModel: ObservableObject {
     // MARK: - Published Properties
