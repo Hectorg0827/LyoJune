@@ -1,6 +1,7 @@
 import SwiftUI
 
 // MARK: - Learn Type Definitions
+// Note: Course type is defined in AppModels.swift and used throughout this file
 struct LearningGoal: Identifiable, Codable {
     let id = UUID()
     let title: String
