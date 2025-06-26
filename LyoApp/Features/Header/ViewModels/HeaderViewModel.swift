@@ -12,6 +12,8 @@ class HeaderViewModel: ObservableObject {
     @Published var conversations: [Conversation] = []
     @Published var searchSuggestions: [SearchSuggestion] = []
     @Published var userProfile: UserProfile?
+    @Published var isOffline = false
+    @Published var lastSyncTime: Date?
     
     // MARK: - UI State
     @Published var showProfileSheet = false
@@ -35,21 +37,51 @@ class HeaderViewModel: ObservableObject {
     private let autoMinimizeDelay: TimeInterval = 5.0
     
     // MARK: - Services
-    private let storiesService = StoriesAPIService.shared
-    private let messagesService = MessagesAPIService.shared
-    private let searchService = SearchAPIService.shared
-    private let userService = UserAPIService.shared
+    private let apiService: EnhancedAPIService
+    private let coreDataManager: CoreDataManager
+    private let webSocketManager: WebSocketManager
     private let voiceManager = GemmaVoiceManager.shared
     
     // MARK: - Initialization
-    init() {
+    init(serviceFactory: EnhancedServiceFactory = .shared) {
+        self.apiService = serviceFactory.apiService
+        self.coreDataManager = serviceFactory.coreDataManager
+        self.webSocketManager = serviceFactory.webSocketManager
         setupBindings()
+        setupWebSocketListeners()
         loadInitialData()
     }
     
     deinit {
         autoMinimizeTimer?.invalidate()
         autoMinimizeTimer = nil
+        cancellables.removeAll()
+    }
+    
+    // MARK: - Setup Methods
+    private func setupWebSocketListeners() {
+        webSocketManager.messagesPublisher
+            .compactMap { [weak self] message in
+                self?.handleWebSocketMessage(message)
+            }
+            .sink { _ in }
+            .store(in: &cancellables)
+    }
+    
+    private func handleWebSocketMessage(_ message: WebSocketMessage) {
+        switch message.type {
+        case "new_message":
+            unreadMessagesCount += 1
+            Task { await loadConversations() }
+        case "new_story":
+            Task { await loadStories() }
+        case "story_update":
+            if let storyId = message.data["storyId"] as? String {
+                Task { await updateStory(storyId: storyId) }
+            }
+        default:
+            break
+        }
     }
     
     // MARK: - Setup
@@ -92,45 +124,70 @@ class HeaderViewModel: ObservableObject {
     
     private func loadStories() async {
         do {
-            let fetchedStories = try await storiesService.fetchStories()
+            let fetchedStories = try await apiService.getStories()
             stories = fetchedStories
+            coreDataManager.cacheStories(fetchedStories)
         } catch {
-            // Fall back to sample data if API fails
-            stories = Story.sampleStories
+            // Fall back to cached data if API fails
+            if let cachedStories = coreDataManager.fetchCachedStories() {
+                stories = cachedStories
+            } else {
+                stories = Story.sampleStories
+            }
             print("Failed to load stories: \(error.localizedDescription)")
         }
     }
     
     private func loadConversations() async {
         do {
-            let fetchedConversations = try await messagesService.fetchConversations()
+            let fetchedConversations = try await apiService.getConversations()
             conversations = fetchedConversations
+            coreDataManager.cacheConversations(fetchedConversations)
         } catch {
-            // Fall back to sample data if API fails
-            conversations = Conversation.sampleConversations
+            // Fall back to cached data if API fails
+            if let cachedConversations = coreDataManager.fetchCachedConversations() {
+                conversations = cachedConversations
+            } else {
+                conversations = Conversation.sampleConversations
+            }
             print("Failed to load conversations: \(error.localizedDescription)")
         }
     }
     
     private func loadUserProfile() async {
         do {
-            let fetchedProfile = try await userService.fetchUserProfile()
+            let fetchedProfile = try await apiService.getUserProfile()
             userProfile = fetchedProfile
+            coreDataManager.cacheUserProfile(fetchedProfile)
         } catch {
-            // Fall back to sample data if API fails
-            userProfile = UserProfile.sampleProfile
+            // Fall back to cached data if API fails
+            if let cachedProfile = coreDataManager.fetchCachedUserProfile() {
+                userProfile = cachedProfile
+            }
             print("Failed to load user profile: \(error.localizedDescription)")
         }
     }
     
     private func loadSearchSuggestions() async {
         do {
-            let fetchedSuggestions = try await searchService.getSuggestions(for: "")
+            let fetchedSuggestions = try await apiService.getSearchSuggestions(query: "")
             searchSuggestions = fetchedSuggestions
         } catch {
             // Fall back to sample data if API fails
             searchSuggestions = SearchSuggestion.sampleSuggestions
             print("Failed to load search suggestions: \(error.localizedDescription)")
+        }
+    }
+    
+    private func updateStory(storyId: String) async {
+        do {
+            let updatedStory = try await apiService.getStory(storyId: storyId)
+            if let index = stories.firstIndex(where: { $0.id == storyId }) {
+                stories[index] = updatedStory
+                coreDataManager.cacheStories(stories)
+            }
+        } catch {
+            print("Failed to update story: \(error.localizedDescription)")
         }
     }
     
@@ -418,33 +475,32 @@ class HeaderViewModel: ObservableObject {
         
         Task {
             do {
-                let suggestions = try await searchService.getSuggestions(for: searchText)
+                let suggestions = try await apiService.getSearchSuggestions(query: searchText)
                 
                 // Add dynamic suggestion at the top
-                let dynamicSuggestion = SearchSuggestion(
-                    query: searchText,
-                    category: .general,
-                    popularity: 0,
-                    isPersonalized: false
-                )
+                var allSuggestions = [
+                    SearchSuggestion(
+                        id: UUID(),
+                        text: searchText,
+                        type: .searchQuery,
+                        icon: "magnifyingglass"
+                    )
+                ]
+                allSuggestions.append(contentsOf: suggestions)
                 
-                searchSuggestions = [dynamicSuggestion] + suggestions
-                
+                self.searchSuggestions = allSuggestions
             } catch {
-                // Fall back to filtered sample data
-                let filtered = SearchSuggestion.sampleSuggestions.filter { suggestion in
-                    suggestion.query.localizedCaseInsensitiveContains(searchText)
-                }
-                
+                // Generate suggestions based on search text
                 let dynamicSuggestion = SearchSuggestion(
-                    query: searchText,
-                    category: .general,
-                    popularity: 0,
-                    isPersonalized: false
+                    id: UUID(),
+                    text: searchText,
+                    type: .searchQuery,
+                    icon: "magnifyingglass"
                 )
                 
-                searchSuggestions = [dynamicSuggestion] + filtered
-                print("Failed to load search suggestions: \(error.localizedDescription)")
+                self.searchSuggestions = [dynamicSuggestion] + SearchSuggestion.sampleSuggestions.filter {
+                    $0.text.localizedCaseInsensitiveContains(searchText)
+                }.prefix(5)
             }
         }
     }
