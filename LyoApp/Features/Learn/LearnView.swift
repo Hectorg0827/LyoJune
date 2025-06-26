@@ -1,5 +1,30 @@
 import SwiftUI
 
+// MARK: - Learn Type Definitions
+struct LearningGoal: Identifiable, Codable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let target: Int
+    let current: Int
+    let deadline: Date?
+    let category: String
+    
+    var progress: Double {
+        guard target > 0 else { return 0 }
+        return Double(current) / Double(target)
+    }
+    
+    init(title: String, description: String, target: Int, current: Int = 0, deadline: Date? = nil, category: String = "general") {
+        self.title = title
+        self.description = description
+        self.target = target
+        self.current = current
+        self.deadline = deadline
+        self.category = category
+    }
+}
+
 struct LearnView: View {
     @StateObject private var viewModel = LearnViewModel()
     @State private var selectedTab = 0
