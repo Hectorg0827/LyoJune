@@ -394,7 +394,7 @@ class LearnViewModel: ObservableObject {
 // MARK: - User Course Model
 struct UserCourse: Codable, Identifiable {
     let id: UUID
-    let course: LearningCourse
+    let course: Course
     let enrollmentDate: Date
     var progress: Double
     var isCompleted: Bool
