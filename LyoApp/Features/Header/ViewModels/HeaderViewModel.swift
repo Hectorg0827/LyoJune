@@ -24,7 +24,7 @@ class HeaderViewModel: ObservableObject {
     @Published var isListeningForVoice = false
     @Published var selectedStory: Story?
     @Published var isShowingStoryViewer = false
-    @Published var selectedConversation: Conversation?
+    @Published var selectedConversation: HeaderConversation?
     @Published var isShowingChatView = false
     
     // MARK: - Animation State
@@ -44,7 +44,12 @@ class HeaderViewModel: ObservableObject {
     
     // MARK: - Initialization
     init(serviceFactory: EnhancedServiceFactory? = nil) {
-        let factory = serviceFactory ?? EnhancedServiceFactory.shared
+        let factory: EnhancedServiceFactory
+        if let serviceFactory = serviceFactory {
+            factory = serviceFactory
+        } else {
+            factory = EnhancedServiceFactory.shared
+        }
         self.apiService = factory.apiService
         self.coreDataManager = factory.coreDataManager
         self.webSocketManager = factory.webSocketManager
