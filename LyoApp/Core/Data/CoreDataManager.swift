@@ -2,37 +2,29 @@ import Foundation
 import CoreData
 import Combine
 
-/// Core Data Manager for offline data persistence in Phase 3
-class CoreDataManager: ObservableObject {
+// MARK: - Core Data Manager
+final class CoreDataManager: ObservableObject {
     static let shared = CoreDataManager()
     
-    @Published var isSyncing: Bool = false
-    @Published var lastSyncDate: Date?
-    
-    private var cancellables = Set<AnyCancellable>()
+    @Published var isReady: Bool = false
     
     // MARK: - Core Data Stack
     
     lazy var persistentContainer: NSPersistentContainer = {
-        let container = NSPersistentContainer(name: "LyoAppDataModel")
+        let container = NSPersistentContainer(name: "LyoDataModel")
         
-        // Configure persistent store
-        let storeDescription = container.persistentStoreDescriptions.first
-        storeDescription?.shouldInferMappingModelAutomatically = true
-        storeDescription?.shouldMigrateStoreAutomatically = true
-        storeDescription?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-        storeDescription?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        
-        container.loadPersistentStores { [weak self] storeDescription, error in
+        container.loadPersistentStores { [weak self] _, error in
             if let error = error as NSError? {
-                // Replace this implementation with code to handle the error appropriately.
                 print("❌ Core Data error: \(error), \(error.userInfo)")
             } else {
-                print("✅ Core Data store loaded successfully")
-                self?.setupRemoteChangeNotifications()
+                print("✅ Core Data loaded successfully")
+                DispatchQueue.main.async {
+                    self?.isReady = true
+                }
             }
         }
         
+        // Configure automatic merging
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         
@@ -43,10 +35,7 @@ class CoreDataManager: ObservableObject {
         return persistentContainer.viewContext
     }
     
-    private init() {
-        loadLastSyncDate()
-        setupNetworkMonitoring()
-    }
+    private init() {}
     
     // MARK: - Core Data Operations
     
@@ -55,507 +44,257 @@ class CoreDataManager: ObservableObject {
         
         do {
             try context.save()
+            print("✅ Core Data saved successfully")
         } catch {
-            print("❌ Failed to save Core Data context: \(error)")
+            print("❌ Core Data save error: \(error)")
         }
     }
     
-    func saveWithCompletion(_ completion: @escaping (Bool) -> Void) {
-        guard context.hasChanges else {
-            completion(true)
-            return
+    func fetch<T: NSManagedObject>(_ request: NSFetchRequest<T>) -> [T] {
+        do {
+            return try context.fetch(request)
+        } catch {
+            print("❌ Core Data fetch error: \(error)")
+            return []
         }
+    }
+    
+    func delete(_ object: NSManagedObject) {
+        context.delete(object)
+        save()
+    }
+    
+    func deleteAll<T: NSManagedObject>(_ type: T.Type) {
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: String(describing: type))
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: request)
         
         do {
-            try context.save()
-            completion(true)
+            try context.execute(deleteRequest)
+            save()
+            print("✅ Deleted all \(type) objects")
         } catch {
-            print("❌ Failed to save Core Data context: \(error)")
-            completion(false)
+            print("❌ Delete all error: \(error)")
         }
     }
     
-    func performBackgroundTask<T>(_ task: @escaping (NSManagedObjectContext) -> T) -> Future<T, CoreDataError> {
-        return Future<T, CoreDataError> { promise in
-            self.persistentContainer.performBackgroundTask { context in
-                let result = task(context)
-                
-                if context.hasChanges {
-                    do {
-                        try context.save()
-                        promise(.success(result))
-                    } catch {
-                        promise(.failure(.saveFailed(error)))
-                    }
-                } else {
-                    promise(.success(result))
-                }
-            }
+    // MARK: - User Management
+    
+    func saveUser(_ user: User) {
+        // Delete existing user first
+        deleteAll(CachedUser.self)
+        
+        let cachedUser = CachedUser(context: context)
+        cachedUser.id = user.id
+        cachedUser.email = user.email
+        cachedUser.name = user.name
+        cachedUser.avatar = user.avatar
+        cachedUser.createdAt = user.createdAt
+        cachedUser.updatedAt = user.updatedAt
+        cachedUser.isVerified = user.isVerified
+        
+        // Convert badges array to Data
+        if let badges = user.stats?.badges {
+            cachedUser.badges = try? NSKeyedArchiver.archivedData(withRootObject: badges, requiringSecureCoding: true)
         }
+        
+        save()
+    }
+    
+    func fetchUser() -> User? {
+        let request: NSFetchRequest<CachedUser> = CachedUser.fetchRequest()
+        request.fetchLimit = 1
+        
+        guard let cachedUser = fetch(request).first else { return nil }
+        
+        // Convert badges back from Data
+        var badges: [String] = []
+        if let badgesData = cachedUser.badges {
+            badges = (try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(badgesData) as? [String]) ?? []
+        }
+        
+        let stats = UserStats(
+            totalCourses: Int(cachedUser.totalCourses),
+            completedCourses: Int(cachedUser.completedCourses),
+            totalPoints: Int(cachedUser.totalPoints),
+            currentStreak: Int(cachedUser.currentStreak),
+            longestStreak: Int(cachedUser.longestStreak),
+            level: Int(cachedUser.level),
+            badges: badges,
+            totalStudyTime: cachedUser.totalStudyTime
+        )
+        
+        let preferences = UserPreferences(
+            notifications: cachedUser.notifications,
+            darkMode: cachedUser.darkMode,
+            language: cachedUser.language ?? "en",
+            biometricAuth: cachedUser.biometricAuth,
+            pushNotifications: cachedUser.pushNotifications,
+            emailNotifications: cachedUser.emailNotifications
+        )
+        
+        return User(
+            id: cachedUser.id ?? "",
+            email: cachedUser.email ?? "",
+            name: cachedUser.name ?? "",
+            avatar: cachedUser.avatar,
+            createdAt: cachedUser.createdAt ?? Date(),
+            updatedAt: cachedUser.updatedAt ?? Date(),
+            isVerified: cachedUser.isVerified,
+            preferences: preferences,
+            stats: stats,
+            role: UserRole(rawValue: cachedUser.role ?? "student") ?? .student,
+            status: UserStatus(rawValue: cachedUser.status ?? "active") ?? .active
+        )
     }
     
     // MARK: - Course Management
     
-    func saveCourse(_ course: CourseModel) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let cdCourse = self.findOrCreateCourse(course.id, in: context)
-            self.updateCourseEntity(cdCourse, with: course)
-        }
-    }
-    
-    func saveCourses(_ courses: [CourseModel]) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            for course in courses {
-                let cdCourse = self.findOrCreateCourse(course.id, in: context)
-                self.updateCourseEntity(cdCourse, with: course)
-            }
-        }
-    }
-    
-    func getCourse(by id: String) -> CDCourse? {
-        let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id)
-        request.fetchLimit = 1
+    func saveCourse(_ course: Course) {
+        let request: NSFetchRequest<CachedCourse> = CachedCourse.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", course.id)
         
-        return try? context.fetch(request).first
-    }
-    
-    func getCourses(
-        predicate: NSPredicate? = nil,
-        sortDescriptors: [NSSortDescriptor] = []
-    ) -> [CDCourse] {
-        let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
-        request.predicate = predicate
-        request.sortDescriptors = sortDescriptors
+        let cachedCourse: CachedCourse
+        if let existing = fetch(request).first {
+            cachedCourse = existing
+        } else {
+            cachedCourse = CachedCourse(context: context)
+        }
         
-        return (try? context.fetch(request)) ?? []
-    }
-    
-    func getOfflineCourses() -> [CDCourse] {
-        let predicate = NSPredicate(format: "isDownloadedForOffline == YES")
-        return getCourses(predicate: predicate)
-    }
-    
-    // MARK: - User Progress Management
-    
-    func saveUserProgress(_ progress: UserProgress) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let cdProgress = self.findOrCreateUserProgress(in: context)
-            self.updateUserProgressEntity(cdProgress, with: progress)
-        }
-    }
-    
-    func getUserProgress() -> CDUserProgress? {
-        let request: NSFetchRequest<CDUserProgress> = CDUserProgress.fetchRequest()
-        request.fetchLimit = 1
+        cachedCourse.id = course.id
+        cachedCourse.title = course.title
+        cachedCourse.courseDescription = course.description
+        cachedCourse.duration = course.duration
+        cachedCourse.difficulty = course.difficulty.rawValue
+        cachedCourse.category = course.category.rawValue
+        cachedCourse.imageURL = course.imageURL
+        cachedCourse.createdAt = course.createdAt
+        cachedCourse.updatedAt = course.updatedAt
+        cachedCourse.isPublished = course.isPublished
+        cachedCourse.price = course.price
+        cachedCourse.currency = course.currency
+        cachedCourse.enrollmentCount = Int32(course.enrollmentCount)
+        cachedCourse.rating = course.rating
+        cachedCourse.reviewCount = Int32(course.reviewCount)
         
-        return try? context.fetch(request).first
-    }
-    
-    func saveLessonProgress(_ progress: LessonProgress, courseId: String, lessonId: String) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let cdProgress = self.findOrCreateLessonProgress(courseId: courseId, lessonId: lessonId, in: context)
-            self.updateLessonProgressEntity(cdProgress, with: progress)
+        // Convert tags array to Data
+        if !course.tags.isEmpty {
+            cachedCourse.tags = try? NSKeyedArchiver.archivedData(withRootObject: course.tags, requiringSecureCoding: true)
         }
-    }
-    
-    func getLessonProgress(courseId: String, lessonId: String) -> CDLessonProgress? {
-        let request: NSFetchRequest<CDLessonProgress> = CDLessonProgress.fetchRequest()
-        request.predicate = NSPredicate(format: "courseId == %@ AND lessonId == %@", courseId, lessonId)
-        request.fetchLimit = 1
         
-        return try? context.fetch(request).first
+        save()
     }
     
-    // MARK: - Feed Post Management
-    
-    func saveFeedPost(_ post: FeedPost) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let cdPost = self.findOrCreateFeedPost(post.id, in: context)
-            self.updateFeedPostEntity(cdPost, with: post)
-        }
-    }
-    
-    func saveFeedPosts(_ posts: [FeedPost]) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            for post in posts {
-                let cdPost = self.findOrCreateFeedPost(post.id, in: context)
-                self.updateFeedPostEntity(cdPost, with: post)
-            }
-        }
-    }
-    
-    func getFeedPosts(limit: Int = 20, offset: Int = 0) -> [CDFeedPost] {
-        let request: NSFetchRequest<CDFeedPost> = CDFeedPost.fetchRequest()
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \CDFeedPost.createdAt, ascending: false)]
-        request.fetchLimit = limit
-        request.fetchOffset = offset
+    func fetchCourses() -> [Course] {
+        let request: NSFetchRequest<CachedCourse> = CachedCourse.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
         
-        return (try? context.fetch(request)) ?? []
-    }
-    
-    // MARK: - User Profile Management
-    
-    func saveUserProfile(_ profile: UserProfile) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let cdProfile = self.findOrCreateUserProfile(profile.id, in: context)
-            self.updateUserProfileEntity(cdProfile, with: profile)
-        }
-    }
-    
-    func getUserProfile(id: String) -> CDUserProfile? {
-        let request: NSFetchRequest<CDUserProfile> = CDUserProfile.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id)
-        request.fetchLimit = 1
-        
-        return try? context.fetch(request).first
-    }
-    
-    // MARK: - Offline Content Management
-    
-    func markCourseForOfflineDownload(_ courseId: String) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            if let course = self.findOrCreateCourse(courseId, in: context) {
-                course.isDownloadedForOffline = true
-                course.downloadedAt = Date()
-            }
-        }
-    }
-    
-    func removeCourseFromOfflineDownload(_ courseId: String) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            if let course = self.findOrCreateCourse(courseId, in: context) {
-                course.isDownloadedForOffline = false
-                course.downloadedAt = nil
-            }
-        }
-    }
-    
-    func getOfflineDownloadSize() -> Int64 {
-        let courses = getOfflineCourses()
-        return courses.reduce(0) { $0 + $1.downloadSize }
-    }
-    
-    // MARK: - Sync Management
-    
-    func needsSync() -> Bool {
-        guard let lastSync = lastSyncDate else { return true }
-        let timeSinceLastSync = Date().timeIntervalSince(lastSync)
-        return timeSinceLastSync > 300 // 5 minutes
-    }
-    
-    func markSyncCompleted() {
-        lastSyncDate = Date()
-        UserDefaults.standard.set(lastSyncDate, forKey: "last_sync_date")
-    }
-    
-    func getPendingSyncItems() -> [CDSyncItem] {
-        let request: NSFetchRequest<CDSyncItem> = CDSyncItem.fetchRequest()
-        request.predicate = NSPredicate(format: "isSynced == NO")
-        request.sortDescriptors = [NSSortDescriptor(keyPath: \CDSyncItem.createdAt, ascending: true)]
-        
-        return (try? context.fetch(request)) ?? []
-    }
-    
-    func createSyncItem(type: SyncItemType, entityId: String, data: Data) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let syncItem = CDSyncItem(context: context)
-            syncItem.id = UUID().uuidString
-            syncItem.type = type.rawValue
-            syncItem.entityId = entityId
-            syncItem.data = data
-            syncItem.createdAt = Date()
-            syncItem.isSynced = false
-        }
-    }
-    
-    func markSyncItemAsCompleted(_ syncItemId: String) -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let request: NSFetchRequest<CDSyncItem> = CDSyncItem.fetchRequest()
-            request.predicate = NSPredicate(format: "id == %@", syncItemId)
-            
-            if let syncItem = try? context.fetch(request).first {
-                syncItem.isSynced = true
-                syncItem.syncedAt = Date()
-            }
-        }
-    }
-    
-    // MARK: - Data Cleanup
-    
-    func cleanupOldData() -> Future<Void, CoreDataError> {
-        return performBackgroundTask { context in
-            let cutoffDate = Calendar.current.date(byAdding: .day, value: -30, to: Date()) ?? Date()
-            
-            // Clean up old feed posts
-            let feedPostRequest: NSFetchRequest<CDFeedPost> = CDFeedPost.fetchRequest()
-            feedPostRequest.predicate = NSPredicate(format: "createdAt < %@", cutoffDate as NSDate)
-            
-            if let oldPosts = try? context.fetch(feedPostRequest) {
-                for post in oldPosts {
-                    context.delete(post)
-                }
+        return fetch(request).compactMap { cachedCourse in
+            // Convert tags back from Data
+            var tags: [String] = []
+            if let tagsData = cachedCourse.tags {
+                tags = (try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(tagsData) as? [String]) ?? []
             }
             
-            // Clean up completed sync items
-            let syncItemRequest: NSFetchRequest<CDSyncItem> = CDSyncItem.fetchRequest()
-            syncItemRequest.predicate = NSPredicate(format: "isSynced == YES AND syncedAt < %@", cutoffDate as NSDate)
+            let instructor = Instructor(
+                id: "instructor_\(cachedCourse.id ?? "")",
+                name: "Instructor",
+                bio: nil,
+                avatar: nil,
+                expertise: [],
+                rating: 0.0,
+                totalCourses: 0,
+                totalStudents: 0
+            )
             
-            if let completedSyncItems = try? context.fetch(syncItemRequest) {
-                for item in completedSyncItems {
-                    context.delete(item)
-                }
-            }
+            return Course(
+                id: cachedCourse.id ?? "",
+                title: cachedCourse.title ?? "",
+                description: cachedCourse.courseDescription ?? "",
+                instructor: instructor,
+                duration: cachedCourse.duration,
+                difficulty: CourseDifficulty(rawValue: cachedCourse.difficulty ?? "beginner") ?? .beginner,
+                category: CourseCategory(rawValue: cachedCourse.category ?? "other") ?? .other,
+                imageURL: cachedCourse.imageURL,
+                lessons: [],
+                tags: tags,
+                createdAt: cachedCourse.createdAt ?? Date(),
+                updatedAt: cachedCourse.updatedAt ?? Date(),
+                isPublished: cachedCourse.isPublished,
+                price: cachedCourse.price,
+                currency: cachedCourse.currency ?? "USD",
+                enrollmentCount: Int(cachedCourse.enrollmentCount),
+                rating: cachedCourse.rating,
+                reviewCount: Int(cachedCourse.reviewCount)
+            )
         }
     }
     
-    // MARK: - Private Helper Methods
+    // MARK: - Post Management
     
-    private func findOrCreateCourse(_ id: String, in context: NSManagedObjectContext) -> CDCourse {
-        let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id)
-        request.fetchLimit = 1
+    func savePost(_ post: Post) {
+        let request: NSFetchRequest<CachedPost> = CachedPost.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", post.id)
         
-        if let existingCourse = try? context.fetch(request).first {
-            return existingCourse
+        let cachedPost: CachedPost
+        if let existing = fetch(request).first {
+            cachedPost = existing
         } else {
-            let newCourse = CDCourse(context: context)
-            newCourse.id = id
-            return newCourse
-        }
-    }
-    
-    private func updateCourseEntity(_ entity: CDCourse, with course: CourseModel) {
-        entity.title = course.title
-        entity.courseDescription = course.description
-        entity.category = course.category
-        entity.difficultyLevel = course.difficultyLevel
-        entity.duration = Int32(course.estimatedDuration)
-        entity.rating = course.rating
-        entity.enrollmentCount = Int32(course.enrollmentCount)
-        entity.thumbnailURL = course.thumbnailURL
-        entity.instructorId = course.instructorId
-        entity.price = course.price ?? 0.0
-        entity.isFree = course.isFree
-        entity.updatedAt = Date()
-    }
-    
-    private func findOrCreateUserProgress(in context: NSManagedObjectContext) -> CDUserProgress {
-        let request: NSFetchRequest<CDUserProgress> = CDUserProgress.fetchRequest()
-        request.fetchLimit = 1
-        
-        if let existingProgress = try? context.fetch(request).first {
-            return existingProgress
-        } else {
-            return CDUserProgress(context: context)
-        }
-    }
-    
-    private func updateUserProgressEntity(_ entity: CDUserProgress, with progress: UserProgress) {
-        entity.overallProgress = progress.overallProgress
-        entity.completedCourses = Int32(progress.completedCourses)
-        entity.inProgressCourses = Int32(progress.inProgressCourses)
-        entity.totalLearningHours = Int32(progress.totalLearningHours)
-        entity.currentStreak = Int32(progress.currentStreak)
-        entity.longestStreak = Int32(progress.longestStreak)
-        entity.updatedAt = Date()
-    }
-    
-    private func findOrCreateLessonProgress(courseId: String, lessonId: String, in context: NSManagedObjectContext) -> CDLessonProgress {
-        let request: NSFetchRequest<CDLessonProgress> = CDLessonProgress.fetchRequest()
-        request.predicate = NSPredicate(format: "courseId == %@ AND lessonId == %@", courseId, lessonId)
-        request.fetchLimit = 1
-        
-        if let existingProgress = try? context.fetch(request).first {
-            return existingProgress
-        } else {
-            let newProgress = CDLessonProgress(context: context)
-            newProgress.courseId = courseId
-            newProgress.lessonId = lessonId
-            return newProgress
-        }
-    }
-    
-    private func updateLessonProgressEntity(_ entity: CDLessonProgress, with progress: LessonProgress) {
-        entity.percentage = progress.percentage
-        entity.timeSpent = progress.timeSpent
-        entity.completed = progress.completed
-        entity.lastAccessed = progress.lastAccessed
-        entity.updatedAt = Date()
-    }
-    
-    private func findOrCreateFeedPost(_ id: String, in context: NSManagedObjectContext) -> CDFeedPost {
-        let request: NSFetchRequest<CDFeedPost> = CDFeedPost.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id)
-        request.fetchLimit = 1
-        
-        if let existingPost = try? context.fetch(request).first {
-            return existingPost
-        } else {
-            let newPost = CDFeedPost(context: context)
-            newPost.id = id
-            return newPost
-        }
-    }
-    
-    private func updateFeedPostEntity(_ entity: CDFeedPost, with post: FeedPost) {
-        entity.content = post.content
-        entity.authorId = post.authorId
-        entity.authorName = post.authorName
-        entity.authorAvatarURL = post.authorAvatarURL
-        entity.createdAt = post.createdAt
-        entity.likeCount = Int32(post.likeCount)
-        entity.commentCount = Int32(post.commentCount)
-        entity.isLikedByCurrentUser = post.isLikedByCurrentUser
-        entity.mediaURLs = post.mediaURLs?.joined(separator: ",")
-        entity.courseId = post.courseId
-        entity.updatedAt = Date()
-    }
-    
-    private func findOrCreateUserProfile(_ id: String, in context: NSManagedObjectContext) -> CDUserProfile {
-        let request: NSFetchRequest<CDUserProfile> = CDUserProfile.fetchRequest()
-        request.predicate = NSPredicate(format: "id == %@", id)
-        request.fetchLimit = 1
-        
-        if let existingProfile = try? context.fetch(request).first {
-            return existingProfile
-        } else {
-            let newProfile = CDUserProfile(context: context)
-            newProfile.id = id
-            return newProfile
-        }
-    }
-    
-    private func updateUserProfileEntity(_ entity: CDUserProfile, with profile: UserProfile) {
-        entity.email = profile.email
-        entity.fullName = profile.fullName
-        entity.username = profile.username
-        entity.avatarURL = profile.avatarUrl
-        entity.bio = profile.bio
-        entity.location = profile.location
-        entity.website = profile.website
-        entity.createdAt = profile.createdAt
-        entity.updatedAt = Date()
-    }
-    
-    private func loadLastSyncDate() {
-        lastSyncDate = UserDefaults.standard.object(forKey: "last_sync_date") as? Date
-    }
-    
-    private func setupNetworkMonitoring() {
-        EnhancedNetworkManager.shared.$isOnline
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isOnline in
-                if isOnline && self?.needsSync() == true {
-                    // Schedule sync when network comes back online
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                        Task {
-                            await self?.performBackgroundSync()
-                        }
-                    }
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func setupRemoteChangeNotifications() {
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(managedObjectContextDidSave),
-            name: .NSManagedObjectContextDidSave,
-            object: nil
-        )
-    }
-    
-    @objc private func managedObjectContextDidSave(notification: Notification) {
-        guard let context = notification.object as? NSManagedObjectContext,
-              context !== self.context else { return }
-        
-        DispatchQueue.main.async {
-            self.context.mergeChanges(fromContextDidSave: notification)
-        }
-    }
-    
-    // MARK: - Background Sync
-    
-    func performBackgroundSync() async {
-        guard !isSyncing else { return }
-        
-        await MainActor.run {
-            isSyncing = true
+            cachedPost = CachedPost(context: context)
         }
         
-        defer {
-            Task { @MainActor in
-                isSyncing = false
-            }
-        }
+        cachedPost.id = post.id
+        cachedPost.authorId = post.authorId
+        cachedPost.authorName = post.authorName
+        cachedPost.authorAvatar = post.authorAvatar
+        cachedPost.content = post.content
+        cachedPost.imageURL = post.imageURL
+        cachedPost.videoURL = post.videoURL
+        cachedPost.likes = Int32(post.likes)
+        cachedPost.comments = Int32(post.comments)
+        cachedPost.shares = Int32(post.shares)
+        cachedPost.isLiked = post.isLiked
+        cachedPost.isBookmarked = post.isBookmarked
+        cachedPost.createdAt = post.createdAt
+        cachedPost.updatedAt = post.updatedAt
+        cachedPost.category = post.category.rawValue
+        cachedPost.visibility = post.visibility.rawValue
         
-        // Process pending sync items
-        let pendingItems = getPendingSyncItems()
+        save()
+    }
+    
+    func fetchPosts() -> [Post] {
+        let request: NSFetchRequest<CachedPost> = CachedPost.fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
         
-        for item in pendingItems {
-            await processSyncItem(item)
-        }
-        
-        await MainActor.run {
-            markSyncCompleted()
-        }
-    }
-    
-    private func processSyncItem(_ item: CDSyncItem) async {
-        guard let type = SyncItemType(rawValue: item.type ?? "") else { return }
-        
-        switch type {
-        case .lessonProgress:
-            await syncLessonProgress(item)
-        case .userProfile:
-            await syncUserProfile(item)
-        case .feedPost:
-            await syncFeedPost(item)
-        }
-    }
-    
-    private func syncLessonProgress(_ item: CDSyncItem) async {
-        // Implementation would sync lesson progress with backend
-        // For now, mark as completed
-        _ = await markSyncItemAsCompleted(item.id ?? "")
-    }
-    
-    private func syncUserProfile(_ item: CDSyncItem) async {
-        // Implementation would sync user profile with backend
-        // For now, mark as completed
-        _ = await markSyncItemAsCompleted(item.id ?? "")
-    }
-    
-    private func syncFeedPost(_ item: CDSyncItem) async {
-        // Implementation would sync feed post with backend
-        // For now, mark as completed
-        _ = await markSyncItemAsCompleted(item.id ?? "")
-    }
-}
-
-// MARK: - Supporting Types
-
-enum CoreDataError: LocalizedError {
-    case saveFailed(Error)
-    case fetchFailed(Error)
-    case unknown
-    
-    var errorDescription: String? {
-        switch self {
-        case .saveFailed(let error):
-            return "Failed to save data: \(error.localizedDescription)"
-        case .fetchFailed(let error):
-            return "Failed to fetch data: \(error.localizedDescription)"
-        case .unknown:
-            return "An unknown Core Data error occurred"
+        return fetch(request).compactMap { cachedPost in
+            Post(
+                id: cachedPost.id ?? "",
+                authorId: cachedPost.authorId ?? "",
+                authorName: cachedPost.authorName ?? "",
+                authorAvatar: cachedPost.authorAvatar,
+                content: cachedPost.content ?? "",
+                imageURL: cachedPost.imageURL,
+                videoURL: cachedPost.videoURL,
+                likes: Int(cachedPost.likes),
+                comments: Int(cachedPost.comments),
+                shares: Int(cachedPost.shares),
+                isLiked: cachedPost.isLiked,
+                isBookmarked: cachedPost.isBookmarked,
+                createdAt: cachedPost.createdAt ?? Date(),
+                updatedAt: cachedPost.updatedAt ?? Date(),
+                tags: [],
+                category: PostCategory(rawValue: cachedPost.category ?? "general") ?? .general,
+                visibility: PostVisibility(rawValue: cachedPost.visibility ?? "public") ?? .public
+            )
         }
     }
-}
-
-enum SyncItemType: String, CaseIterable {
-    case lessonProgress = "lesson_progress"
-    case userProfile = "user_profile"
-    case feedPost = "feed_post"
+    
+    // MARK: - Clear Cache
+    
+    func clearCache() {
+        deleteAll(CachedUser.self)
+        deleteAll(CachedCourse.self)
+        deleteAll(CachedPost.self)
+        print("✅ Cache cleared")
+    }
 }
