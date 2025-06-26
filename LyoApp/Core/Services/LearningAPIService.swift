@@ -142,7 +142,7 @@ class LearningAPIService {
 
     // MARK: - Lessons and Progress
     func getLessons(for courseId: String) async throws -> [LearningAPI.Lesson] {
-        return try await networkManager.get("/courses/\(courseId)/lessons")
+        return try await networkManager.get(endpoint: "/courses/\(courseId)/lessons")
     }
 
     func markLessonCompleted(_ lessonId: String, timeSpent: TimeInterval, score: Double? = nil) async throws -> LearningAPILessonProgress {
@@ -152,11 +152,11 @@ class LearningAPIService {
             score: score,
             completedAt: Date()
         )
-        return try await networkManager.post("/courses/lessons/\(lessonId)/complete", body: request)
+        return try await networkManager.post(endpoint: "/courses/lessons/\(lessonId)/complete", body: request)
     }
 
     func getUserProgress() async throws -> UserProgress {
-        return try await networkManager.get("/analytics/progress")
+        return try await networkManager.get(endpoint: "/analytics/progress")
     }
 
     // MARK: - Study Plans
@@ -166,7 +166,7 @@ class LearningAPIService {
             hoursPerWeek: timePerWeek,
             preferredDifficulty: difficulty
         )
-        return try await networkManager.post("/ai/study-plan", body: request)
+        return try await networkManager.post(endpoint: "/ai/study-plan", body: request)
     }
 
     func updateStudyPlan(_ planId: String, progress: LearningAPIStudyPlanProgress) async throws -> LearningAPIStudyPlan {
@@ -174,7 +174,7 @@ class LearningAPIService {
             planId: planId,
             progress: progress
         )
-        return try await networkManager.put("/ai/study-plan/\(planId)", body: request)
+        return try await networkManager.put(endpoint: "/ai/study-plan/\(planId)", body: request)
     }
 
     // MARK: - AI-Powered Features
@@ -184,7 +184,7 @@ class LearningAPIService {
             difficulty: difficulty,
             questionCount: questionCount
         )
-        return try await networkManager.post("/ai/quiz/generate", body: request)
+        return try await networkManager.post(endpoint: "/ai/quiz/generate", body: request)
     }
 
     func submitQuizAnswer(_ quizId: String, questionId: String, answer: String) async throws -> LearningAPIQuizFeedback {
@@ -193,10 +193,10 @@ class LearningAPIService {
             questionId: questionId,
             answer: answer
         )
-        return try await networkManager.post("/ai/quiz/\(quizId)/answer", body: request)
+        return try await networkManager.post(endpoint: "/ai/quiz/\(quizId)/answer", body: request)
     }
 
     func getPersonalizedRecommendations() async throws -> [LearningAPIRecommendation] {
-        return try await networkManager.get("/ai/recommendations")
+        return try await networkManager.get(endpoint: "/ai/recommendations")
     }
 }
