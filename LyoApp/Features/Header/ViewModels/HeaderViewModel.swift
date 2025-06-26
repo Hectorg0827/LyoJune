@@ -9,9 +9,9 @@ class HeaderViewModel: ObservableObject {
     @Published var isStoryDrawerOpen = false
     @Published var unreadMessagesCount = 0
     @Published var stories: [Story] = []
-    @Published var conversations: [Conversation] = []
+    @Published var conversations: [HeaderConversation] = []
     @Published var searchSuggestions: [SearchSuggestion] = []
-    @Published var userProfile: UserProfile?
+    @Published var userProfile: HeaderUserProfile?
     @Published var isOffline = false
     @Published var lastSyncTime: Date?
     
