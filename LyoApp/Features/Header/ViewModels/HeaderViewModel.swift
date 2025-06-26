@@ -287,7 +287,7 @@ class HeaderViewModel: ObservableObject {
         isShowingStoryViewer = true
     }
     
-    func handleConversationTap(_ conversation: Conversation) {
+    func handleConversationTap(_ conversation: HeaderConversation) {
         recordInteraction()
         
         // Mark conversation as read
