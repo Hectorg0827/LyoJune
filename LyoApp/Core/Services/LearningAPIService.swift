@@ -133,11 +133,11 @@ class LearningAPIService {
 
     func enrollInCourse(_ courseId: String) async throws -> UserCourse {
         let request = EnrollCourseRequest(courseId: courseId)
-        return try await networkManager.post("/courses/enroll", body: request)
+        return try await networkManager.post(endpoint: "/courses/enroll", body: request)
     }
 
     func unenrollFromCourse(_ courseId: String) async throws {
-        let _: EmptyResponse = try await networkManager.delete("/courses/\(courseId)/enroll")
+        let _: EmptyResponse = try await networkManager.delete(endpoint: "/courses/\(courseId)/enroll")
     }
 
     // MARK: - Lessons and Progress
