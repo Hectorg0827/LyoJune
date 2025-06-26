@@ -210,7 +210,7 @@ struct EnhancedHomeFeedView: View {
 
 /// Enhanced TikTok-style video view
 struct EnhancedTikTokVideoView: View {
-    let video: VideoModel
+    let video: EducationalVideo
     let isCurrentVideo: Bool
     @State private var isLiked = false
     @State private var isBookmarked = false
