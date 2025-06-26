@@ -9,9 +9,9 @@ class EnhancedServiceFactory: ObservableObject {
     // MARK: - Core Services
     @Published private var _networkManager: EnhancedNetworkManager?
     @Published private var _authService: EnhancedAuthService?
-    @Published private var _apiService: EnhancedAPIService?
+    @Published private var _apiService: EnhancedNetworkManager? // Using EnhancedNetworkManager as API service
     @Published private var _webSocketManager: WebSocketManager?
-    @Published private var _coreDataManager: CoreDataManager?
+    @Published private var _coreDataManager: BasicCoreDataManager?
     
     private var isInitialized = false
     
@@ -32,7 +32,7 @@ class EnhancedServiceFactory: ObservableObject {
         return _authService!
     }
     
-    var apiService: EnhancedAPIService {
+    var apiService: EnhancedNetworkManager {
         if _apiService == nil {
             initializeServices()
         }
@@ -46,7 +46,7 @@ class EnhancedServiceFactory: ObservableObject {
         return _webSocketManager!
     }
     
-    var coreDataManager: CoreDataManager {
+    var coreDataManager: BasicCoreDataManager {
         if _coreDataManager == nil {
             initializeServices()
         }
@@ -59,46 +59,39 @@ class EnhancedServiceFactory: ObservableObject {
         
         // Initialize core services in dependency order
         _networkManager = EnhancedNetworkManager()
-        _coreDataManager = CoreDataManager()
+        _coreDataManager = BasicCoreDataManager.shared
         _authService = EnhancedAuthService(
-            networkManager: _networkManager!,
-            coreDataManager: _coreDataManager!
+            networkManager: _networkManager!
         )
-        _apiService = EnhancedAPIService(
-            networkManager: _networkManager!,
-            authService: _authService!,
-            coreDataManager: _coreDataManager!
-        )
-        _webSocketManager = WebSocketManager(
-            authService: _authService!
-        )
+        _apiService = EnhancedNetworkManager() // This implements EnhancedAPIService protocol
+        _webSocketManager = WebSocketManager()
         
         isInitialized = true
         
         // Setup real-time connections if authenticated
         Task {
-            await setupRealTimeConnections()
+            setupRealTimeConnections()
         }
     }
     
     // MARK: - Real-time Setup
-    private func setupRealTimeConnections() async {
+    private func setupRealTimeConnections() {
         guard let authService = _authService,
-              await authService.isAuthenticated else {
+              authService.isAuthenticated else {
             return
         }
         
         // Connect to WebSocket for real-time updates
-        await webSocketManager.connect()
+        webSocketManager.connect()
         
-        // Start background sync
-        await coreDataManager.startBackgroundSync()
+        // Start background sync if needed
+        // coreDataManager.startBackgroundSync()
     }
     
     // MARK: - Service Lifecycle
-    func shutdown() async {
-        await webSocketManager.disconnect()
-        await coreDataManager.stopBackgroundSync()
+    func shutdown() {
+        webSocketManager.disconnect()
+        // coreDataManager.stopBackgroundSync()
         
         _networkManager = nil
         _authService = nil
@@ -112,15 +105,15 @@ class EnhancedServiceFactory: ObservableObject {
     // MARK: - Development Helpers
     #if DEBUG
     func resetForTesting() async {
-        await shutdown()
-        await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
         initializeServices()
     }
     #endif
 }
 
 // MARK: - Service Factory Environment Key
-struct ServiceFactoryKey: EnvironmentKey {
+struct ServiceFactoryKey: @preconcurrency EnvironmentKey {
+    @MainActor
     static let defaultValue = EnhancedServiceFactory.shared
 }
 
@@ -133,6 +126,7 @@ extension EnvironmentValues {
 
 // MARK: - Convenience Extensions
 extension View {
+    @MainActor
     func withEnhancedServices() -> some View {
         self.environmentObject(EnhancedServiceFactory.shared)
     }
