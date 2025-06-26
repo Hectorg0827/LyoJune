@@ -1,6 +1,56 @@
 import SwiftUI
 import Combine
 
+// MARK: - Community Type Definitions
+struct CommunityEvent: Identifiable, Codable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let date: Date
+    let location: String
+    let category: EventCategory
+    let attendees: Int
+    let maxAttendees: Int?
+    let isJoined: Bool
+    
+    init(title: String, description: String, date: Date, location: String, category: EventCategory = .study, attendees: Int = 0, maxAttendees: Int? = nil, isJoined: Bool = false) {
+        self.title = title
+        self.description = description
+        self.date = date
+        self.location = location
+        self.category = category
+        self.attendees = attendees
+        self.maxAttendees = maxAttendees
+        self.isJoined = isJoined
+    }
+}
+
+enum EventCategory: String, CaseIterable, Codable {
+    case study = "study"
+    case social = "social"
+    case workshop = "workshop"
+    case exam = "exam"
+    case project = "project"
+}
+
+struct LearningLocation: Identifiable, Codable {
+    let id = UUID()
+    let name: String
+    let address: String
+    let type: LocationType
+    let rating: Double
+    let studySpots: Int
+    let amenities: [String]
+    
+    enum LocationType: String, CaseIterable, Codable {
+        case library = "library"
+        case cafe = "cafe"
+        case campus = "campus"
+        case coworking = "coworking"
+        case park = "park"
+    }
+}
+
 @MainActor
 class CommunityViewModel: ObservableObject {
     @Published var localEvents: [CommunityEvent] = []
@@ -22,10 +72,10 @@ class CommunityViewModel: ObservableObject {
     private let webSocketManager: WebSocketManager
     
     // MARK: - Initialization
-    init(serviceFactory: EnhancedServiceFactory = .shared) {
-        self.apiService = serviceFactory.apiService
-        self.coreDataManager = serviceFactory.coreDataManager
-        self.webSocketManager = serviceFactory.webSocketManager
+    init() {
+        self.apiService = EnhancedAPIService()
+        self.coreDataManager = CoreDataManager.shared
+        self.webSocketManager = WebSocketManager.shared
         
         setupNotifications()
         setupWebSocketListeners()
@@ -66,6 +116,24 @@ class CommunityViewModel: ObservableObject {
                     self?.isOffline = !isConnected
                     if isConnected {
                         Task { await self?.syncData() }
+                    }
+                }
+            }
+            .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: .userDidLogin)
+            .sink { [weak self] _ in
+                Task {
+                    await self?.loadData()
+                }
+            }
+            .store(in: &cancellables)
+        
+        NotificationCenter.default.publisher(for: .dataSynced)
+            .sink { [weak self] notification in
+                if let syncType = notification.object as? String, syncType == "community" {
+                    Task {
+                        await self?.loadData()
                     }
                 }
             }
@@ -371,37 +439,6 @@ class CommunityViewModel: ObservableObject {
         if let cached = coreDataManager.fetchCachedUserStats() {
             userStats = cached
         }
-    }
-    
-    private func setupNotifications() {
-        NotificationCenter.default.publisher(for: .networkStatusChanged)
-            .sink { [weak self] notification in
-                if let isConnected = notification.object as? Bool {
-                    self?.isOffline = !isConnected
-                    if isConnected {
-                        Task { await self?.syncData() }
-                    }
-                }
-            }
-            .store(in: &cancellables)
-        
-        NotificationCenter.default.publisher(for: .userDidLogin)
-            .sink { [weak self] _ in
-                Task {
-                    await self?.loadData()
-                }
-            }
-            .store(in: &cancellables)
-        
-        NotificationCenter.default.publisher(for: .dataSynced)
-            .sink { [weak self] notification in
-                if let syncType = notification.object as? String, syncType == "community" {
-                    Task {
-                        await self?.loadData()
-                    }
-                }
-            }
-            .store(in: &cancellables)
     }
 }
 
