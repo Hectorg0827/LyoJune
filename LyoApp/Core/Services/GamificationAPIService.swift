@@ -124,7 +124,7 @@ class GamificationAPIService {
 
     // MARK: - XP and Levels
     func getUserXP() async throws -> GamificationAPI.UserXP {
-        return try await networkManager.get("/analytics/xp")
+        return try await networkManager.get(endpoint: "/analytics/xp")
     }
 
     func awardXP(points: Int, reason: String, categoryId: String? = nil) async throws -> GamificationAPI.XPAward {
@@ -138,7 +138,7 @@ class GamificationAPIService {
 
     // MARK: - Achievements
     func getUserAchievements() async throws -> [GamificationAPI.Achievement] {
-        return try await networkManager.get("/gamification/achievements/user")
+        return try await networkManager.get(endpoint: "/gamification/achievements/user")
     }
 
     func unlockAchievement(_ achievementId: String) async throws -> GamificationAPI.Achievement {
