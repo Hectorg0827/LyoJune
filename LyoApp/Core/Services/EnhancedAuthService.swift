@@ -1,478 +1,286 @@
 import Foundation
 import Combine
-import LocalAuthentication
 import UIKit
-
-/// Enhanced Authentication Service for Phase 3 with real backend integration
-class EnhancedAuthService: ObservableObject {
+import LocalAuthentication
+import Security
+// MARK: - Enhanced Auth Service
+final class EnhancedAuthService: ObservableObject {
     static let shared = EnhancedAuthService()
     
     @Published var isAuthenticated: Bool = false
-    @Published var isLoading: Bool = false
     @Published var currentUser: User?
     @Published var authError: AuthError?
+    @Published var isLoading: Bool = false
     
-    private let networkManager = EnhancedNetworkManager.shared
-    private let configManager = ConfigurationManager.shared
-    private let keychainHelper = KeychainHelper.shared
-    
+    private let networkManager: EnhancedNetworkManager
+    private let keychainHelper: KeychainHelper
     private var cancellables = Set<AnyCancellable>()
-    private var refreshTokenTimer: Timer?
+    private let notificationGenerator = UINotificationFeedbackGenerator()
     
-    // Token management
-    private(set) var currentToken: String?
-    private var refreshToken: String?
-    
-    // Biometric authentication
-    private let biometricContext = LAContext()
-    
-    private init() {
-        loadStoredAuthentication()
-        setupTokenRefreshTimer()
-    }
-    
-    deinit {
-        refreshTokenTimer?.invalidate()
-    }
-    
-    // MARK: - Authentication State Loading
-    
-    private func loadStoredAuthentication() {
-        isLoading = true
+    init(networkManager: EnhancedNetworkManager = .shared) {
+        self.networkManager = networkManager
+        self.keychainHelper = KeychainHelper.shared
         
-        // Load tokens from keychain
-        if let tokenData = keychainHelper.load(for: "auth_token"),
-           let token = String(data: tokenData, encoding: .utf8) {
-            currentToken = token
-            
-            // Load refresh token
-            if let refreshTokenData = keychainHelper.load(for: "refresh_token"),
-               let refreshTokenString = String(data: refreshTokenData, encoding: .utf8) {
-                refreshToken = refreshTokenString
-            }
-            
-            // Validate token with backend
-            validateCurrentToken()
-        } else {
-            isLoading = false
-        }
+        // Check for existing authentication
+        checkExistingAuth()
     }
     
-    private func validateCurrentToken() {
-        guard let token = currentToken else {
-            isLoading = false
-            return
-        }
-        
-        let request = networkManager.buildRequest(for: .validateToken)
-        
-        networkManager.performRequest(request, responseType: User.self)
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completion in
-                    if case .failure(let error) = completion {
-                        if case .unauthorized = error {
-                            // Token is invalid, try to refresh
-                            self?.attemptTokenRefresh()
-                        } else {
-                            self?.handleAuthError(.validationFailed(error.localizedDescription))
-                        }
-                    }
-                },
-                receiveValue: { [weak self] user in
-                    self?.currentUser = user
-                    self?.isAuthenticated = true
-                    self?.isLoading = false
-                    self?.authError = nil
-                }
-            )
-            .store(in: &cancellables)
-    }
+    // MARK: - Public Methods
     
-    // MARK: - Authentication Methods
-    
-    func signIn(email: String, password: String) -> Future<User, AuthError> {
-        return Future<User, AuthError> { [weak self] promise in
-            guard let self = self else {
-                promise(.failure(.unknown))
-                return
-            }
+    func login(email: String, password: String) async throws -> User {
+        await MainActor.run { isLoading = true }
+        
+        let endpoint = APIEndpoint(path: "/auth/login", method: .POST)
+        let request = LoginRequest(email: email, password: password)
+        
+        do {
+            let data = try JSONEncoder().encode(request)
+            let response: LoginResponse = try await networkManager.request(endpoint: endpoint, body: data)
             
-            self.isLoading = true
-            self.authError = nil
+            // Store tokens securely
+            _ = keychainHelper.save(response.accessToken, for: "access_token")
+            _ = keychainHelper.save(response.refreshToken, for: "refresh_token")
             
-            let loginRequest = LoginRequest(email: email, password: password)
-            
-            guard let requestData = try? JSONEncoder().encode(loginRequest) else {
-                promise(.failure(.invalidCredentials))
+            await MainActor.run {
+                self.isAuthenticated = true
+                self.currentUser = response.user
                 self.isLoading = false
-                return
+                self.notificationGenerator.notificationOccurred(.success)
             }
             
-            let request = self.networkManager.buildRequest(
-                for: .login,
-                method: .POST,
-                body: requestData
-            )
-            
-            self.networkManager.performRequest(request, responseType: LoginResponse.self)
-                .receive(on: DispatchQueue.main)
-                .sink(
-                    receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            let authError = self.mapNetworkErrorToAuthError(error)
-                            self.handleAuthError(authError)
-                            promise(.failure(authError))
-                        }
-                    },
-                    receiveValue: { response in
-                        self.handleSuccessfulAuthentication(response)
-                        promise(.success(response.user))
-                    }
-                )
-                .store(in: &self.cancellables)
-        }
-    }
-    
-    func signUp(email: String, password: String, fullName: String) -> Future<User, AuthError> {
-        return Future<User, AuthError> { [weak self] promise in
-            guard let self = self else {
-                promise(.failure(.unknown))
-                return
-            }
-            
-            self.isLoading = true
-            self.authError = nil
-            
-            let signUpRequest = SignUpRequest(
-                email: email,
-                password: password,
-                fullName: fullName
-            )
-            
-            guard let requestData = try? JSONEncoder().encode(signUpRequest) else {
-                promise(.failure(.invalidCredentials))
+            return response.user
+        } catch {
+            await MainActor.run {
+                self.authError = .loginFailed(error.localizedDescription)
                 self.isLoading = false
-                return
+                self.notificationGenerator.notificationOccurred(.error)
             }
-            
-            let request = self.networkManager.buildRequest(
-                for: .signUp,
-                method: .POST,
-                body: requestData
-            )
-            
-            self.networkManager.performRequest(request, responseType: LoginResponse.self)
-                .receive(on: DispatchQueue.main)
-                .sink(
-                    receiveCompletion: { completion in
-                        if case .failure(let error) = completion {
-                            let authError = self.mapNetworkErrorToAuthError(error)
-                            self.handleAuthError(authError)
-                            promise(.failure(authError))
-                        }
-                    },
-                    receiveValue: { response in
-                        self.handleSuccessfulAuthentication(response)
-                        promise(.success(response.user))
-                    }
-                )
-                .store(in: &self.cancellables)
+            throw error
         }
     }
     
-    func signOut() {
-        isLoading = true
+    func register(email: String, password: String, name: String) async throws -> User {
+        await MainActor.run { isLoading = true }
         
-        // Call logout endpoint
-        let request = networkManager.buildRequest(for: .logout, method: .POST)
+        let endpoint = APIEndpoint(path: "/auth/register", method: .POST)
+        let request = RegisterRequest(email: email, password: password, name: name)
         
-        networkManager.performRequest(request, responseType: LogoutResponse.self)
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] _ in
-                    // Always clear local auth state, even if logout fails
-                    self?.clearAuthenticationState()
-                },
-                receiveValue: { [weak self] _ in
-                    self?.clearAuthenticationState()
-                }
-            )
-            .store(in: &cancellables)
+        do {
+            let data = try JSONEncoder().encode(request)
+            let response: LoginResponse = try await networkManager.request(endpoint: endpoint, body: data)
+            
+            // Store tokens securely
+            _ = keychainHelper.save(response.accessToken, for: "access_token")
+            _ = keychainHelper.save(response.refreshToken, for: "refresh_token")
+            
+            await MainActor.run {
+                self.isAuthenticated = true
+                self.currentUser = response.user
+                self.isLoading = false
+                self.notificationGenerator.notificationOccurred(.success)
+            }
+            
+            return response.user
+        } catch {
+            await MainActor.run {
+                self.authError = .registrationFailed
+                self.isLoading = false
+                self.notificationGenerator.notificationOccurred(.error)
+            }
+            throw error
+        }
+    }
+    
+    func logout() async {
+        await MainActor.run { isLoading = true }
+        
+        let endpoint = APIEndpoint(path: "/auth/logout", method: .POST)
+        
+        // Attempt to notify server (don't fail if this fails)
+        do {
+            let _: EmptyResponse = try await networkManager.request(endpoint: endpoint)
+        } catch {
+            // Ignore logout errors - we'll clear local storage anyway
+            print("⚠️ Logout request failed: \(error)")
+        }
+        
+        // Clear local storage
+        _ = keychainHelper.delete(for: "access_token")
+        _ = keychainHelper.delete(for: "refresh_token")
+        
+        await MainActor.run {
+            self.isAuthenticated = false
+            self.currentUser = nil
+            self.isLoading = false
+            self.authError = nil
+        }
+    }
+    
+    func refreshToken() async throws {
+        guard let refreshToken = keychainHelper.retrieve(for: "refresh_token") else {
+            throw AuthError.noRefreshToken
+        }
+        
+        let endpoint = APIEndpoint(path: "/auth/refresh", method: .POST)
+        let request = RefreshTokenRequest(refreshToken: refreshToken)
+        
+        do {
+            let data = try JSONEncoder().encode(request)
+            let response: LoginResponse = try await networkManager.request(endpoint: endpoint, body: data)
+            
+            // Update stored tokens
+            _ = keychainHelper.save(response.accessToken, for: "access_token")
+            _ = keychainHelper.save(response.refreshToken, for: "refresh_token")
+            
+            await MainActor.run {
+                self.currentUser = response.user
+            }
+        } catch {
+            await MainActor.run {
+                self.authError = .tokenRefreshFailed
+                self.isAuthenticated = false
+                self.currentUser = nil
+            }
+            throw error
+        }
     }
     
     // MARK: - Biometric Authentication
     
-    func enableBiometricAuth() -> Future<Bool, AuthError> {
-        return Future<Bool, AuthError> { [weak self] promise in
-            guard let self = self else {
-                promise(.failure(.unknown))
-                return
-            }
-            
-            var error: NSError?
-            
-            // Check if biometric authentication is available
-            guard self.biometricContext.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
-                promise(.failure(.biometricNotAvailable))
-                return
-            }
-            
-            let reason = "Enable biometric authentication for secure and convenient access to your account"
-            
-            self.biometricContext.evaluatePolicy(
+    func enableBiometricAuth() async throws {
+        let context = LAContext()
+        var error: NSError?
+        
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            throw AuthError.biometricNotAvailable
+        }
+        
+        do {
+            let success = try await context.evaluatePolicy(
                 .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: reason
-            ) { success, error in
-                DispatchQueue.main.async {
-                    if success {
-                        // Store biometric preference
-                        UserDefaults.standard.set(true, forKey: "biometric_auth_enabled")
-                        promise(.success(true))
-                    } else {
-                        promise(.failure(.biometricAuthFailed))
-                    }
-                }
-            }
-        }
-    }
-    
-    func authenticateWithBiometrics() -> Future<Bool, AuthError> {
-        return Future<Bool, AuthError> { [weak self] promise in
-            guard let self = self else {
-                promise(.failure(.unknown))
-                return
-            }
-            
-            // Check if biometric auth is enabled
-            guard UserDefaults.standard.bool(forKey: "biometric_auth_enabled") else {
-                promise(.failure(.biometricNotEnabled))
-                return
-            }
-            
-            let reason = "Authenticate to access your Lyo account"
-            
-            self.biometricContext.evaluatePolicy(
-                .deviceOwnerAuthenticationWithBiometrics,
-                localizedReason: reason
-            ) { success, error in
-                DispatchQueue.main.async {
-                    if success {
-                        // Load stored authentication
-                        self.loadStoredAuthentication()
-                        promise(.success(true))
-                    } else {
-                        promise(.failure(.biometricAuthFailed))
-                    }
-                }
-            }
-        }
-    }
-    
-    // MARK: - Token Management
-    
-    func refreshToken(completion: @escaping (Bool) -> Void) {
-        guard let refreshToken = refreshToken else {
-            completion(false)
-            return
-        }
-        
-        let refreshRequest = RefreshTokenRequest(refreshToken: refreshToken)
-        
-        guard let requestData = try? JSONEncoder().encode(refreshRequest) else {
-            completion(false)
-            return
-        }
-        
-        let request = networkManager.buildRequest(
-            for: .refreshToken,
-            method: .POST,
-            body: requestData
-        )
-        
-        networkManager.performRequest(request, responseType: RefreshTokenResponse.self)
-            .receive(on: DispatchQueue.main)
-            .sink(
-                receiveCompletion: { [weak self] completionResult in
-                    if case .failure = completionResult {
-                        // Refresh token is invalid, sign out user
-                        self?.clearAuthenticationState()
-                        completion(false)
-                    }
-                },
-                receiveValue: { [weak self] response in
-                    self?.updateTokens(
-                        accessToken: response.accessToken,
-                        refreshToken: response.refreshToken
-                    )
-                    completion(true)
-                }
+                localizedReason: "Enable biometric authentication for quick login"
             )
-            .store(in: &cancellables)
+            
+            if success {
+                UserDefaults.standard.set(true, forKey: "biometric_enabled")
+                await MainActor.run {
+                    self.notificationGenerator.notificationOccurred(.success)
+                }
+            }
+        } catch {
+            throw AuthError.biometricAuthFailed
+        }
     }
     
-    private func setupTokenRefreshTimer() {
-        // Refresh token every 50 minutes (tokens typically expire in 1 hour)
-        refreshTokenTimer = Timer.scheduledTimer(withTimeInterval: 3000, repeats: true) { [weak self] _ in
-            if self?.isAuthenticated == true {
-                self?.refreshToken { _ in }
+    func authenticateWithBiometrics() async throws {
+        guard UserDefaults.standard.bool(forKey: "biometric_enabled") else {
+            throw AuthError.biometricNotEnrolled
+        }
+        
+        let context = LAContext()
+        var error: NSError?
+        
+        guard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {
+            throw AuthError.biometricNotAvailable
+        }
+        
+        do {
+            let success = try await context.evaluatePolicy(
+                .deviceOwnerAuthenticationWithBiometrics,
+                localizedReason: "Authenticate to access your account"
+            )
+            
+            if success {
+                // Check if we have valid stored credentials
+                if let token = keychainHelper.retrieve(for: "access_token") {
+                    try await validateToken(token)
+                    await MainActor.run {
+                        self.isAuthenticated = true
+                        self.notificationGenerator.notificationOccurred(.success)
+                    }
+                } else {
+                    throw AuthError.tokenInvalid
+                }
+            }
+        } catch {
+            throw AuthError.biometricAuthFailed
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func checkExistingAuth() {
+        if let accessToken = keychainHelper.retrieve(for: "access_token") {
+            // Validate token with server
+            Task {
+                do {
+                    try await validateToken(accessToken)
+                    let user = try await fetchCurrentUser()
+                    await MainActor.run {
+                        self.isAuthenticated = true
+                        self.currentUser = user
+                    }
+                } catch {
+                    // Token invalid, clear it
+                    _ = keychainHelper.delete(for: "access_token")
+                    _ = keychainHelper.delete(for: "refresh_token")
+                    await MainActor.run {
+                        self.isAuthenticated = false
+                        self.currentUser = nil
+                    }
+                }
             }
         }
     }
     
-    private func attemptTokenRefresh() {
-        refreshToken { [weak self] success in
-            if !success {
-                self?.clearAuthenticationState()
-            }
-        }
+    private func validateToken(_ token: String) async throws {
+        let endpoint = APIEndpoint(path: "/auth/validate", method: .POST)
+        let _: EmptyResponse = try await networkManager.request(endpoint: endpoint)
     }
     
-    // MARK: - Helper Methods
-    
-    private func handleSuccessfulAuthentication(_ response: LoginResponse) {
-        currentUser = response.user
-        updateTokens(
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken
-        )
-        
-        isAuthenticated = true
-        isLoading = false
-        authError = nil
-        
-        // Provide haptic feedback for successful authentication
-        HapticManager.shared.notification(.success)
-    }
-    
-    private func updateTokens(accessToken: String, refreshToken: String) {
-        self.currentToken = accessToken
-        self.refreshToken = refreshToken
-        
-        // Store tokens securely in keychain
-        if let tokenData = accessToken.data(using: .utf8) {
-            keychainHelper.save(tokenData, for: "auth_token")
-        }
-        
-        if let refreshTokenData = refreshToken.data(using: .utf8) {
-            keychainHelper.save(refreshTokenData, for: "refresh_token")
-        }
-    }
-    
-    private func clearAuthenticationState() {
-        currentToken = nil
-        refreshToken = nil
-        currentUser = nil
-        isAuthenticated = false
-        isLoading = false
-        authError = nil
-        
-        // Clear stored tokens
-        keychainHelper.delete(for: "auth_token")
-        keychainHelper.delete(for: "refresh_token")
-        
-        // Clear biometric auth preference
-        UserDefaults.standard.removeObject(forKey: "biometric_auth_enabled")
-        
-        // Cancel refresh timer
-        refreshTokenTimer?.invalidate()
-        setupTokenRefreshTimer()
-    }
-    
-    private func handleAuthError(_ error: AuthError) {
-        authError = error
-        isLoading = false
-        
-        // Provide haptic feedback for auth errors
-        HapticManager.shared.notification(.error)
-    }
-    
-    private func mapNetworkErrorToAuthError(_ networkError: NetworkError) -> AuthError {
-        switch networkError {
-        case .unauthorized:
-            return .invalidCredentials
-        case .networkError:
-            return .networkError
-        case .serverError:
-            return .serverError
-        default:
-            return .unknown
-        }
+    private func fetchCurrentUser() async throws -> User {
+        let endpoint = APIEndpoint(path: "/auth/me", method: .GET)
+        return try await networkManager.request(endpoint: endpoint)
     }
 }
 
-// MARK: - Supporting Types
+// MARK: - Request/Response Models
 
-// MARK: - Request Types
 struct LoginRequest: Codable {
     let email: String
     let password: String
 }
 
-struct SignUpRequest: Codable {
+struct RegisterRequest: Codable {
     let email: String
     let password: String
-    let fullName: String
+    let name: String
 }
 
 struct RefreshTokenRequest: Codable {
     let refreshToken: String
 }
 
-// MARK: - Response Types
 struct LoginResponse: Codable {
     let user: User
     let accessToken: String
     let refreshToken: String
 }
 
-struct RefreshTokenResponse: Codable {
-    let accessToken: String
-    let refreshToken: String
-}
+// MARK: - Computed Properties
 
-struct LogoutResponse: Codable {
-    let success: Bool
-}
-
-// MARK: - Error Types
-enum AuthError: LocalizedError {
-    case invalidCredentials
-    case networkError
-    case serverError
-    case validationFailed(String)
-    case biometricNotAvailable
-    case biometricNotEnabled
-    case biometricAuthFailed
-    case unknown
-    
-    var errorDescription: String? {
-        switch self {
-        case .invalidCredentials:
-            return "Invalid email or password"
-        case .networkError:
-            return "Network connection error"
-        case .serverError:
-            return "Server error. Please try again later."
-        case .validationFailed(let message):
-            return "Authentication validation failed: \(message)"
-        case .biometricNotAvailable:
-            return "Biometric authentication is not available on this device"
-        case .biometricNotEnabled:
-            return "Biometric authentication is not enabled"
-        case .biometricAuthFailed:
-            return "Biometric authentication failed"
-        case .unknown:
-            return "An unknown error occurred"
+extension EnhancedAuthService {
+    var errorMessage: String? {
+        get {
+            return authError?.localizedDescription
+        }
+        set {
+            if newValue != nil {
+                // Create a generic auth error with the message
+                authError = .invalidCredentials // Default to this since we can't create custom message errors
+            } else {
+                authError = nil
+            }
         }
     }
-}
-
-// MARK: - API Endpoints Extension
-extension APIEndpoint {
-    static let login = APIEndpoint(path: "/auth/login")
-    static let signUp = APIEndpoint(path: "/auth/signup")
-    static let logout = APIEndpoint(path: "/auth/logout")
-    static let refreshToken = APIEndpoint(path: "/auth/refresh")
-    static let validateToken = APIEndpoint(path: "/auth/validate")
 }
