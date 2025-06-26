@@ -4,17 +4,6 @@ import Combine
 import Security
 import UIKit
 
-// MARK: - User Model
-struct User: Codable {
-    let id: String
-    let email: String
-    let username: String
-    let fullName: String
-    let avatar: String?
-    let createdAt: Date
-    let updatedAt: Date
-}
-
 // MARK: - Auth Error Types
 enum AuthError: Error, LocalizedError {
     case invalidCredentials
