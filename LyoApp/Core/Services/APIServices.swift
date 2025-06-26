@@ -1,6 +1,36 @@
 import Foundation
 import Combine
 
+// Import model files for type definitions
+// These files contain the types used throughout the API services
+
+// MARK: - Local Type Definitions
+// Define commonly used types locally to avoid import issues
+
+public struct LearningCourse: Codable, Identifiable {
+    public let id: UUID
+    public let title: String
+    public let description: String
+    
+    public init(id: UUID, title: String, description: String) {
+        self.id = id
+        self.title = title
+        self.description = description
+    }
+}
+
+public struct AnalyticsEvent: Codable {
+    public let name: String
+    public let parameters: [String: String]
+    public let timestamp: Date
+    
+    public init(name: String, parameters: [String: String] = [:], timestamp: Date = Date()) {
+        self.name = name
+        self.parameters = parameters
+        self.timestamp = timestamp
+    }
+}
+
 // MARK: - Course API Service
 @MainActor
 class CourseAPIService: ObservableObject {
@@ -77,9 +107,11 @@ class PostAPIService: ObservableObject {
     
     func createPost(content: String, mediaUrls: [String] = [], courseId: String? = nil) async throws -> Post {
         let request = CreatePostRequest(
+            title: "",  // Add default title
             content: content,
-            mediaUrls: mediaUrls,
-            courseId: courseId
+            category: "general",  // Add default category
+            tags: [],  // Add default tags
+            mediaURLs: mediaUrls  // Note: property name is mediaURLs not mediaUrls
         )
         return try await NetworkManager.shared.post(endpoint: Constants.API.Endpoints.posts, body: request)
     }
@@ -87,7 +119,7 @@ class PostAPIService: ObservableObject {
     func likePost(postId: String) async throws -> LikeResponse {
         return try await NetworkManager.shared.post(
             endpoint: "\(Constants.API.Endpoints.posts)/\(postId)/like",
-            body: EmptyRequest()
+            body: EmptyResponse()
         )
     }
     
@@ -248,11 +280,6 @@ struct EnrollmentRequest: Codable {
     let courseId: String
 }
 
-struct EnrollmentResponse: Codable {
-    let success: Bool
-    let enrollmentDate: Date
-}
-
 struct ProgressUpdateRequest: Codable {
     let courseId: String
     let lessonId: String
@@ -360,7 +387,7 @@ struct CreateVideoNoteRequest: Codable {
 
 struct AnalyticsEventRequest: Codable {
     let event: String
-    let parameters: [String: AnyCodable]
+    let parameters: [String: String] // Simplified to avoid AnyCodable complexity
     let timestamp: Date
     let sessionId: String
 }
@@ -378,12 +405,7 @@ struct UserAnalytics: Codable {
     let lastActiveDate: Date
 }
 
-struct AnalyticsEvent: Codable {
-    let eventName: String
-    let properties: [String: String]
-    let timestamp: Date
-    let userId: String?
-}
+// Note: AnalyticsEvent is now defined in Core/Models/AppModels.swift
 
 struct EngagementMetrics: Codable {
     let dailyActiveUsers: Int
@@ -394,47 +416,4 @@ struct EngagementMetrics: Codable {
     let engagementScore: Double
 }
 
-// Helper for encoding any type
-struct AnyCodable: Codable {
-    let value: Any
-    
-    init(_ value: Any) {
-        self.value = value
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        
-        if let bool = try? container.decode(Bool.self) {
-            value = bool
-        } else if let int = try? container.decode(Int.self) {
-            value = int
-        } else if let double = try? container.decode(Double.self) {
-            value = double
-        } else if let string = try? container.decode(String.self) {
-            value = string
-        } else {
-            value = try container.decode([String: AnyCodable].self)
-        }
-    }
-    
-    func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        
-        switch value {
-        case let bool as Bool:
-            try container.encode(bool)
-        case let int as Int:
-            try container.encode(int)
-        case let double as Double:
-            try container.encode(double)
-        case let string as String:
-            try container.encode(string)
-        case let dict as [String: Any]:
-            let codableDict = dict.mapValues { AnyCodable($0) }
-            try container.encode(codableDict)
-        default:
-            throw EncodingError.invalidValue(value, EncodingError.Context(codingPath: encoder.codingPath, debugDescription: "Invalid type"))
-        }
-    }
-}
+// Note: AnyCodable is now defined in Core/Utilities/AnyCodable.swift
