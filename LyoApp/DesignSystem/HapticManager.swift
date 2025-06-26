@@ -77,6 +77,38 @@ class HapticManager: ObservableObject {
         selection.selectionChanged()
     }
     
+    // MARK: - Unified Interface Methods
+    
+    /// Impact feedback with style parameter
+    func impactOccurred(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        guard isHapticsEnabled else { return }
+        switch style {
+        case .light:
+            lightImpact()
+        case .medium:
+            mediumImpact()
+        case .heavy:
+            heavyImpact()
+        @unknown default:
+            mediumImpact()
+        }
+    }
+    
+    /// Notification feedback with type parameter
+    func notificationOccurred(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        guard isHapticsEnabled else { return }
+        switch type {
+        case .success:
+            success()
+        case .warning:
+            warning()
+        case .error:
+            error()
+        @unknown default:
+            break
+        }
+    }
+    
     // MARK: - Complex Patterns
     
     /// Double tap pattern for special actions
