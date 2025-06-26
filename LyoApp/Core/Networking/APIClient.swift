@@ -1,18 +1,94 @@
-
 import Foundation
 import Network
+import Combine
 
-// MARK: - Production API Client
-public class APIClient: APIClientProtocol {
+// MARK: - API Error Types
+public enum APIError: Error, LocalizedError {
+    case noInternetConnection
+    case networkError
+    case unauthorized
+    case serverError(Int)
+    case decodingError
+    case encodingError
+    case invalidRequest
+    case rateLimitExceeded
+    case timeout
+    
+    public var errorDescription: String? {
+        switch self {
+        case .noInternetConnection:
+            return "No internet connection available"
+        case .networkError:
+            return "Network error occurred"
+        case .unauthorized:
+            return "Unauthorized access"
+        case .serverError(let code):
+            return "Server error with code: \(code)"
+        case .decodingError:
+            return "Failed to decode response"
+        case .encodingError:
+            return "Failed to encode request"
+        case .invalidRequest:
+            return "Invalid request"
+        case .rateLimitExceeded:
+            return "Rate limit exceeded"
+        case .timeout:
+            return "Request timeout"
+        }
+    }
+}
+
+// MARK: - Enhanced Production API Client
+@MainActor
+public class APIClient: APIClientProtocol, ObservableObject {
+    // MARK: - Published Properties
+    @Published public var isOnline = true
+    @Published public var isLoading = false
+    @Published public var error: APIError?
+    
+    // MARK: - Private Properties
     private let session: URLSession
     private let networkMonitor = NWPathMonitor()
-    private var isConnected = true
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
+    private var cancellables = Set<AnyCancellable>()
+    
+    // Offline support
+    private var offlineRequestQueue: [OfflineRequest] = []
+    private let offlineQueueFile: URL
+    
+    // Rate limiting
+    private var requestCounts: [String: (count: Int, resetTime: Date)] = [:]
+    private let rateLimitWindow: TimeInterval = 60
+    private let maxRequestsPerWindow = 100
 
     public static let shared = APIClient()
 
     public init(session: URLSession = .shared) {
-        self.session = session
+        // Enhanced session configuration
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 60
+        config.httpAdditionalHeaders = [
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "User-Agent": "LyoApp/1.0"
+        ]
+        
+        self.session = URLSession(configuration: config)
+        
+        // Setup offline queue file
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        self.offlineQueueFile = documentsPath.appendingPathComponent("offline_requests.json")
+        
+        // Configure JSON encoding/decoding
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        encoder.dateEncodingStrategy = .formatted(dateFormatter)
+        decoder.dateDecodingStrategy = .formatted(dateFormatter)
+        
         setupNetworkMonitoring()
+        loadOfflineQueue()
     }
     
     private func setupNetworkMonitoring() {
