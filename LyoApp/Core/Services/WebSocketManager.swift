@@ -1,9 +1,10 @@
 import Foundation
 import Combine
 import Network
+import Security
 
-/// Enhanced WebSocket Manager for real-time features in Phase 3
-class WebSocketManager: ObservableObject {
+// MARK: - WebSocket Manager
+final class WebSocketManager: NSObject, ObservableObject {
     static let shared = WebSocketManager()
     
     @Published var isConnected: Bool = false
@@ -12,108 +13,80 @@ class WebSocketManager: ObservableObject {
     
     private var webSocketTask: URLSessionWebSocketTask?
     private var urlSession: URLSession?
-    private let configManager = ConfigurationManager.shared
-    private let networkManager = EnhancedNetworkManager.shared
-    
+    private let messageQueue = DispatchQueue(label: "websocket.message.queue")
     private var cancellables = Set<AnyCancellable>()
-    private var reconnectTimer: Timer?
-    private var heartbeatTimer: Timer?
     
-    // Connection management
-    private var reconnectAttempts = 0
+    // Configuration
     private let maxReconnectAttempts = 5
-    private var isManualDisconnect = false
+    private var reconnectAttempts = 0
+    private var reconnectTimer: Timer?
+    // Remove HapticManager.shared access from init to avoid MainActor issues
     
-    // Message handlers
-    private var messageHandlers: [String: (WebSocketMessage) -> Void] = [:]
-    
-    private init() {
+    override init() {
+        super.init()
+        setupURLSession()
         setupNetworkMonitoring()
     }
     
-    deinit {
-        disconnect()
-    }
-    
-    // MARK: - Connection Management
+    // MARK: - Public Methods
     
     func connect() {
         guard !isConnected else { return }
         
-        // Check if user is authenticated
-        guard EnhancedAuthService.shared.isAuthenticated,
-              let token = EnhancedAuthService.shared.currentToken else {
-            print("⚠️ Cannot connect WebSocket: User not authenticated")
+        let config = ConfigurationManager.shared
+        let urlString = config.webSocketURL
+        
+        guard let url = URL(string: urlString) else {
+            print("❌ Invalid WebSocket URL: \(urlString)")
             return
         }
         
-        isManualDisconnect = false
-        connectionState = .connecting
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 10
         
-        // Build WebSocket URL with authentication
-        guard let url = buildWebSocketURL(token: token) else {
-            connectionState = .disconnected
-            return
+        // Add authentication header if available
+        if let token = KeychainHelper.shared.retrieve(for: "access_token") {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
         
-        // Create URLSession with WebSocket configuration
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30.0
-        config.timeoutIntervalForResource = 60.0
-        
-        urlSession = URLSession(configuration: config, delegate: self, delegateQueue: nil)
-        webSocketTask = urlSession?.webSocketTask(with: url)
-        
-        // Start connection
+        webSocketTask = urlSession?.webSocketTask(with: request)
+        webSocketTask?.delegate = self
         webSocketTask?.resume()
         
-        // Start listening for messages
         receiveMessage()
         
-        print("🔌 Connecting to WebSocket: \(url)")
+        DispatchQueue.main.async {
+            self.connectionState = .connecting
+        }
     }
     
     func disconnect() {
-        isManualDisconnect = true
-        connectionState = .disconnecting
-        
-        // Send close message
-        let closeCode = URLSessionWebSocketTask.CloseCode.normalClosure
-        webSocketTask?.cancel(with: closeCode, reason: nil)
-        
-        cleanup()
-        
-        print("🔌 WebSocket disconnected")
-    }
-    
-    private func cleanup() {
+        webSocketTask?.cancel(with: .goingAway, reason: nil)
         webSocketTask = nil
-        urlSession = nil
-        isConnected = false
-        connectionState = .disconnected
-        
-        // Cancel timers
         reconnectTimer?.invalidate()
-        heartbeatTimer?.invalidate()
         reconnectTimer = nil
-        heartbeatTimer = nil
+        reconnectAttempts = 0
+        
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.connectionState = .disconnected
+        }
     }
     
-    // MARK: - Message Handling
-    
-    func sendMessage(_ message: WebSocketMessage) {
-        guard isConnected else {
-            print("⚠️ Cannot send message: WebSocket not connected")
+    func send<T: Codable>(_ message: T) {
+        guard isConnected, let webSocketTask = webSocketTask else {
+            print("❌ WebSocket not connected, cannot send message")
             return
         }
         
         do {
-            let messageData = try JSONEncoder().encode(message)
-            let messageString = String(data: messageData, encoding: .utf8) ?? ""
+            let data = try JSONEncoder().encode(message)
+            let message = URLSessionWebSocketTask.Message.data(data)
             
-            webSocketTask?.send(.string(messageString)) { error in
+            webSocketTask.send(message) { [weak self] error in
                 if let error = error {
-                    print("❌ Failed to send WebSocket message: \(error)")
+                    print("❌ WebSocket send error: \(error)")
+                    self?.handleError(error)
                 }
             }
         } catch {
@@ -121,203 +94,164 @@ class WebSocketManager: ObservableObject {
         }
     }
     
+    func sendText(_ text: String) {
+        guard isConnected, let webSocketTask = webSocketTask else {
+            print("❌ WebSocket not connected, cannot send text")
+            return
+        }
+        
+        let message = URLSessionWebSocketTask.Message.string(text)
+        webSocketTask.send(message) { [weak self] error in
+            if let error = error {
+                print("❌ WebSocket send error: \(error)")
+                self?.handleError(error)
+            }
+        }
+    }
+    
+    // MARK: - Private Methods
+    
+    private func setupURLSession() {
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 10
+        configuration.timeoutIntervalForResource = 30
+        urlSession = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
+    }
+    
+    private func setupNetworkMonitoring() {
+        let monitor = NWPathMonitor()
+        let queue = DispatchQueue(label: "network.monitor")
+        
+        monitor.pathUpdateHandler = { [weak self] path in
+            let shouldReconnect = path.status == .satisfied
+            let wasConnected = self?.isConnected ?? false
+            
+            if shouldReconnect && !wasConnected && self?.reconnectAttempts ?? 0 < self?.maxReconnectAttempts ?? 5 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    self?.attemptReconnect()
+                }
+            }
+        }
+        
+        monitor.start(queue: queue)
+    }
+    
     private func receiveMessage() {
         webSocketTask?.receive { [weak self] result in
             switch result {
             case .success(let message):
-                self?.handleReceivedMessage(message)
-                
-                // Continue listening for more messages
-                self?.receiveMessage()
+                self?.handleMessage(message)
+                self?.receiveMessage() // Continue receiving
                 
             case .failure(let error):
                 print("❌ WebSocket receive error: \(error)")
-                self?.handleConnectionError(error)
+                self?.handleError(error)
             }
         }
     }
     
-    private func handleReceivedMessage(_ message: URLSessionWebSocketTask.Message) {
-        switch message {
-        case .string(let text):
-            parseMessage(from: text)
-        case .data(let data):
-            if let text = String(data: data, encoding: .utf8) {
-                parseMessage(from: text)
+    private func handleMessage(_ message: URLSessionWebSocketTask.Message) {
+        messageQueue.async {
+            switch message {
+            case .string(let text):
+                self.processTextMessage(text)
+                
+            case .data(let data):
+                self.processDataMessage(data)
+                
+            @unknown default:
+                print("⚠️ Unknown WebSocket message type")
             }
-        @unknown default:
-            print("⚠️ Unknown WebSocket message type")
         }
     }
     
-    private func parseMessage(from text: String) {
+    private func processTextMessage(_ text: String) {
+        // Process text message
+        print("📨 WebSocket text message: \(text)")
+        
+        // Try to decode as JSON
+        if let data = text.data(using: .utf8) {
+            processDataMessage(data)
+        }
+    }
+    
+    private func processDataMessage(_ data: Data) {
         do {
-            let message = try JSONDecoder().decode(WebSocketMessage.self, from: text.data(using: .utf8)!)
+            let message = try JSONDecoder().decode(WebSocketMessage.self, from: data)
             
             DispatchQueue.main.async {
                 self.lastMessage = message
-                self.processMessage(message)
+                Task { @MainActor in
+                    HapticManager.shared.impactOccurred(style: .light)
+                }
             }
+            
+            // Handle different message types
+            handleWebSocketMessage(message)
+            
         } catch {
-            print("❌ Failed to parse WebSocket message: \(error)")
+            print("❌ Failed to decode WebSocket message: \(error)")
         }
     }
     
-    private func processMessage(_ message: WebSocketMessage) {
-        // Call registered message handlers
-        if let handler = messageHandlers[message.type] {
-            handler(message)
-        }
-        
-        // Handle system messages
+    private func handleWebSocketMessage(_ message: WebSocketMessage) {
         switch message.type {
-        case "heartbeat":
-            sendHeartbeatResponse()
-        case "auth_required":
-            handleAuthRequired()
-        case "connection_established":
-            handleConnectionEstablished()
-        default:
-            break
+        case .notification:
+            NotificationCenter.default.post(
+                name: .webSocketNotification,
+                object: message.data
+            )
+            
+        case .userUpdate:
+            NotificationCenter.default.post(
+                name: .webSocketUserUpdate,
+                object: message.data
+            )
+            
+        case .liveUpdate:
+            NotificationCenter.default.post(
+                name: .webSocketLiveUpdate,
+                object: message.data
+            )
+            
+        case .chat:
+            NotificationCenter.default.post(
+                name: .webSocketChatMessage,
+                object: message.data
+            )
         }
     }
     
-    // MARK: - Message Handler Registration
-    
-    func registerMessageHandler(for messageType: String, handler: @escaping (WebSocketMessage) -> Void) {
-        messageHandlers[messageType] = handler
-    }
-    
-    func unregisterMessageHandler(for messageType: String) {
-        messageHandlers.removeValue(forKey: messageType)
-    }
-    
-    // MARK: - Connection Helpers
-    
-    private func buildWebSocketURL(token: String) -> URL? {
-        guard var urlComponents = URLComponents(string: configManager.backendWebSocketURL) else {
-            return nil
+    private func handleError(_ error: Error) {
+        print("❌ WebSocket error: \(error)")
+        
+        DispatchQueue.main.async {
+            self.isConnected = false
+            self.connectionState = .error(error)
         }
         
-        // Add authentication token as query parameter
-        urlComponents.queryItems = [
-            URLQueryItem(name: "token", value: token),
-            URLQueryItem(name: "client", value: "ios"),
-            URLQueryItem(name: "version", value: Bundle.main.appVersion)
-        ]
-        
-        return urlComponents.url
+        // Attempt reconnection
+        attemptReconnect()
     }
     
-    private func setupNetworkMonitoring() {
-        // Monitor network connectivity changes
-        networkManager.$isOnline
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isOnline in
-                if isOnline && !self?.isConnected == true && !self?.isManualDisconnect == true {
-                    // Network came back online, try to reconnect
-                    self?.reconnectWithDelay()
-                } else if !isOnline && self?.isConnected == true {
-                    // Network went offline
-                    self?.connectionState = .disconnected
-                    self?.isConnected = false
-                }
-            }
-            .store(in: &cancellables)
-        
-        // Monitor authentication state changes
-        EnhancedAuthService.shared.$isAuthenticated
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] isAuthenticated in
-                if isAuthenticated {
-                    self?.connect()
-                } else {
-                    self?.disconnect()
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    // MARK: - Reconnection Logic
-    
-    private func reconnectWithDelay() {
+    private func attemptReconnect() {
         guard reconnectAttempts < maxReconnectAttempts else {
-            print("❌ Max reconnection attempts reached")
+            print("❌ Max reconnect attempts reached")
             return
         }
         
-        let delay = pow(2.0, Double(reconnectAttempts)) // Exponential backoff
         reconnectAttempts += 1
+        let delay = TimeInterval(reconnectAttempts * 2) // Exponential backoff
         
-        print("🔄 Reconnecting in \(delay) seconds (attempt \(reconnectAttempts)/\(maxReconnectAttempts))")
+        print("🔄 Attempting reconnect \(reconnectAttempts)/\(maxReconnectAttempts) in \(delay)s")
         
         reconnectTimer = Timer.scheduledTimer(withTimeInterval: delay, repeats: false) { [weak self] _ in
             self?.connect()
         }
     }
     
-    private func handleConnectionError(_ error: Error) {
-        DispatchQueue.main.async {
-            self.isConnected = false
-            self.connectionState = .disconnected
-        }
-        
-        if !isManualDisconnect && networkManager.isOnline {
-            reconnectWithDelay()
-        }
-    }
-    
-    // MARK: - Heartbeat Management
-    
-    private func startHeartbeat() {
-        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { [weak self] _ in
-            self?.sendHeartbeat()
-        }
-    }
-    
-    private func sendHeartbeat() {
-        let heartbeatMessage = WebSocketMessage(
-            type: "heartbeat",
-            data: ["timestamp": Date().timeIntervalSince1970]
-        )
-        sendMessage(heartbeatMessage)
-    }
-    
-    private func sendHeartbeatResponse() {
-        let response = WebSocketMessage(
-            type: "heartbeat_response",
-            data: ["timestamp": Date().timeIntervalSince1970]
-        )
-        sendMessage(response)
-    }
-    
-    // MARK: - System Message Handlers
-    
-    private func handleAuthRequired() {
-        print("⚠️ WebSocket authentication required")
+    deinit {
         disconnect()
-        
-        // Try to refresh token and reconnect
-        EnhancedAuthService.shared.refreshToken { [weak self] success in
-            if success {
-                self?.connect()
-            }
-        }
-    }
-    
-    private func handleConnectionEstablished() {
-        DispatchQueue.main.async {
-            self.isConnected = true
-            self.connectionState = .connected
-            self.reconnectAttempts = 0
-        }
-        
-        startHeartbeat()
-        
-        // Provide haptic feedback for successful connection
-        HapticManager.shared.impact(.light)
-        
-        print("✅ WebSocket connection established")
     }
 }
 
@@ -325,21 +259,39 @@ class WebSocketManager: ObservableObject {
 
 extension WebSocketManager: URLSessionWebSocketDelegate {
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
-        print("✅ WebSocket connection opened")
-        handleConnectionEstablished()
+        print("✅ WebSocket connected")
+        
+        DispatchQueue.main.async {
+            self.isConnected = true
+            self.connectionState = .connected
+            self.reconnectAttempts = 0
+            Task { @MainActor in
+                HapticManager.shared.impactOccurred(style: .light)
+            }
+        }
     }
     
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
-        print("🔌 WebSocket connection closed with code: \(closeCode)")
+        print("🔌 WebSocket disconnected with code: \(closeCode)")
         
         DispatchQueue.main.async {
-            self.cleanup()
+            self.isConnected = false
+            self.connectionState = .disconnected
         }
         
-        // Attempt reconnection if not manually disconnected
-        if !isManualDisconnect && networkManager.isOnline {
-            reconnectWithDelay()
+        // Attempt reconnection if not intentionally closed
+        if closeCode != .goingAway {
+            attemptReconnect()
         }
+    }
+}
+
+// MARK: - URLSessionDelegate
+
+extension WebSocketManager: URLSessionDelegate {
+    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        // Handle SSL certificate validation
+        completionHandler(.performDefaultHandling, nil)
     }
 }
 
@@ -349,168 +301,52 @@ enum ConnectionState {
     case disconnected
     case connecting
     case connected
-    case disconnecting
-    case reconnecting
-    
-    var description: String {
-        switch self {
-        case .disconnected: return "Disconnected"
-        case .connecting: return "Connecting"
-        case .connected: return "Connected"
-        case .disconnecting: return "Disconnecting"
-        case .reconnecting: return "Reconnecting"
-        }
-    }
+    case error(Error)
 }
 
 struct WebSocketMessage: Codable {
-    let id: String
-    let type: String
+    let type: MessageType
     let data: [String: Any]
     let timestamp: Date
     
-    init(type: String, data: [String: Any] = [:]) {
-        self.id = UUID().uuidString
-        self.type = type
-        self.data = data
-        self.timestamp = Date()
+    enum MessageType: String, Codable {
+        case notification
+        case userUpdate
+        case liveUpdate
+        case chat
     }
     
-    // Custom encoding/decoding for [String: Any]
     enum CodingKeys: String, CodingKey {
-        case id, type, data, timestamp
+        case type, data, timestamp
     }
     
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(String.self, forKey: .id)
-        type = try container.decode(String.self, forKey: .type)
+        type = try container.decode(MessageType.self, forKey: .type)
         timestamp = try container.decode(Date.self, forKey: .timestamp)
-        
-        // Decode data as JSON
-        let dataContainer = try container.nestedContainer(keyedBy: DynamicCodingKeys.self, forKey: .data)
-        var dataDictionary: [String: Any] = [:]
-        
-        for key in dataContainer.allKeys {
-            if let stringValue = try? dataContainer.decode(String.self, forKey: key) {
-                dataDictionary[key.stringValue] = stringValue
-            } else if let intValue = try? dataContainer.decode(Int.self, forKey: key) {
-                dataDictionary[key.stringValue] = intValue
-            } else if let doubleValue = try? dataContainer.decode(Double.self, forKey: key) {
-                dataDictionary[key.stringValue] = doubleValue
-            } else if let boolValue = try? dataContainer.decode(Bool.self, forKey: key) {
-                dataDictionary[key.stringValue] = boolValue
-            }
+        // Use JSONSerialization for [String: Any] since it's not directly Codable
+        if let dataValue = try? container.decode(Data.self, forKey: .data) {
+            data = try JSONSerialization.jsonObject(with: dataValue) as? [String: Any] ?? [:]
+        } else {
+            data = [:]
         }
-        
-        data = dataDictionary
     }
     
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(id, forKey: .id)
         try container.encode(type, forKey: .type)
         try container.encode(timestamp, forKey: .timestamp)
-        
-        // Encode data as JSON
-        var dataContainer = container.nestedContainer(keyedBy: DynamicCodingKeys.self, forKey: .data)
-        
-        for (key, value) in data {
-            let codingKey = DynamicCodingKeys(stringValue: key)!
-            
-            if let stringValue = value as? String {
-                try dataContainer.encode(stringValue, forKey: codingKey)
-            } else if let intValue = value as? Int {
-                try dataContainer.encode(intValue, forKey: codingKey)
-            } else if let doubleValue = value as? Double {
-                try dataContainer.encode(doubleValue, forKey: codingKey)
-            } else if let boolValue = value as? Bool {
-                try dataContainer.encode(boolValue, forKey: codingKey)
-            }
-        }
-    }
-}
-
-struct DynamicCodingKeys: CodingKey {
-    var stringValue: String
-    var intValue: Int?
-    
-    init?(stringValue: String) {
-        self.stringValue = stringValue
-    }
-    
-    init?(intValue: Int) {
-        self.intValue = intValue
-        self.stringValue = String(intValue)
-    }
-}
-
-// MARK: - WebSocket Feature Extensions
-
-extension WebSocketManager {
-    
-    // MARK: - Learning Progress Updates
-    
-    func subscribeToLearningProgress() {
-        registerMessageHandler(for: "learning_progress") { message in
-            if let progressData = message.data["progress"] as? [String: Any] {
-                // Handle learning progress update
-                NotificationCenter.default.post(
-                    name: .learningProgressUpdated,
-                    object: progressData
-                )
-            }
-        }
-    }
-    
-    // MARK: - Feed Updates
-    
-    func subscribeToFeedUpdates() {
-        registerMessageHandler(for: "feed_update") { message in
-            if let feedData = message.data["posts"] as? [[String: Any]] {
-                // Handle feed update
-                NotificationCenter.default.post(
-                    name: .feedUpdated,
-                    object: feedData
-                )
-            }
-        }
-    }
-    
-    // MARK: - Live Chat
-    
-    func joinChatRoom(_ roomId: String) {
-        let joinMessage = WebSocketMessage(
-            type: "join_room",
-            data: ["room_id": roomId]
-        )
-        sendMessage(joinMessage)
-    }
-    
-    func leaveChatRoom(_ roomId: String) {
-        let leaveMessage = WebSocketMessage(
-            type: "leave_room",
-            data: ["room_id": roomId]
-        )
-        sendMessage(leaveMessage)
-    }
-    
-    func sendChatMessage(_ text: String, to roomId: String) {
-        let chatMessage = WebSocketMessage(
-            type: "chat_message",
-            data: [
-                "room_id": roomId,
-                "message": text
-            ]
-        )
-        sendMessage(chatMessage)
+        // Convert [String: Any] to Data for encoding
+        let dataValue = try JSONSerialization.data(withJSONObject: data)
+        try container.encode(dataValue, forKey: .data)
     }
 }
 
 // MARK: - Notification Names
 
 extension Notification.Name {
-    static let learningProgressUpdated = Notification.Name("learningProgressUpdated")
-    static let feedUpdated = Notification.Name("feedUpdated")
-    static let chatMessageReceived = Notification.Name("chatMessageReceived")
+    static let webSocketNotification = Notification.Name("webSocketNotification")
+    static let webSocketUserUpdate = Notification.Name("webSocketUserUpdate")
+    static let webSocketLiveUpdate = Notification.Name("webSocketLiveUpdate")
+    static let webSocketChatMessage = Notification.Name("webSocketChatMessage")
 }
