@@ -147,7 +147,7 @@ class GamificationAPIService {
     }
 
     func getAvailableAchievements() async throws -> [GamificationAPI.Achievement] {
-        return try await networkManager.get("/gamification/achievements/available")
+        return try await networkManager.get(endpoint: "/gamification/achievements/available")
     }
 
     // MARK: - Streaks
