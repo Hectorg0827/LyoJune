@@ -66,14 +66,13 @@ class ErrorManager: ObservableObject {
         Task {
             do {
                 let event = AnalyticsEvent(
-                    eventName: "error_occurred",
-                    properties: [
+                    name: "error_occurred",
+                    parameters: [
                         "error_type": error.type.rawValue,
                         "context": error.context ?? "unknown",
                         "severity": error.severity.rawValue
                     ],
-                    timestamp: error.timestamp,
-                    userId: nil
+                    timestamp: error.timestamp
                 )
                 
                 try await AnalyticsAPIService.shared.trackEvent(event)
