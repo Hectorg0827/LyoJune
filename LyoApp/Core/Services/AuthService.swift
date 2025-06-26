@@ -4,6 +4,17 @@ import Combine
 import Security
 import UIKit
 
+// MARK: - User Model
+struct User: Codable {
+    let id: String
+    let email: String
+    let username: String
+    let fullName: String
+    let avatar: String?
+    let createdAt: Date
+    let updatedAt: Date
+}
+
 // MARK: - Auth Error Types
 enum AuthError: Error, LocalizedError {
     case invalidCredentials
@@ -84,7 +95,7 @@ class KeychainHelper {
 
 // MARK: - Auth Service
 @MainActor
-class AuthService: BaseAPIService, ObservableObject {
+class AuthService: ObservableObject {
     static let shared = AuthService()
 
     @Published var isAuthenticated = false
@@ -94,17 +105,9 @@ class AuthService: BaseAPIService, ObservableObject {
 
     private let keychain = KeychainHelper.shared
     private var cancellables = Set<AnyCancellable>()
+    private let networkManager = EnhancedNetworkManager.shared
 
-    private override init(apiClient: APIClientProtocol = {
-        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
-    }()) {
-        super.init(apiClient: apiClient)
-        checkAuthStatus()
-        setupNotifications()
-    }
-    
-    init(apiClient: APIClientProtocol) {
-        super.init(apiClient: apiClient)
+    private init() {
         checkAuthStatus()
         setupNotifications()
     }
