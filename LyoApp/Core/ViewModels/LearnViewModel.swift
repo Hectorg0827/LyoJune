@@ -1,6 +1,73 @@
 import SwiftUI
 import Combine
 
+// MARK: - Learning Type Definitions
+struct LearningPath: Identifiable, Codable {
+    let id = UUID()
+    let title: String
+    let description: String
+    let courses: [String] // Course IDs
+    let estimatedDuration: TimeInterval
+    let difficulty: String
+    let category: String
+    let progress: Double
+    
+    init(title: String, description: String, courses: [String] = [], estimatedDuration: TimeInterval = 0, difficulty: String = "beginner", category: String = "general", progress: Double = 0.0) {
+        self.title = title
+        self.description = description
+        self.courses = courses
+        self.estimatedDuration = estimatedDuration
+        self.difficulty = difficulty
+        self.category = category
+        self.progress = progress
+    }
+}
+
+struct ProgressUpdate: Codable {
+    let courseId: String
+    let lessonId: String?
+    let progress: Double
+    let timestamp: Date
+    
+    init(courseId: String, lessonId: String? = nil, progress: Double, timestamp: Date = Date()) {
+        self.courseId = courseId
+        self.lessonId = lessonId
+        self.progress = progress
+        self.timestamp = timestamp
+    }
+}
+
+struct CourseUpdate: Codable {
+    let courseId: String
+    let title: String?
+    let status: String?
+    let updatedAt: Date
+    
+    init(courseId: String, title: String? = nil, status: String? = nil, updatedAt: Date = Date()) {
+        self.courseId = courseId
+        self.title = title
+        self.status = status
+        self.updatedAt = updatedAt
+    }
+}
+
+// MARK: - UserProgress Extension
+extension UserProgress {
+    static func mockProgress() -> UserProgress {
+        return UserProgress(
+            totalCoursesEnrolled: 5,
+            totalCoursesCompleted: 2,
+            totalLessonsCompleted: 25,
+            averageScore: 85.0,
+            totalStudyTime: 3600 * 24, // 24 hours
+            currentStreak: 7,
+            lastStudyDate: Date(),
+            weeklyGoal: 3600 * 10, // 10 hours
+            weeklyProgress: 3600 * 6 // 6 hours
+        )
+    }
+}
+
 @MainActor
 class LearnViewModel: ObservableObject {
     @Published var featuredCourses: [LearningCourse] = []
