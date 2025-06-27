@@ -1,42 +1,7 @@
 import Foundation
 import Network
 import Combine
-
-// MARK: - API Error Types
-public enum APIError: Error, LocalizedError {
-    case noInternetConnection
-    case networkError
-    case unauthorized
-    case serverError(Int)
-    case decodingError
-    case encodingError
-    case invalidRequest
-    case rateLimitExceeded
-    case timeout
-    
-    public var errorDescription: String? {
-        switch self {
-        case .noInternetConnection:
-            return "No internet connection available"
-        case .networkError:
-            return "Network error occurred"
-        case .unauthorized:
-            return "Unauthorized access"
-        case .serverError(let code):
-            return "Server error with code: \(code)"
-        case .decodingError:
-            return "Failed to decode response"
-        case .encodingError:
-            return "Failed to encode request"
-        case .invalidRequest:
-            return "Invalid request"
-        case .rateLimitExceeded:
-            return "Rate limit exceeded"
-        case .timeout:
-            return "Request timeout"
-        }
-    }
-}
+// Note: ErrorTypes and APIModels should be imported
 
 // MARK: - Enhanced Production API Client
 @MainActor
