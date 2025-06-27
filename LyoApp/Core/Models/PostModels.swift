@@ -1,30 +1,7 @@
 import SwiftUI
 
-// MARK: - Media Type
-enum MediaType: String, Codable {
-    case image = "image"
-    case video = "video"
-    case audio = "audio"
-    
-    var mimeType: String {
-        switch self {
-        case .image: return "image/jpeg"
-        case .video: return "video/mp4"
-        case .audio: return "audio/mp3"
-        }
-    }
-    
-    var fileExtension: String {
-        switch self {
-        case .image: return "jpg"
-        case .video: return "mp4"
-        case .audio: return "mp3"
-        }
-    }
-}
-
 // MARK: - Post Model
-struct Post: Identifiable, Codable {
+struct LocalPostModel: Identifiable, Codable {
     var id = UUID()
     let author: String
     let content: String
@@ -34,7 +11,7 @@ struct Post: Identifiable, Codable {
     var commentCount: Int
     var shareCount: Int
     let hasMedia: Bool
-    let mediaType: MediaType?
+    let mediaTypeString: String? // Changed to avoid conflict
     let category: VideoCategory
     let tags: [String]
     let createdAt: Date
@@ -50,15 +27,15 @@ struct Post: Identifiable, Codable {
         self.commentCount = discoverPost.comments
         self.shareCount = discoverPost.shares
         self.hasMedia = discoverPost.hasMedia
-        self.mediaType = discoverPost.mediaType
+        self.mediaTypeString = discoverPost.mediaTypeString
         self.category = discoverPost.category
         self.tags = discoverPost.tags
         self.createdAt = discoverPost.createdAt
         self.updatedAt = discoverPost.updatedAt
     }
     
-    static var samplePosts: [Post] {
-        return DiscoverPost.mockPosts().map { Post(from: $0) }
+    static var samplePosts: [LocalPostModel] {
+        return DiscoverPost.mockPosts().map { LocalPostModel(from: $0) }
     }
 }
 
@@ -71,38 +48,16 @@ struct DiscoverPost: Identifiable, Codable {
     let comments: Int
     let shares: Int
     let hasMedia: Bool
-    let mediaType: MediaType?
+    let mediaTypeString: String? // Changed to string to avoid MediaType conflict
     let category: VideoCategory
     let tags: [String]
     let createdAt: Date
     let updatedAt: Date
     
-    enum MediaType: String, Codable, CaseIterable {
-        case image = "image"
-        case video = "video"
-        case document = "document"
-        case link = "link"
-        case code = "code"
-        
-        var title: String {
-            switch self {
-            case .image: return "Image"
-            case .video: return "Video"
-            case .document: return "Document"
-            case .link: return "Link"
-            case .code: return "Code"
-            }
-        }
-        
-        var icon: String {
-            switch self {
-            case .image: return "photo"
-            case .video: return "play.rectangle"
-            case .document: return "doc.text"
-            case .link: return "link"
-            case .code: return "chevron.left.forwardslash.chevron.right"
-            }
-        }
+    // Computed property for MediaType
+    var mediaType: MediaType? {
+        guard let mediaTypeString = mediaTypeString else { return nil }
+        return MediaType(rawValue: mediaTypeString)
     }
     
     static func mockPosts(offset: Int = 0) -> [DiscoverPost] {
@@ -160,7 +115,7 @@ struct DiscoverPost: Identifiable, Codable {
                 comments: Int.random(in: 2...100),
                 shares: Int.random(in: 1...50),
                 hasMedia: hasMedia,
-                mediaType: hasMedia ? mediaTypes.randomElement() : nil,
+                mediaTypeString: hasMedia ? mediaTypes.randomElement()?.rawValue : nil,
                 category: category,
                 tags: Array(category.commonTags.shuffled().prefix(Int.random(in: 2...4))),
                 createdAt: Date().addingTimeInterval(-Double(globalIndex * 3600 + Int.random(in: 0...3600))),
