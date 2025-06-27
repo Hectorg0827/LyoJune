@@ -453,22 +453,6 @@ struct CommentResponse: Codable {
     let totalComments: Int
 }
 
-struct UserProfile: Codable {
-    let id: String
-    let email: String
-    let fullName: String
-    let username: String?
-    let avatarUrl: String?
-    let bio: String?
-    let location: String?
-    let website: String?
-    let createdAt: Date
-    let stats: UserStats
-    let learningGoals: [String]
-    let interests: [String]
-    let badges: [Badge]
-}
-
 struct ImageUploadResponse: Codable {
     let url: String
 }
@@ -529,13 +513,6 @@ enum SearchType: String, Codable {
 }
 
 // MARK: - Helper Types
-struct PaginationInfo: Codable {
-    let currentPage: Int
-    let totalPages: Int
-    let pageSize: Int
-    let hasNext: Bool
-    let hasPrevious: Bool
-}
 
 struct EnrollmentInfo: Codable {
     let id: String
