@@ -66,8 +66,8 @@ class ErrorManager: ObservableObject {
         Task {
             do {
                 let event = AnalyticsEvent(
-                    name: "error_occurred",
-                    parameters: [
+                    eventName: "error_occurred",
+                    properties: [
                         "error_type": error.type.rawValue,
                         "context": error.context ?? "unknown",
                         "severity": error.severity.rawValue
