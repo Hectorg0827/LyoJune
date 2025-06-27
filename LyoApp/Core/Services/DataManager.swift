@@ -3,6 +3,9 @@ import Combine
 import CoreData
 import UIKit
 
+// Import centralized types
+// Note: These files should be in the same target for imports to work
+
 // MARK: - Offline Analytics Event
 struct OfflineAnalyticsEvent: Codable {
     let event: String
@@ -152,27 +155,22 @@ class DataManager: ObservableObject {
     
     // MARK: - Sync Management
     func syncData() async {
-        guard NetworkManager.shared.connectivityState.isConnected else { return }
+        guard NetworkManager.shared.isConnected else { return }
         
         isLoading = true
         defer { isLoading = false }
         
-        do {
-            // Sync user data
-            await syncUserData()
-            
-            // Sync content data
-            await syncContentData()
-            
-            // Update last sync date
-            lastSyncDate = Date()
-            userDefaults.set(lastSyncDate, forKey: Constants.UserDefaultsKeys.lastSyncDate)
-            
-            NotificationCenter.default.post(name: Constants.NotificationNames.dataDidSync, object: nil)
-            
-        } catch {
-            print("Sync failed: \(error)")
-        }
+        // Sync user data
+        await syncUserData()
+        
+        // Sync content data
+        await syncContentData()
+        
+        // Update last sync date
+        lastSyncDate = Date()
+        userDefaults.set(lastSyncDate, forKey: Constants.UserDefaultsKeys.lastSyncDate)
+        
+        NotificationCenter.default.post(name: Constants.NotificationNames.dataDidSync, object: nil)
     }
     
     private func syncUserData() async {
@@ -237,11 +235,18 @@ class DataManager: ObservableObject {
             }
         }
         
+        let userId: String
+        if let user = EnhancedAuthService.shared.currentUser {
+            userId = user.id.uuidString
+        } else {
+            userId = "anonymous"
+        }
+        
         let eventData = OfflineAnalyticsEvent(
             event: event,
             parameters: stringParameters,
             timestamp: Date().timeIntervalSince1970,
-            userId: EnhancedAuthService.shared.currentUser?.id ?? "anonymous"
+            userId: userId
         )
         
         // Store locally and sync later
