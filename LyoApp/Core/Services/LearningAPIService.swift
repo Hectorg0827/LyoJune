@@ -37,11 +37,11 @@ public enum LearningAPI {
         public let topicId: UUID
         public let title: String
         public let description: String
-        public let questions: [LearningAPI.QuizQuestion]
+        public let questions: [QuizQuestion]
         public let timeLimit: TimeInterval?
         public let passingScore: Double
         
-        public init(id: UUID, topicId: UUID, title: String, description: String, questions: [LearningAPI.QuizQuestion], timeLimit: TimeInterval? = nil, passingScore: Double) {
+        public init(id: UUID, topicId: UUID, title: String, description: String, questions: [QuizQuestion], timeLimit: TimeInterval? = nil, passingScore: Double) {
             self.id = id
             self.topicId = topicId
             self.title = title
@@ -52,22 +52,7 @@ public enum LearningAPI {
         }
     }
 
-    // Local QuizQuestion type for API responses
-    public struct QuizQuestion: Codable, Identifiable {
-        public let id: UUID
-        public let text: String
-        public let options: [String]
-        public let correctAnswerIndex: Int
-        public let explanation: String?
-        
-        public init(id: UUID, text: String, options: [String], correctAnswerIndex: Int, explanation: String? = nil) {
-            self.id = id
-            self.text = text
-            self.options = options
-            self.correctAnswerIndex = correctAnswerIndex
-            self.explanation = explanation
-        }
-    }
+    // Removed duplicate QuizQuestion - use the canonical one from AppModels.swift
 }
 
 public struct LearningAPILessonProgress: Codable {
@@ -124,7 +109,13 @@ class LearningAPIService {
             queryParams["difficulty"] = difficulty
         }
         
-        return try await networkManager.get(endpoint: "/courses", queryParameters: queryParams)
+        var endpoint = "/courses"
+        if !queryParams.isEmpty {
+            let queryString = queryParams.map { "\($0.key)=\($0.value)" }.joined(separator: "&")
+            endpoint += "?" + queryString
+        }
+        
+        return try await networkManager.get(endpoint: endpoint)
     }
 
     func getUserCourses() async throws -> [UserCourse] {
