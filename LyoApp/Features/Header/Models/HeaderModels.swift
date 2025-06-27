@@ -3,26 +3,6 @@ import Foundation
 
 // MARK: - Local Type Definitions
 
-// Simple Achievement definition for HeaderModels
-struct Achievement: Identifiable, Codable {
-    let id: UUID
-    let title: String
-    let description: String
-    let iconName: String
-    let isUnlocked: Bool
-    
-    static func mockAchievements() -> [Achievement] {
-        return [
-            Achievement(id: UUID(), title: "First Course", description: "Completed first course", iconName: "trophy", isUnlocked: true),
-            Achievement(id: UUID(), title: "Study Streak", description: "7 day study streak", iconName: "calendar", isUnlocked: false)
-        ]
-    }
-}
-
-// Typealiases for backward compatibility - import types from AppModels
-typealias Conversation = HeaderConversation
-typealias UserProfile = HeaderUserProfile
-
 // MARK: - Header State Models
 
 enum HeaderState {
@@ -85,7 +65,7 @@ public struct Story: Identifiable, Codable {
     }
 }
 
-enum HeaderStoryType: String, Codable, CaseIterable {
+public enum HeaderStoryType: String, Codable, CaseIterable {
     case educational = "educational"
     case achievement = "achievement"
     case social = "social"
@@ -216,7 +196,7 @@ struct HeaderConversation: Identifiable, Codable {
         return formatter.localizedString(for: timestamp, relativeTo: Date())
     }
     
-    enum ConversationType: String, Codable {
+    public enum ConversationType: String, Codable {
         case individual = "individual"
         case group = "group"
         case studyGroup = "study_group"
@@ -238,7 +218,7 @@ struct HeaderConversation: Identifiable, Codable {
     }
     
     static let sampleConversations: [HeaderConversation] = [
-        HeaderHeaderConversation(
+        HeaderConversation(
             id: UUID(),
             name: "Swift Study Group",
             initials: "SSG",
@@ -250,7 +230,7 @@ struct HeaderConversation: Identifiable, Codable {
             conversationType: .studyGroup,
             participants: ["alice", "bob", "charlie", "diana"]
         ),
-        HeaderHeaderConversation(
+        HeaderConversation(
             id: UUID(),
             name: "Emma Wilson",
             initials: "EW",
@@ -482,15 +462,6 @@ struct HeaderUserProfile: Identifiable, Codable {
         let totalPoints: Int
     }
     
-    struct UserPreferences: Codable {
-        let enableNotifications: Bool
-        let enableSounds: Bool
-        let preferredLanguage: String
-        let darkModeEnabled: Bool
-        let studyReminders: Bool
-        let showOnlineStatus: Bool
-    }
-    
     struct UserCourse: Identifiable, Codable {
         let id: UUID
         let courseId: String
@@ -528,14 +499,14 @@ struct HeaderUserProfile: Identifiable, Codable {
             totalPoints: 12450
         ),
         preferences: UserPreferences(
-            enableNotifications: true,
-            enableSounds: true,
-            preferredLanguage: "en",
-            darkModeEnabled: true,
-            studyReminders: true,
-            showOnlineStatus: true
+            notifications: true,
+            darkMode: true,
+            language: "en",
+            biometricAuth: false,
+            pushNotifications: true,
+            emailNotifications: true
         ),
-        achievements: Achievement.mockAchievements(),
+        achievements: [],
         courses: [
             UserCourse(
                 id: UUID(),
