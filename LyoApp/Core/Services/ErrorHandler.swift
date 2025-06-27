@@ -372,11 +372,13 @@ struct FeedbackDisplayView: View {
 
 // MARK: - View Extensions
 extension View {
+    /*
     func errorHandling() -> some View {
         self.overlay(alignment: .top) {
             ErrorDisplayView(errorHandler: ErrorHandler.shared)
         }
     }
+    */
     
     func userFeedback() -> some View {
         self.overlay(alignment: .top) {
