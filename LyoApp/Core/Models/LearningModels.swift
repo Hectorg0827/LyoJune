@@ -163,15 +163,7 @@ public struct LearningRecommendation: Codable {
     }
 }
 
-public struct Comment: Codable {
-    let id: UUID
-    let postId: UUID
-    let userId: UUID
-    let content: String
-    let createdAt: Date
-    let likesCount: Int
-    let isLiked: Bool
-}
+
 
 // MARK: - Community Models
 public struct StudyGroup: Codable, Identifiable {
@@ -196,7 +188,7 @@ public struct StudyGroup: Codable, Identifiable {
     }
 }
 
-public struct Story: Codable, Identifiable {
+public struct LearningStory: Codable, Identifiable {
     public let id: UUID
     let userId: UUID
     let username: String
@@ -208,11 +200,6 @@ public struct Story: Codable, Identifiable {
     let createdAt: Date
     let viewsCount: Int
     let isViewed: Bool
-    
-    public enum MediaType: String, Codable {
-        case image = "image"
-        case video = "video"
-    }
 }
 
 public struct Conversation: Codable, Identifiable {
@@ -245,63 +232,12 @@ public struct Message: Codable, Identifiable {
     }
 }
 
-public struct UserProfile: Codable, Identifiable {
-    public let id: UUID
-    let username: String
-    let displayName: String
-    let bio: String?
-    let avatar: String?
-    let level: Int
-    let xp: Int
-    let joinedAt: Date
-    let coursesCompleted: Int
-    let badgesEarned: Int
-    let followersCount: Int
-    let followingCount: Int
-    let isFollowing: Bool?
-}
-
 public struct AvatarUploadResponse: Codable {
     let avatarURL: String
     let message: String
 }
 
 // MARK: - Additional Types for Compilation
-
-// HTTP Method
-public enum HTTPMethod: String, CaseIterable {
-    case GET = "GET"
-    case POST = "POST"
-    case PUT = "PUT"
-    case DELETE = "DELETE"
-    case PATCH = "PATCH"
-}
-
-// API Endpoint
-public struct APIEndpoint {
-    public let path: String
-    public let method: HTTPMethod
-    public let headers: [String: String]
-    public let queryParameters: [String: String]
-    public let queryItems: [URLQueryItem]?
-    public let body: Data?
-    
-    public init(
-        path: String, 
-        method: HTTPMethod = .GET, 
-        headers: [String: String] = [:], 
-        queryParameters: [String: String] = [:],
-        queryItems: [URLQueryItem]? = nil,
-        body: Data? = nil
-    ) {
-        self.path = path
-        self.method = method
-        self.headers = headers
-        self.queryParameters = queryParameters
-        self.queryItems = queryItems
-        self.body = body
-    }
-}
 
 // Network Connection Type
 public enum NetworkConnectionType: String, Codable, CaseIterable {
@@ -311,180 +247,7 @@ public enum NetworkConnectionType: String, Codable, CaseIterable {
     case none = "none"
 }
 
-// Empty Response
-public struct EmptyResponse: Codable {
-    public init() {}
-}
-
-// Network Errors
-public enum NetworkError: Error, LocalizedError {
-    case noInternetConnection
-    case requestTimeout
-    case serverError(statusCode: Int)
-    case invalidResponse
-    case decodingError(String)
-    case encodingError(String)
-    case invalidURL
-    case unauthorizedAccess
-    case rateLimitExceeded
-    case networkUnavailable
-    case sslError
-    case networkError(String)
-    case timeout
-    case unauthorized
-    case forbidden
-    case notFound
-    case noData
-    case custom(String)
-    
-    public var errorDescription: String? {
-        switch self {
-        case .noInternetConnection:
-            return "No internet connection available"
-        case .requestTimeout, .timeout:
-            return "Request timed out"
-        case .serverError(let statusCode):
-            return "Server error with status code: \(statusCode)"
-        case .invalidResponse:
-            return "Invalid response received"
-        case .decodingError(let message):
-            return "Failed to decode response: \(message)"
-        case .encodingError(let message):
-            return "Failed to encode request: \(message)"
-        case .invalidURL:
-            return "Invalid URL"
-        case .unauthorizedAccess, .unauthorized:
-            return "Unauthorized access"
-        case .forbidden:
-            return "Access forbidden"
-        case .notFound:
-            return "Resource not found"
-        case .noData:
-            return "No data received from server"
-        case .rateLimitExceeded:
-            return "Rate limit exceeded"
-        case .networkUnavailable:
-            return "Network unavailable"
-        case .sslError:
-            return "SSL connection error"
-        case .networkError(let message):
-            return "Network error: \(message)"
-        case .custom(let message):
-            return message
-        }
-    }
-}
-
-// User Model (Basic)
-public struct User: Codable, Identifiable, Hashable {
-    public let id: String
-    public let email: String
-    public let firstName: String?
-    public let lastName: String?
-    public let username: String?
-    public let profileImageURL: String?
-    public let isVerified: Bool
-    public let createdAt: Date
-    public let updatedAt: Date
-    
-    public init(
-        id: String,
-        email: String,
-        firstName: String? = nil,
-        lastName: String? = nil,
-        username: String? = nil,
-        profileImageURL: String? = nil,
-        isVerified: Bool = false,
-        createdAt: Date = Date(),
-        updatedAt: Date = Date()
-    ) {
-        self.id = id
-        self.email = email
-        self.firstName = firstName
-        self.lastName = lastName
-        self.username = username
-        self.profileImageURL = profileImageURL
-        self.isVerified = isVerified
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
-    }
-    
-    public var fullName: String {
-        let components = [firstName, lastName].compactMap { $0 }
-        return components.isEmpty ? (username ?? email) : components.joined(separator: " ")
-    }
-}
-
 // Auth Error Types
-public enum AuthError: Error, LocalizedError {
-    case invalidCredentials
-    case networkError
-    case serverError(String)
-    case invalidToken
-    case tokenInvalid
-    case userNotFound
-    case emailAlreadyExists
-    case weakPassword
-    case validationFailed(String)
-    case biometricNotAvailable
-    case biometricNotEnabled
-    case biometricNotEnrolled
-    case biometricAuthFailed
-    case sessionExpired
-    case twoFactorRequired
-    case accountLocked
-    case registrationFailed
-    case loginFailed(String)
-    case tokenRefreshFailed
-    case noRefreshToken
-    case unknown(Error)
-
-    public var errorDescription: String? {
-        switch self {
-        case .invalidCredentials:
-            return "Invalid email or password"
-        case .networkError:
-            return "Network connection error"
-        case .serverError(let message):
-            return "Server error: \(message)"
-        case .invalidToken, .tokenInvalid:
-            return "Invalid authentication token"
-        case .userNotFound:
-            return "User not found"
-        case .emailAlreadyExists:
-            return "Email already exists"
-        case .weakPassword:
-            return "Password is too weak"
-        case .validationFailed(let message):
-            return "Authentication validation failed: \(message)"
-        case .biometricNotAvailable:
-            return "Biometric authentication is not available on this device"
-        case .biometricNotEnabled:
-            return "Biometric authentication is not enabled"
-        case .biometricNotEnrolled:
-            return "Biometric authentication is not enrolled"
-        case .biometricAuthFailed:
-            return "Biometric authentication failed"
-        case .sessionExpired:
-            return "Your session has expired. Please sign in again."
-        case .twoFactorRequired:
-            return "Two-factor authentication is required"
-        case .accountLocked:
-            return "Account is temporarily locked. Please try again later."
-        case .registrationFailed:
-            return "Account registration failed"
-        case .loginFailed(let message):
-            return "Login failed: \(message)"
-        case .tokenRefreshFailed:
-            return "Token refresh failed"
-        case .noRefreshToken:
-            return "No refresh token available"
-        case .unknown(let error):
-            return error.localizedDescription
-        }
-    }
-}
-
 // Service Protocols
 public protocol EnhancedAPIService {
     func request<T: Codable>(_ endpoint: APIEndpoint, responseType: T.Type) async throws -> T
@@ -582,17 +345,6 @@ public final class KeychainHelper {
         
         let status = SecItemDelete(query as CFDictionary)
         return status == errSecSuccess
-    }
-}
-
-// Bundle extension for app version
-extension Bundle {
-    public var appVersion: String {
-        return infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-    }
-    
-    public var buildNumber: String {
-        return infoDictionary?["CFBundleVersion"] as? String ?? "1"
     }
 }
 
