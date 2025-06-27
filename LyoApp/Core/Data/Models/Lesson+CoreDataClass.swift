@@ -530,15 +530,7 @@ struct Quiz: Codable {
     var maxAttempts: Int = 3
 }
 
-struct QuizQuestion: Codable, Identifiable {
-    let id = UUID()
-    var question: String
-    var type: String // "multiple_choice", "true_false", "fill_blank"
-    var options: [String] = []
-    var correctAnswer: String
-    var explanation: String?
-    var points: Int = 1
-}
+// Removed duplicate QuizQuestion - use the canonical one from AppModels.swift
 
 struct Assignment: Codable {
     var title: String
@@ -557,11 +549,7 @@ struct InteractiveElement: Codable, Identifiable {
     var configuration: [String: String] = [:]
 }
 
-enum MediaType {
-    case video
-    case audio
-    case thumbnail
-}
+// Removed duplicate MediaType - use the canonical one from AppModels.swift
 
 // MARK: - Custom Errors
 
