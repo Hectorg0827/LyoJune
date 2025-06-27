@@ -250,21 +250,6 @@ enum NetworkConnectionType {
     case none
 }
 
-// MARK: - API Endpoint
-struct APIEndpoint {
-    let path: String
-    let method: HTTPMethod
-    let headers: [String: String]
-    let queryParameters: [String: String]
-    
-    init(path: String, method: HTTPMethod = .GET, headers: [String: String] = [:], queryParameters: [String: String] = [:]) {
-        self.path = path
-        self.method = method
-        self.headers = headers
-        self.queryParameters = queryParameters
-    }
-}
-
 // MARK: - Notification Names
 extension Notification.Name {
     static let tokenExpired = Notification.Name("tokenExpired")
