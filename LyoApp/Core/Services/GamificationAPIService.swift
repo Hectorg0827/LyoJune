@@ -17,15 +17,7 @@ public enum GamificationAPI {
         public let newLevel: Int?
     }
     
-    public struct Achievement: Codable, Identifiable {
-        public let id: String
-        public let title: String
-        public let description: String
-        public let iconName: String
-        public let isUnlocked: Bool
-        public let unlockedAt: Date?
-        public let xpReward: Int
-    }
+    // Achievement is now defined in AppModels.swift
     
     public struct StreakInfo: Codable {
         public let currentStreak: Int
@@ -133,27 +125,27 @@ class GamificationAPIService {
             reason: reason,
             categoryId: categoryId
         )
-        return try await networkManager.post("/analytics/xp/award", body: request)
+        return try await networkManager.post(endpoint: "/analytics/xp/award", body: request)
     }
 
     // MARK: - Achievements
-    func getUserAchievements() async throws -> [GamificationAPI.Achievement] {
+    func getUserAchievements() async throws -> [Achievement] {
         return try await networkManager.get(endpoint: "/gamification/achievements/user")
     }
 
-    func unlockAchievement(_ achievementId: String) async throws -> GamificationAPI.Achievement {
+    func unlockAchievement(_ achievementId: String) async throws -> Achievement {
         let request = UnlockAchievementRequest(achievementId: achievementId)
-        return try await networkManager.post("/gamification/achievements/\(achievementId)/unlock", body: request)
+        return try await networkManager.post(endpoint: "/gamification/achievements/\(achievementId)/unlock", body: request)
     }
 
-    func getAvailableAchievements() async throws -> [GamificationAPI.Achievement] {
+    func getAvailableAchievements() async throws -> [Achievement] {
         return try await networkManager.get(endpoint: "/gamification/achievements/available")
     }
 
     // MARK: - Streaks
     func updateStreak(activityType: GamificationAPI.StreakType) async throws -> GamificationAPI.StreakInfo {
         let request = UpdateStreakRequest(activityType: activityType)
-        return try await networkManager.post("/gamification/streaks/update", body: request)
+        return try await networkManager.post(endpoint: "/gamification/streaks/update", body: request)
     }
 
     func getStreak(for activityType: GamificationAPI.StreakType) async throws -> GamificationAPI.StreakInfo {
@@ -176,22 +168,22 @@ class GamificationAPIService {
 
     func joinChallenge(_ challengeId: String) async throws -> GamificationAPI.ChallengeParticipation {
         let request = JoinChallengeRequest(challengeId: challengeId)
-        return try await networkManager.post("/gamification/challenges/\(challengeId)/join", body: request)
+        return try await networkManager.post(endpoint: "/gamification/challenges/\(challengeId)/join", body: request)
     }
 
     func updateChallengeProgress(_ challengeId: String, progress: Double) async throws -> GamificationAPI.ChallengeParticipation {
         let request = UpdateChallengeProgressRequest(challengeId: challengeId, progress: progress)
-        return try await networkManager.put("/gamification/challenges/\(challengeId)/progress", body: request)
+        return try await networkManager.put(endpoint: "/gamification/challenges/\(challengeId)/progress", body: request)
     }
 
     // MARK: - Badges
     func getUserBadges() async throws -> [GamificationAPI.Badge] {
-        return try await networkManager.get("/gamification/badges/user")
+        return try await networkManager.get(endpoint: "/gamification/badges/user")
     }
 
     func awardBadge(_ badgeId: String, reason: String) async throws -> GamificationAPI.Badge {
         let request = AwardBadgeRequest(badgeId: badgeId, reason: reason)
-        return try await networkManager.post("/gamification/badges/\(badgeId)/award", body: request)
+        return try await networkManager.post(endpoint: "/gamification/badges/\(badgeId)/award", body: request)
     }
 }
 
