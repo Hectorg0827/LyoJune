@@ -16,29 +16,9 @@ struct LearningContext: Codable {
     }
 }
 
-enum QuestionType: String, CaseIterable, Codable {
-    case multipleChoice = "multiple_choice"
-    case trueFalse = "true_false"
-    case shortAnswer = "short_answer"
-    case essay = "essay"
-}
+// Removed duplicate QuestionType - use the canonical one from AppModels.swift
 
-struct QuizQuestion: Codable, Identifiable {
-    let id = UUID()
-    let question: String
-    let type: QuestionType
-    let options: [String]?
-    let correctAnswer: String
-    let explanation: String?
-    
-    init(question: String, type: QuestionType, options: [String]? = nil, correctAnswer: String, explanation: String? = nil) {
-        self.question = question
-        self.type = type
-        self.options = options
-        self.correctAnswer = correctAnswer
-        self.explanation = explanation
-    }
-}
+// Removed duplicate QuizQuestion - use the canonical one from AppModels.swift
 
 // MARK: - Enhanced AI Service
 @MainActor
@@ -47,11 +27,13 @@ class EnhancedAIService {
     
     private let networkManager = EnhancedNetworkManager.shared
     
+    // API endpoints
+    private let openAIEndpoint = "https://api.openai.com/v1/chat/completions"
+    private let gemmaEndpoint = "https://api.gemma.dev/v1/generate"
+    
     private init() {}
     
     // MARK: - Configuration
-    private let gemmaAPIEndpoint = "https://api.gemma.ai/v1/chat"
-    private let openAIapiEndpoint = "https://api.openai.com/v1/chat/completions"
     private let anthropicEndpoint = "https://api.anthropic.com/v1/messages"
     
     private var currentProvider: AIProvider = .gemma
@@ -259,7 +241,7 @@ class EnhancedAIService {
     }
     
     private func sendGemmaRequest(_ request: ChatRequest) async throws -> AIResponse {
-        guard let url = URL(string: gemmaAPIEndpoint) else {
+        guard let url = URL(string: gemmaEndpoint) else {
             throw AIError.invalidEndpoint
         }
         
@@ -447,12 +429,10 @@ class EnhancedAIService {
         var prompt = "Explain the concept of \(concept) at a \(difficulty) level."
         
         if let context = context {
-            if let topic = context.currentTopic {
+            if let topic = context.topic {
                 prompt += " This is in the context of \(topic)."
             }
-            if let courseId = context.courseId {
-                prompt += " The student is taking course \(courseId)."
-            }
+            prompt += " The student is learning \(context.subject) at \(context.userLevel) level."
         }
         
         prompt += " Provide clear examples and practical applications. Include related concepts they should know."
@@ -657,12 +637,7 @@ enum AIContextType {
     case progressAnalysis
 }
 
-struct UserPreferences {
-    let learningStyle: String
-    let difficulty: String
-    let language: String
-    let responseLength: String
-}
+// UserPreferences is now defined in AppModels.swift
 
 struct ConceptExplanation {
     let concept: String
