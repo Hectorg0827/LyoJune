@@ -27,7 +27,7 @@ class AIService: ObservableObject {
     
     deinit {
         cancellables.removeAll()
-        stopListening()
+        // Note: stopListening() removed due to main actor isolation
     }
     
     // MARK: - Speech Recognition
@@ -261,7 +261,7 @@ class AIService: ObservableObject {
         }
         
         if let progress = userProgress {
-            context += " Their learning progress: \(progress.coursesCompleted) courses completed, \(progress.currentStreak) day streak."
+            context += " Their learning progress: \(progress.totalCoursesCompleted) courses completed, \(progress.streakDays) day streak."
         }
         
         context += " Provide helpful, encouraging, and educational responses."
@@ -284,147 +284,7 @@ struct ConversationMessage: Codable, Identifiable {
     }
 }
 
-enum AIError: Error, LocalizedError {
-    case speechPermissionDenied
-    case speechRecognitionUnavailable
-    case speechRecognitionSetupFailed
-    case networkError
-    case processingError
-    
-    var errorDescription: String? {
-        switch self {
-        case .speechPermissionDenied:
-            return "Speech recognition permission is required"
-        case .speechRecognitionUnavailable:
-            return "Speech recognition is not available"
-        case .speechRecognitionSetupFailed:
-            return "Failed to setup speech recognition"
-        case .networkError:
-            return "Network connection required"
-        case .processingError:
-            return "Failed to process request"
-        }
-    }
-}
-
-// MARK: - Proactive AI Manager
-@MainActor
-class ProactiveAIManager: ObservableObject {
-    static let shared = ProactiveAIManager()
-    
-    @Published var suggestions: [AISuggestion] = []
-    @Published var isActive = false
-    
-    private var cancellables = Set<AnyCancellable>()
-    private let aiService = AIService.shared
-    
-    private init() {
-        setupProactiveMonitoring()
-    }
-    
-    deinit {
-        cancellables.removeAll()
-    }
-    
-    func startProactiveMode() {
-        isActive = true
-        generateInitialSuggestions()
-    }
-    
-    func stopProactiveMode() {
-        isActive = false
-        suggestions.removeAll()
-    }
-    
-    func updateContext(userActivity: UserActivity) {
-        guard isActive else { return }
-        
-        Task {
-            await generateContextualSuggestions(for: userActivity)
-        }
-    }
-    
-    private func setupProactiveMonitoring() {
-        // Monitor for idle time and learning patterns
-        Timer.publish(every: 30, on: .main, in: .common)
-            .autoconnect()
-            .sink { [weak self] _ in
-                Task {
-                    await self?.checkForSuggestions()
-                }
-            }
-            .store(in: &cancellables)
-    }
-    
-    private func generateInitialSuggestions() {
-        suggestions = [
-            AISuggestion(
-                id: UUID(),
-                type: .tip,
-                title: "Start Learning",
-                content: "Ready to dive into your learning journey? I can help you pick up where you left off!",
-                action: .startLearning
-            ),
-            AISuggestion(
-                id: UUID(),
-                type: .encouragement,
-                title: "Daily Goal",
-                content: "You're just 15 minutes away from maintaining your learning streak!",
-                action: .continueStreak
-            )
-        ]
-    }
-    
-    private func generateContextualSuggestions(for activity: UserActivity) async {
-        // Generate suggestions based on user's current activity
-        switch activity.type {
-        case .courseViewing:
-            if activity.duration > 300 { // 5 minutes
-                addSuggestion(AISuggestion(
-                    id: UUID(),
-                    type: .tip,
-                    title: "Take a Break",
-                    content: "You've been learning for a while. How about a quick review quiz?",
-                    action: .takeQuiz
-                ))
-            }
-        case .struggling:
-            addSuggestion(AISuggestion(
-                id: UUID(),
-                type: .help,
-                title: "Need Help?",
-                content: "I noticed you might be stuck. Would you like me to explain this concept differently?",
-                action: .getHelp
-            ))
-        case .completed:
-            addSuggestion(AISuggestion(
-                id: UUID(),
-                type: .celebration,
-                title: "Great Job!",
-                content: "Congratulations on completing that lesson! Ready for the next challenge?",
-                action: .nextLesson
-            ))
-        }
-    }
-    
-    private func checkForSuggestions() async {
-        // Check learning patterns and generate suggestions
-        if suggestions.isEmpty && isActive {
-            generateInitialSuggestions()
-        }
-    }
-    
-    private func addSuggestion(_ suggestion: AISuggestion) {
-        suggestions.append(suggestion)
-        
-        // Keep only recent suggestions
-        if suggestions.count > 3 {
-            suggestions.removeFirst()
-        }
-    }
-}
-
-// MARK: - AI Suggestion Models
+// MARK: - AI Suggestion Models (moved from duplicate ProactiveAIManager)
 struct AISuggestion: Identifiable, Codable {
     let id: UUID
     let type: SuggestionType
