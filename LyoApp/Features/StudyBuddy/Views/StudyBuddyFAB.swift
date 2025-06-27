@@ -5,7 +5,7 @@ struct StudyBuddyFAB: View {
     @StateObject private var voiceManager = GemmaVoiceManager()
     @StateObject private var audioPlayer = AIAudioPlayer()
     @StateObject private var conversationSession = ConversationSession()
-    @StateObject private var proactiveManager = ProactiveAIManager()
+    @StateObject private var proactiveManager = ProactiveAIManager(config: .default)
     @State private var config = StudyBuddyConfig.default
     
     @State private var isExpanded = false
