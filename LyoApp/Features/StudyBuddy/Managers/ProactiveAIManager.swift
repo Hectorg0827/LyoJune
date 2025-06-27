@@ -74,7 +74,7 @@ class ProactiveAIManager: ObservableObject {
         }
     }
     
-    init(config: StudyBuddyConfig = .default) {
+    public init(config: StudyBuddyConfig = .default) {
         self.config = config
         setupProactiveMonitoring()
         bindToProactiveAI()
