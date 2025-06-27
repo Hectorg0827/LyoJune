@@ -1,0 +1,444 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project LyoApp.xcodeproj -scheme LyoApp -destination "platform=iOS Simulator,name=iPhone 16,OS=18.5" build
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'LyoApp' in project 'LyoApp' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/momc --dry-run --action generate --swift-version 5.0 --sdkroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk --iphonesimulator-deployment-target 18.0 --module LyoApp /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/LyoDataModel.xcdatamodeld /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --print-asset-tag-combinations --output-format xml1 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/Assets.xcassets
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/usr/bin/actool --version --output-format xml1
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: ea35841c4e447064ede79c3f703426ec
+Build description path: /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/XCBuildData/ea35841c4e447064ede79c3f703426ec.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk /Users/republicalatuya/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-d5fc8ad4295d2ef488fb7d0f804ce0c4.sdkstatcache
+    cd /Users/republicalatuya/Desktop/LyoJune/LyoApp.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-d5fc8ad4295d2ef488fb7d0f804ce0c4.sdkstatcache
+
+CreateBuildDirectory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products
+    cd /Users/republicalatuya/Desktop/LyoJune/LyoApp.xcodeproj
+    builtin-create-build-directory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products
+
+CreateBuildDirectory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex
+    cd /Users/republicalatuya/Desktop/LyoJune/LyoApp.xcodeproj
+    builtin-create-build-directory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex
+
+CreateBuildDirectory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator
+    cd /Users/republicalatuya/Desktop/LyoJune/LyoApp.xcodeproj
+    builtin-create-build-directory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp-987bc8ce7d15f8cca858b5162b2566fd-VFS-iphonesimulator/all-product-headers.yaml
+    cd /Users/republicalatuya/Desktop/LyoJune/LyoApp.xcodeproj
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp-987bc8ce7d15f8cca858b5162b2566fd-VFS-iphonesimulator/all-product-headers.yaml
+
+CreateBuildDirectory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+    cd /Users/republicalatuya/Desktop/LyoJune/LyoApp.xcodeproj
+    builtin-create-build-directory /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/EagerLinkingTBDs/Debug-iphonesimulator
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp_const_extract_protocols.json (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp_const_extract_protocols.json
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.hmap (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.hmap
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.SwiftConstValuesFileList (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.SwiftConstValuesFileList
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.DependencyStaticMetadataFileList (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.DependencyStaticMetadataFileList
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.SwiftFileList (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.SwiftFileList
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.LinkFileList (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.LinkFileList
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp-OutputFileMap.json (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp-OutputFileMap.json
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.DependencyMetadataFileList (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.DependencyMetadataFileList
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-project-headers.hmap (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-project-headers.hmap
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-own-target-headers.hmap (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-own-target-headers.hmap
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-generated-files.hmap (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-generated-files.hmap
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-all-target-headers.hmap (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-all-target-headers.hmap
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-all-non-framework-target-headers.hmap (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-all-non-framework-target-headers.hmap
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-DebugDylibPath-normal-x86_64.txt (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-DebugDylibPath-normal-x86_64.txt
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-DebugDylibInstallName-normal-x86_64.txt (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-DebugDylibInstallName-normal-x86_64.txt
+
+WriteAuxiliaryFile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/Entitlements-Simulated.plist (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    write-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/Entitlements-Simulated.plist
+
+MkDir /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /bin/mkdir -p /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app
+
+ProcessProductPackaging "" /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+    Entitlements:
+    
+    {
+    "application-identifier" = "5QZDMJGN7B.com.lyo.lyoapp";
+}
+    
+    builtin-productPackagingUtility -entitlements -format xml -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent
+
+ProcessProductPackagingDER /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent.der (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /usr/bin/derq query -f xml -i /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent.der --raw
+
+Ld /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app/__preview.dylib normal (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -Xlinker -reproducible -target x86_64-apple-ios18.0-simulator -dynamiclib -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -O0 -L/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator -F/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator -install_name @rpath/LyoApp.debug.dylib -dead_strip -rdynamic -Xlinker -no_deduplicate -Xlinker -objc_abi_version -Xlinker 2 -Xlinker -dependency_info -Xlinker /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp_dependency_info.dat -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __entitlements -Xlinker /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent -Xlinker -sectcreate -Xlinker __TEXT -Xlinker __ents_der -Xlinker /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp.app-Simulated.xcent.der -Xlinker -no_adhoc_codesign -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app/__preview.dylib
+
+MkDir /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_output/unthinned (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /bin/mkdir -p /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_output/unthinned
+
+MkDir /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_output/thinned (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /bin/mkdir -p /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_output/thinned
+
+GenerateAssetSymbols /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/Assets.xcassets (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/Assets.xcassets --compile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app --output-format human-readable-text --notices --warnings --export-dependency-info /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_dependencies --output-partial-info-plist /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_generated_info.plist --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 18.0 --platform iphonesimulator --bundle-identifier com.lyo.lyoapp --generate-swift-asset-symbol-extensions NO --generate-swift-asset-symbols /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols.swift --generate-objc-asset-symbols /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols.h --generate-asset-symbol-index /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/* com.apple.actool.compilation-results */
+/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols-Index.plist
+/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols.h
+/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols.swift
+
+
+DataModelCompile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app/ /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/LyoDataModel.xcdatamodeld (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /Applications/Xcode.app/Contents/Developer/usr/bin/momc --sdkroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk --iphonesimulator-deployment-target 18.0 --module LyoApp /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/LyoDataModel.xcdatamodeld /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app/
+LyoDataModel.xcdatamodel: note: Model LyoDataModel version checksum: gqqVTIHaF1yJYubc8/4ri5IipxTyLM1gf1rXsLwvFiQ=
+
+CpResource /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app/.env /Users/republicalatuya/Desktop/LyoJune/.env (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    builtin-copy -exclude .DS_Store -exclude CVS -exclude .svn -exclude .git -exclude .hg -resolve-src-symlinks /Users/republicalatuya/Desktop/LyoJune/.env /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app
+
+DataModelCodegen /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/LyoDataModel.xcdatamodeld (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /Applications/Xcode.app/Contents/Developer/usr/bin/momc --action generate --swift-version 5.0 --sdkroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk --iphonesimulator-deployment-target 18.0 --module LyoApp /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/LyoDataModel.xcdatamodeld /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel
+
+CompileAssetCatalogVariant thinned /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/LyoApp.app /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/Assets.xcassets (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    /Applications/Xcode.app/Contents/Developer/usr/bin/actool /Users/republicalatuya/Desktop/LyoJune/LyoApp/Resources/Assets.xcassets --compile /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_output/thinned --output-format human-readable-text --notices --warnings --export-dependency-info /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_dependencies_thinned --output-partial-info-plist /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/assetcatalog_generated_info.plist_thinned --app-icon AppIcon --compress-pngs --enable-on-demand-resources YES --filter-for-thinning-device-configuration iPhone17,3 --filter-for-device-os-version 18.5 --development-region en --target-device iphone --target-device ipad --minimum-deployment-target 18.0 --platform iphonesimulator
+
+SwiftDriver LyoApp normal x86_64 com.apple.xcode.tools.swift.compiler (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    builtin-SwiftDriver -- /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc -module-name LyoApp -Onone -enforce-exclusivity\=checked @/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.SwiftFileList -DDEBUG -enable-bare-slash-regex -enable-experimental-feature DebugDescriptionMacro -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -target x86_64-apple-ios18.0-simulator -g -module-cache-path /Users/republicalatuya/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -Xfrontend -serialize-debugging-options -enable-testing -index-store-path /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Index.noindex/DataStore -swift-version 5 -I /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator -F /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator -c -j8 -enable-batch-mode -incremental -Xcc -ivfsstatcache -Xcc /Users/republicalatuya/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-d5fc8ad4295d2ef488fb7d0f804ce0c4.sdkstatcache -output-file-map /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp-OutputFileMap.json -use-frontend-parseable-output -save-temps -no-color-diagnostics -serialize-diagnostics -emit-dependencies -emit-module -emit-module-path /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp.swiftmodule -validate-clang-modules-once -clang-build-session-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/swift-overrides.hmap -emit-const-values -Xfrontend -const-gather-protocols-file -Xfrontend /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp_const_extract_protocols.json -Xcc -iquote -Xcc /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-generated-files.hmap -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-own-target-headers.hmap -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-all-target-headers.hmap -Xcc -iquote -Xcc /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-project-headers.hmap -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources-normal/x86_64 -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/x86_64 -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources -Xcc -DDEBUG\=1 -emit-objc-header -emit-objc-header-path /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp-Swift.h -working-directory /Users/republicalatuya/Desktop/LyoJune -experimental-emit-module-separately -disable-cmo
+
+SwiftCompile normal x86_64 Compiling\ DiscoverView.swift,\ DiscoverViewModel.swift,\ EnhancedLyoAvatarView.swift,\ FeedViewModel.swift,\ GemmaVoiceManager.swift,\ HeaderModels.swift,\ HeaderViewModel.swift,\ HomeFeedView.swift,\ LearnView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Discover/DiscoverView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/DiscoverViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/EnhancedLyoAvatarView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/FeedViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/GemmaVoiceManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/Models/HeaderModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/ViewModels/HeaderViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Feed/HomeFeedView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Learn/LearnView.swift (in target 'LyoApp' from project 'LyoApp')
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Discover/DiscoverView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/DiscoverViewModel.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/EnhancedLyoAvatarView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/FeedViewModel.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/GemmaVoiceManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/Models/HeaderModels.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/ViewModels/HeaderViewModel.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Feed/HomeFeedView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Learn/LearnView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 Compiling\ EnhancedServiceFactory.swift,\ ErrorTypes.swift,\ APIModels.swift,\ BundleExtensions.swift,\ AuthTypes.swift,\ NetworkTypes.swift,\ CachedCourse+CoreDataClass.swift,\ CachedCourse+CoreDataProperties.swift,\ CachedLesson+CoreDataClass.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedServiceFactory.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/ErrorTypes.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/APIModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/BundleExtensions.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/AuthTypes.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/NetworkTypes.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedLesson+CoreDataClass.swift (in target 'LyoApp' from project 'LyoApp')
+Failed frontend command:
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swift-frontend -frontend -c /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/AppModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/AIAudioPlayer.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/AITranscriptBubble.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/State/AppState.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Auth/AuthenticationView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Community/CommunityView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/CommunityViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Shared/Constants/Constants.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/ContentView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/DesignSystem.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Discover/DiscoverView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/DiscoverViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/EnhancedLyoAvatarView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/FeedViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/GemmaVoiceManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/Models/HeaderModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/ViewModels/HeaderViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Feed/HomeFeedView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Learn/LearnView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/LearnViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/LearningModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/LyoApp.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/LyoAvatarView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/Views/LyoHeaderView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/MainTabView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/PostModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Post/PostView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/ProactiveAIManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Profile/ProfileView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/ProfileViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/StudyBuddyFAB.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Models/StudyBuddyModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/VideoModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/ErrorManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/OfflineManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/DataManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/APIServices.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/LearningAPIService.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/GamificationAPIService.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/AIService.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedAIService.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/UI/ErrorHandlingViews.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/ErrorHandler.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Configuration/ConfigurationManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/DesignTokens.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/SkeletonLoader.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/AnimationSystem.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/HapticManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernComponents.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernViews.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/EnhancedViews.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernLearnView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Networking/EnhancedNetworkManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedAuthService.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/WebSocketManager.swift -primary-file /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedServiceFactory.swift -primary-file /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/ErrorTypes.swift -primary-file /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/APIModels.swift -primary-file /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/BundleExtensions.swift -primary-file /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/AuthTypes.swift -primary-file /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/NetworkTypes.swift -primary-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataClass.swift -primary-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataProperties.swift -primary-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedLesson+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedLesson+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedPost+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedPost+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUserProgress+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUserProgress+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUser+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUser+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/LyoDataModel+CoreDataModel.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols.swift -supplementary-output-file-map /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/supplementaryOutputs-7 -target x86_64-apple-ios18.0-simulator -enable-objc-interop -sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator18.5.sdk -I /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator -F /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator -no-color-diagnostics -enable-testing -g -debug-info-format\=dwarf -dwarf-version\=5 -module-cache-path /Users/republicalatuya/Library/Developer/Xcode/DerivedData/ModuleCache.noindex -swift-version 5 -enforce-exclusivity\=checked -Onone -D DEBUG -serialize-debugging-options -const-gather-protocols-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/LyoApp_const_extract_protocols.json -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -empty-abi-descriptor -validate-clang-modules-once -clang-build-session-file /Users/republicalatuya/Library/Developer/Xcode/DerivedData/ModuleCache.noindex/Session.modulevalidation -Xcc -working-directory -Xcc /Users/republicalatuya/Desktop/LyoJune -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift -enable-anonymous-context-mangled-names -file-compilation-dir /Users/republicalatuya/Desktop/LyoJune -Xcc -ivfsstatcache -Xcc /Users/republicalatuya/Library/Developer/Xcode/DerivedData/SDKStatCaches.noindex/iphonesimulator18.5-22F76-d5fc8ad4295d2ef488fb7d0f804ce0c4.sdkstatcache -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/swift-overrides.hmap -Xcc -iquote -Xcc /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-generated-files.hmap -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-own-target-headers.hmap -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-all-target-headers.hmap -Xcc -iquote -Xcc /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/LyoApp-project-headers.hmap -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Products/Debug-iphonesimulator/include -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources-normal/x86_64 -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/x86_64 -Xcc -I/Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources -Xcc -DDEBUG\=1 -module-name LyoApp -frontend-parseable-output -disable-clang-spi -target-sdk-version 18.5 -target-sdk-name iphonesimulator18.5 -external-plugin-path /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/lib/swift/host/plugins\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server -external-plugin-path /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/local/lib/swift/host/plugins\#/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/swift-plugin-server -in-process-plugin-server-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/libSwiftInProcPluginServer.dylib -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/lib/swift/host/plugins -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/EnhancedServiceFactory.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/ErrorTypes.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/APIModels.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/BundleExtensions.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/AuthTypes.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/NetworkTypes.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/CachedCourse+CoreDataClass.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/CachedCourse+CoreDataProperties.o -o /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/CachedLesson+CoreDataClass.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/EnhancedServiceFactory.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/ErrorTypes.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/APIModels.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/BundleExtensions.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/AuthTypes.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/NetworkTypes.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/CachedCourse+CoreDataClass.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/CachedCourse+CoreDataProperties.o -index-unit-output-path /LyoApp.build/Debug-iphonesimulator/LyoApp.build/Objects-normal/x86_64/CachedLesson+CoreDataClass.o -index-store-path /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Index.noindex/DataStore -index-system-modules
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedServiceFactory.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/ErrorTypes.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+/Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/ErrorTypes.swift:63:13: error: invalid redeclaration of 'APIError'
+public enum APIError: Error, LocalizedError {
+            ^
+/Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/AppModels.swift:22:15: note: 'APIError' previously declared here
+public struct APIError: Codable, Error, LocalizedError {
+              ^
+/Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/AppModels.swift:22:15: note: 'APIError' previously declared here
+public struct APIError: Codable, Error, LocalizedError {
+              ^
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/APIModels.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/BundleExtensions.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/AuthTypes.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/NetworkTypes.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataClass.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataProperties.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedLesson+CoreDataClass.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 Compiling\ ProfileView.swift,\ ProfileViewModel.swift,\ StudyBuddyFAB.swift,\ StudyBuddyModels.swift,\ VideoModels.swift,\ ErrorManager.swift,\ OfflineManager.swift,\ DataManager.swift,\ APIServices.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Profile/ProfileView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/ProfileViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/StudyBuddyFAB.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Models/StudyBuddyModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/VideoModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/ErrorManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/OfflineManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/DataManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/APIServices.swift (in target 'LyoApp' from project 'LyoApp')
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Profile/ProfileView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/ProfileViewModel.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/StudyBuddyFAB.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Models/StudyBuddyModels.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/VideoModels.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/ErrorManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/OfflineManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/DataManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/APIServices.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 Compiling\ AnimationSystem.swift,\ HapticManager.swift,\ ModernComponents.swift,\ ModernViews.swift,\ EnhancedViews.swift,\ ModernLearnView.swift,\ EnhancedNetworkManager.swift,\ EnhancedAuthService.swift,\ WebSocketManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/AnimationSystem.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/HapticManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernComponents.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernViews.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/EnhancedViews.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernLearnView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Networking/EnhancedNetworkManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedAuthService.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/WebSocketManager.swift (in target 'LyoApp' from project 'LyoApp')
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/AnimationSystem.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/HapticManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernComponents.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernViews.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/EnhancedViews.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/ModernLearnView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Networking/EnhancedNetworkManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedAuthService.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/WebSocketManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftEmitModule normal x86_64 Emitting\ module\ for\ LyoApp (in target 'LyoApp' from project 'LyoApp')
+
+EmitSwiftModule normal x86_64 (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 Compiling\ AppModels.swift,\ AIAudioPlayer.swift,\ AITranscriptBubble.swift,\ AppState.swift,\ AuthenticationView.swift,\ CommunityView.swift,\ CommunityViewModel.swift,\ Constants.swift,\ ContentView.swift,\ DesignSystem.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/AppModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/AIAudioPlayer.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/AITranscriptBubble.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/State/AppState.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Auth/AuthenticationView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Community/CommunityView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/CommunityViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Shared/Constants/Constants.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/ContentView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/DesignSystem.swift (in target 'LyoApp' from project 'LyoApp')
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/AppModels.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/AIAudioPlayer.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/AITranscriptBubble.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/State/AppState.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Auth/AuthenticationView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Community/CommunityView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/CommunityViewModel.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Shared/Constants/Constants.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/ContentView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/DesignSystem/DesignSystem.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 Compiling\ LearnViewModel.swift,\ LearningModels.swift,\ LyoApp.swift,\ LyoAvatarView.swift,\ LyoHeaderView.swift,\ MainTabView.swift,\ PostModels.swift,\ PostView.swift,\ ProactiveAIManager.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/LearnViewModel.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/LearningModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/LyoApp.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/LyoAvatarView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/Views/LyoHeaderView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/MainTabView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/PostModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Post/PostView.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/ProactiveAIManager.swift (in target 'LyoApp' from project 'LyoApp')
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/ViewModels/LearnViewModel.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/LearningModels.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/LyoApp.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Views/LyoAvatarView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Header/Views/LyoHeaderView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/App/MainTabView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Models/PostModels.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/Post/PostView.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Features/StudyBuddy/Managers/ProactiveAIManager.swift (in target 'LyoApp' from project 'LyoApp')
+    cd /Users/republicalatuya/Desktop/LyoJune
+    
+
+SwiftCompile normal x86_64 Compiling\ CachedLesson+CoreDataProperties.swift,\ CachedPost+CoreDataClass.swift,\ CachedPost+CoreDataProperties.swift,\ CachedUserProgress+CoreDataClass.swift,\ CachedUserProgress+CoreDataProperties.swift,\ CachedUser+CoreDataClass.swift,\ CachedUser+CoreDataProperties.swift,\ LyoDataModel+CoreDataModel.swift,\ GeneratedAssetSymbols.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedLesson+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedPost+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedPost+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUserProgress+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUserProgress+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUser+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUser+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/LyoDataModel+CoreDataModel.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'LyoApp' from project 'LyoApp')
+Command SwiftCompile failed with a nonzero exit code
+
+** BUILD FAILED **
+
+
+The following build commands failed:
+	SwiftCompile normal x86_64 Compiling\ EnhancedServiceFactory.swift,\ ErrorTypes.swift,\ APIModels.swift,\ BundleExtensions.swift,\ AuthTypes.swift,\ NetworkTypes.swift,\ CachedCourse+CoreDataClass.swift,\ CachedCourse+CoreDataProperties.swift,\ CachedLesson+CoreDataClass.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Services/EnhancedServiceFactory.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/ErrorTypes.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/APIModels.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/BundleExtensions.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/AuthTypes.swift /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/NetworkTypes.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedCourse+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedLesson+CoreDataClass.swift (in target 'LyoApp' from project 'LyoApp')
+	SwiftCompile normal x86_64 /Users/republicalatuya/Desktop/LyoJune/LyoApp/Core/Shared/ErrorTypes.swift (in target 'LyoApp' from project 'LyoApp')
+	SwiftCompile normal x86_64 Compiling\ CachedLesson+CoreDataProperties.swift,\ CachedPost+CoreDataClass.swift,\ CachedPost+CoreDataProperties.swift,\ CachedUserProgress+CoreDataClass.swift,\ CachedUserProgress+CoreDataProperties.swift,\ CachedUser+CoreDataClass.swift,\ CachedUser+CoreDataProperties.swift,\ LyoDataModel+CoreDataModel.swift,\ GeneratedAssetSymbols.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedLesson+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedPost+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedPost+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUserProgress+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUserProgress+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUser+CoreDataClass.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/CachedUser+CoreDataProperties.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/CoreDataGenerated/LyoDataModel/LyoDataModel+CoreDataModel.swift /Users/republicalatuya/Library/Developer/Xcode/DerivedData/LyoApp-dnsbbgyjxnvjcgebxrnlezpxcabp/Build/Intermediates.noindex/LyoApp.build/Debug-iphonesimulator/LyoApp.build/DerivedSources/GeneratedAssetSymbols.swift (in target 'LyoApp' from project 'LyoApp')
+	Building project LyoApp with scheme LyoApp
+(4 failures)
