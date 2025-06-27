@@ -1,34 +1,5 @@
 import Foundation
 
-// MARK: - Bundle Extensions
-extension Bundle {
-    /// App version from Info.plist
-    var appVersion: String {
-        return infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-    }
-    
-    /// Build number from Info.plist
-    var buildNumber: String {
-        return infoDictionary?["CFBundleVersion"] as? String ?? "1"
-    }
-    
-    /// App name from Info.plist
-    var appName: String {
-        return infoDictionary?["CFBundleDisplayName"] as? String ??
-               infoDictionary?["CFBundleName"] as? String ?? "LyoApp"
-    }
-    
-    /// Bundle identifier
-    var bundleID: String {
-        return bundleIdentifier ?? "com.lyo.app"
-    }
-    
-    /// Full version string (version + build)
-    var fullVersion: String {
-        return "\(appVersion) (\(buildNumber))"
-    }
-}
-
 // MARK: - Dictionary Extensions for Any type support
 extension Dictionary where Key == String, Value == Any {
     func encode() throws -> Data {
