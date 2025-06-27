@@ -3,6 +3,10 @@ import Combine
 import SwiftUI
 import CoreGraphics
 
+// MARK: - Type Aliases for Backward Compatibility
+public typealias CourseModel = Course
+public typealias CourseInstructor = Instructor
+
 // MARK: - Sync Protocol for Backend Integration
 public protocol Syncable {
     var syncStatus: SyncStatus { get }
@@ -16,25 +20,6 @@ public enum SyncStatus: String, Codable, CaseIterable {
     case syncing = "syncing"
     case failed = "failed"
     case conflict = "conflict"
-}
-
-// MARK: - API Error Models
-public struct APIError: Codable, Error, LocalizedError {
-    public let code: String
-    public let message: String
-    public let details: [String: String]?
-    public let statusCode: Int?
-    
-    public var errorDescription: String? {
-        return message
-    }
-    
-    public init(code: String, message: String, details: [String: String]? = nil, statusCode: Int? = nil) {
-        self.code = code
-        self.message = message
-        self.details = details
-        self.statusCode = statusCode
-    }
 }
 
 // MARK: - Network Models
@@ -211,7 +196,7 @@ public enum UserStatus: String, Codable, CaseIterable {
     case suspended = "suspended"
 }
 
-public struct UserPreferences: Codable {
+public struct UserPreferences: Codable, Hashable {
     public let notifications: Bool
     public let darkMode: Bool
     public let language: String
@@ -274,6 +259,32 @@ public struct UserProfile: Codable, Hashable {
     public let showProgress: Bool
     public let allowMessages: Bool
     
+    public init(
+        bio: String? = nil,
+        location: String? = nil,
+        website: URL? = nil,
+        socialLinks: [String: URL] = [:],
+        interests: [String] = [],
+        skills: [UserSkill] = [],
+        birthDate: Date? = nil,
+        timezone: String = TimeZone.current.identifier,
+        isPublic: Bool = false,
+        showProgress: Bool = true,
+        allowMessages: Bool = true
+    ) {
+        self.bio = bio
+        self.location = location
+        self.website = website
+        self.socialLinks = socialLinks
+        self.interests = interests
+        self.skills = skills
+        self.birthDate = birthDate
+        self.timezone = timezone
+        self.isPublic = isPublic
+        self.showProgress = showProgress
+        self.allowMessages = allowMessages
+    }
+    
     // Backend Integration Methods
     public func toAPIPayload() -> [String: Any] {
         var payload: [String: Any] = [
@@ -327,26 +338,225 @@ public struct UserProfile: Codable, Hashable {
     }
 }
 
+// MARK: - Login Response
+public struct LoginResponse: Codable {
+    public let accessToken: String
+    public let refreshToken: String
+    public let user: UserProfile
+    public let expiresIn: TimeInterval
+    
+    public init(accessToken: String, refreshToken: String, user: UserProfile, expiresIn: TimeInterval) {
+        self.accessToken = accessToken
+        self.refreshToken = refreshToken
+        self.user = user
+        self.expiresIn = expiresIn
+    }
+}
+
+// MARK: - Course Support Types
+public enum CourseCategory: String, Codable, CaseIterable {
+    case programming = "programming"
+    case design = "design"
+    case business = "business"
+    case marketing = "marketing"
+    case science = "science"
+    case math = "math"
+    case language = "language"
+    case arts = "arts"
+    case health = "health"
+    case other = "other"
+}
+
+public enum CourseDifficulty: String, Codable, CaseIterable {
+    case beginner = "beginner"
+    case intermediate = "intermediate"
+    case advanced = "advanced"
+    case expert = "expert"
+}
+
+public struct CourseMedia: Codable, Hashable {
+    public let url: String
+    public let type: MediaType
+    public let duration: TimeInterval?
+    public let thumbnail: String?
+    
+    public init(url: String, type: MediaType, duration: TimeInterval? = nil, thumbnail: String? = nil) {
+        self.url = url
+        self.type = type
+        self.duration = duration
+        self.thumbnail = thumbnail
+    }
+    
+    public func toAPIPayload() -> [String: Any] {
+        var payload: [String: Any] = [
+            "url": url,
+            "type": type.rawValue
+        ]
+        
+        if let duration = duration {
+            payload["duration"] = duration
+        }
+        
+        if let thumbnail = thumbnail {
+            payload["thumbnail"] = thumbnail
+        }
+        
+        return payload
+    }
+    
+    public static func fromAPIResponse(_ data: [String: Any]) -> CourseMedia? {
+        guard let url = data["url"] as? String,
+              let typeString = data["type"] as? String,
+              let type = MediaType(rawValue: typeString) else {
+            return nil
+        }
+        
+        return CourseMedia(
+            url: url,
+            type: type,
+            duration: data["duration"] as? TimeInterval,
+            thumbnail: data["thumbnail"] as? String
+        )
+    }
+}
+
+public enum MediaType: String, Codable, CaseIterable {
+    case video = "video"
+    case audio = "audio"
+    case image = "image"
+    case document = "document"
+    
+    var icon: String {
+        switch self {
+        case .video: return "video.fill"
+        case .audio: return "speaker.wave.2.fill"
+        case .image: return "photo.fill"
+        case .document: return "doc.fill"
+        }
+    }
+    
+    var title: String {
+        switch self {
+        case .video: return "Video"
+        case .audio: return "Audio"
+        case .image: return "Image"
+        case .document: return "Document"
+        }
+    }
+    
+    var fileExtension: String {
+        switch self {
+        case .video: return "mp4"
+        case .audio: return "mp3"
+        case .image: return "jpg"
+        case .document: return "pdf"
+        }
+    }
+    
+    var mimeType: String {
+        switch self {
+        case .video: return "video/mp4"
+        case .audio: return "audio/mpeg"
+        case .image: return "image/jpeg"
+        case .document: return "application/pdf"
+        }
+    }
+}
+
+public struct CoursePrice: Codable, Hashable {
+    public let amount: Double
+    public let currency: String
+    public let discountAmount: Double?
+    public let isDiscounted: Bool
+    
+    public init(amount: Double = 0.0, currency: String = "USD", discountAmount: Double? = nil, isDiscounted: Bool = false) {
+        self.amount = amount
+        self.currency = currency
+        self.discountAmount = discountAmount
+        self.isDiscounted = isDiscounted
+    }
+    
+    public func toAPIPayload() -> [String: Any] {
+        var payload: [String: Any] = [
+            "amount": amount,
+            "currency": currency,
+            "isDiscounted": isDiscounted
+        ]
+        
+        if let discountAmount = discountAmount {
+            payload["discountAmount"] = discountAmount
+        }
+        
+        return payload
+    }
+    
+    public static func fromAPIResponse(_ data: [String: Any]) -> CoursePrice? {
+        let amount = data["amount"] as? Double ?? 0.0
+        let currency = data["currency"] as? String ?? "USD"
+        let discountAmount = data["discountAmount"] as? Double
+        let isDiscounted = data["isDiscounted"] as? Bool ?? false
+        
+        return CoursePrice(
+            amount: amount,
+            currency: currency,
+            discountAmount: discountAmount,
+            isDiscounted: isDiscounted
+        )
+    }
+}
+
+public struct CourseRating: Codable, Hashable {
+    public let average: Double
+    public let count: Int
+    public let distribution: [Int: Int] // Star rating (1-5) -> count
+    
+    public init(average: Double = 0.0, count: Int = 0, distribution: [Int: Int] = [:]) {
+        self.average = average
+        self.count = count
+        self.distribution = distribution
+    }
+    
+    public func toAPIPayload() -> [String: Any] {
+        return [
+            "average": average,
+            "count": count,
+            "distribution": distribution
+        ]
+    }
+    
+    public static func fromAPIResponse(_ data: [String: Any]) -> CourseRating? {
+        let average = data["average"] as? Double ?? 0.0
+        let count = data["count"] as? Int ?? 0
+        let distribution = data["distribution"] as? [Int: Int] ?? [:]
+        
+        return CourseRating(
+            average: average,
+            count: count,
+            distribution: distribution
+        )
+    }
+}
+
 // MARK: - Course Models
 public struct Course: Identifiable, Codable, Hashable, Syncable {
-    public let id: String
+    public let id: UUID
     public let title: String
     public let description: String
     public let instructor: Instructor
     public let duration: TimeInterval
     public let difficulty: CourseDifficulty
     public let category: CourseCategory
-    public let imageURL: String?
+    public let thumbnail: CourseMedia?
+    public let previewVideo: CourseMedia?
     public let lessons: [Lesson]
     public let tags: [String]
+    public let language: String
+    public let price: CoursePrice
+    public let rating: CourseRating
     public let createdAt: Date
     public let updatedAt: Date
     public let isPublished: Bool
-    public let price: Double
-    public let currency: String
-    public let enrollmentCount: Int
-    public let rating: Double
-    public let reviewCount: Int
+    public let publishedAt: Date?
     
     // Backend Integration Properties
     public let serverID: String?
@@ -829,17 +1039,20 @@ public struct Achievement: Identifiable, Codable, Hashable {
     // Backend Integration Methods
     public func toAPIPayload() -> [String: Any] {
         var payload: [String: Any] = [
-            "id": id.uuidString,
+            "id": id,
             "title": title,
             "description": description,
             "category": category.rawValue,
-            "type": type.rawValue,
             "points": points,
             "rarity": rarity.rawValue,
             "isUnlocked": isUnlocked,
             "progress": progress,
-            "maxProgress": maxProgress
+            "requirements": requirements
         ]
+        
+        if let iconURL = iconURL {
+            payload["iconURL"] = iconURL
+        }
         
         if let unlockedAt = unlockedAt {
             payload["unlockedAt"] = ISO8601DateFormatter().string(from: unlockedAt)
@@ -849,14 +1062,11 @@ public struct Achievement: Identifiable, Codable, Hashable {
     }
     
     public static func fromAPIResponse(_ data: [String: Any]) -> Achievement? {
-        guard let idString = data["id"] as? String,
-              let id = UUID(uuidString: idString),
+        guard let id = data["id"] as? String,
               let title = data["title"] as? String,
               let description = data["description"] as? String,
               let categoryString = data["category"] as? String,
               let category = AchievementCategory(rawValue: categoryString),
-              let typeString = data["type"] as? String,
-              let type = AchievementType(rawValue: typeString),
               let points = data["points"] as? Int,
               let rarityString = data["rarity"] as? String,
               let rarity = AchievementRarity(rawValue: rarityString) else {
@@ -864,22 +1074,22 @@ public struct Achievement: Identifiable, Codable, Hashable {
         }
         
         let isUnlocked = data["isUnlocked"] as? Bool ?? false
-        let progress = data["progress"] as? Int ?? 0
-        let maxProgress = data["maxProgress"] as? Int ?? 1
+        let progress = data["progress"] as? Double ?? 0.0
+        let requirements = data["requirements"] as? [String] ?? []
         let unlockedAt = (data["unlockedAt"] as? String).flatMap { ISO8601DateFormatter().date(from: $0) }
         
         return Achievement(
             id: id,
             title: title,
             description: description,
-            category: category,
-            type: type,
+            iconURL: data["iconURL"] as? String,
             points: points,
-            rarity: rarity,
             isUnlocked: isUnlocked,
             unlockedAt: unlockedAt,
-            progress: progress,
-            maxProgress: maxProgress
+            category: category,
+            rarity: rarity,
+            requirements: requirements,
+            progress: progress
         )
     }
 }
@@ -1151,36 +1361,6 @@ public struct AnalyticsEvent: Codable {
     }
 }
 
-// MARK: - API Response Wrappers
-public struct APIResponse<T: Codable>: Codable {
-    public let data: T?
-    public let message: String?
-    public let success: Bool
-    public let error: String?
-    public let code: Int?
-    public let pagination: PaginationInfo?
-    
-    public init(data: T? = nil, message: String? = nil, success: Bool = true,
-                error: String? = nil, code: Int? = nil, pagination: PaginationInfo? = nil) {
-        self.data = data
-        self.message = message
-        self.success = success
-        self.error = error
-        self.code = code
-        self.pagination = pagination
-    }
-}
-
-public struct SuccessResponse: Codable {
-    public let success: Bool
-    public let message: String?
-    
-    public init(success: Bool = true, message: String? = nil) {
-        self.success = success
-        self.message = message
-    }
-}
-
 public struct Instructor: Identifiable, Codable, Hashable {
     public let id: UUID
     public let name: String
@@ -1389,6 +1569,7 @@ extension Color {
         return String(format: "#%02X%02X%02X", r, g, b)
     }
     
+    /*
     public init?(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
@@ -1413,6 +1594,7 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
+    */
 }
 
 // MARK: - API Response Helpers
@@ -1492,40 +1674,6 @@ public enum SyncPriority: Int, Codable, CaseIterable, Comparable {
     
     public static func < (lhs: SyncPriority, rhs: SyncPriority) -> Bool {
         return lhs.rawValue < rhs.rawValue
-    }
-}
-
-// MARK: - Pagination Models
-public struct PaginatedResponse<T: Codable>: Codable {
-    public let data: [T]
-    public let pagination: PaginationInfo
-    
-    public init(data: [T], pagination: PaginationInfo) {
-        self.data = data
-        self.pagination = pagination
-    }
-}
-
-public struct PaginationInfo: Codable {
-    public let currentPage: Int
-    public let totalPages: Int
-    public let totalItems: Int
-    public let itemsPerPage: Int
-    public let hasNextPage: Bool
-    public let hasPreviousPage: Bool
-    
-    public init(
-        currentPage: Int,
-        totalPages: Int,
-        totalItems: Int,
-        itemsPerPage: Int
-    ) {
-        self.currentPage = currentPage
-        self.totalPages = totalPages
-        self.totalItems = totalItems
-        self.itemsPerPage = itemsPerPage
-        self.hasNextPage = currentPage < totalPages
-        self.hasPreviousPage = currentPage > 1
     }
 }
 
@@ -1624,7 +1772,7 @@ public enum AvatarSize: String, Codable, CaseIterable {
 }
 
 // MARK: - Subscription Tier
-public enum SubscriptionTier: String, Codable, CaseIterable {
+public enum SubscriptionTier: String, Codable, CaseIterable, Hashable {
     case free = "free"
     case basic = "basic"
     case premium = "premium"
@@ -1887,7 +2035,6 @@ public struct Lesson: Identifiable, Codable, Hashable, Syncable {
               let isCompleted = data["isCompleted"] as? Bool,
               let isLocked = data["isLocked"] as? Bool,
               let prerequisitesStrings = data["prerequisites"] as? [String],
-              let resourcesData = data["resources"] as? [[String: Any]],
               let createdAtString = data["createdAt"] as? String,
               let updatedAtString = data["updatedAt"] as? String,
               let createdAt = ISO8601DateFormatter().date(from: createdAtString),
@@ -1897,8 +2044,13 @@ public struct Lesson: Identifiable, Codable, Hashable, Syncable {
         }
         
         let prerequisites = prerequisitesStrings.compactMap { UUID(uuidString: $0) }
+        let resourcesData = data["resources"] as? [[String: Any]] ?? []
         let resources = resourcesData.compactMap { LessonResource.fromAPIResponse($0) }
-        let quiz = Quiz.fromAPIResponse(data["quiz"] as? [String: Any] ?? [:])
+        
+        var quiz: Quiz?
+        if let quizData = data["quiz"] as? [String: Any] {
+            quiz = Quiz.fromAPIResponse(quizData)
+        }
         
         return Lesson(
             id: id,
@@ -2390,6 +2542,35 @@ public struct QuizAnswer: Identifiable, Codable, Hashable {
             timeSpent: data["timeSpent"] as? TimeInterval,
             createdAt: createdAt
         )
+    }
+}
+
+// MARK: - User Course Progress
+public struct UserCourseProgress: Identifiable, Codable, Hashable {
+    public let id: UUID
+    public let courseId: String
+    public let userId: String
+    public let completedLessons: [String]
+    public let completionPercentage: Double
+    public let lastAccessedAt: Date
+    public let timeSpent: TimeInterval
+    
+    public init(
+        id: UUID = UUID(),
+        courseId: String,
+        userId: String,
+        completedLessons: [String],
+        completionPercentage: Double,
+        lastAccessedAt: Date,
+        timeSpent: TimeInterval
+    ) {
+        self.id = id
+        self.courseId = courseId
+        self.userId = userId
+        self.completedLessons = completedLessons
+        self.completionPercentage = completionPercentage
+        self.lastAccessedAt = lastAccessedAt
+        self.timeSpent = timeSpent
     }
 }
 
