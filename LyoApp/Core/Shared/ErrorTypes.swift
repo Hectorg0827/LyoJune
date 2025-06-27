@@ -1,5 +1,64 @@
 import Foundation
 
+// MARK: - Network Error Types (Centralized)
+public enum NetworkError: Error, LocalizedError {
+    case noInternetConnection
+    case requestTimeout
+    case serverError(statusCode: Int)
+    case invalidResponse
+    case decodingError(String)
+    case encodingError(String)
+    case invalidURL
+    case unauthorizedAccess
+    case rateLimitExceeded
+    case networkUnavailable
+    case sslError
+    case networkError(String)
+    case timeout
+    case unauthorized
+    case forbidden
+    case notFound
+    case noData
+    case custom(String)
+    
+    public var errorDescription: String? {
+        switch self {
+        case .noInternetConnection:
+            return "No internet connection available"
+        case .requestTimeout, .timeout:
+            return "Request timed out"
+        case .serverError(let statusCode):
+            return "Server error with status code: \(statusCode)"
+        case .invalidResponse:
+            return "Invalid response received"
+        case .decodingError(let message):
+            return "Failed to decode response: \(message)"
+        case .encodingError(let message):
+            return "Failed to encode request: \(message)"
+        case .invalidURL:
+            return "Invalid URL"
+        case .unauthorizedAccess, .unauthorized:
+            return "Unauthorized access"
+        case .forbidden:
+            return "Access forbidden"
+        case .notFound:
+            return "Resource not found"
+        case .noData:
+            return "No data received from server"
+        case .rateLimitExceeded:
+            return "Rate limit exceeded"
+        case .networkUnavailable:
+            return "Network unavailable"
+        case .sslError:
+            return "SSL connection error"
+        case .networkError(let message):
+            return "Network error: \(message)"
+        case .custom(let message):
+            return message
+        }
+    }
+}
+
 // MARK: - API Error Types (Centralized)
 public enum APIError: Error, LocalizedError {
     case networkError(NetworkError)
@@ -119,6 +178,9 @@ public enum AIError: Error, LocalizedError {
     case quotaExceeded
     case modelNotAvailable
     case invalidInput
+    case invalidEndpoint
+    case invalidResponse
+    case httpError(Int)
     case unknown(Error)
     
     public var errorDescription: String? {
@@ -139,6 +201,12 @@ public enum AIError: Error, LocalizedError {
             return "AI model is not available"
         case .invalidInput:
             return "Invalid input provided"
+        case .invalidEndpoint:
+            return "Invalid API endpoint"
+        case .invalidResponse:
+            return "Invalid API response"
+        case .httpError(let code):
+            return "HTTP error: \(code)"
         case .unknown(let error):
             return error.localizedDescription
         }
