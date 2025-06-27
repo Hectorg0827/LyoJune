@@ -153,20 +153,7 @@ public struct Badge: Codable, Identifiable {
     }
 }
 
-public struct Achievement: Codable, Identifiable {
-    public let id: String
-    let title: String
-    let description: String
-    let iconURL: String
-    let xpReward: Int
-    let badgeReward: String?
-    let category: String
-    let requirements: [String]
-    let isUnlocked: Bool
-    let unlockedAt: Date?
-    let progress: Double
-    let rarity: Badge.BadgeRarity
-}
+// Achievement is now defined in AppModels.swift
 
 public struct StudyAnalytics: Codable {
     let totalTime: TimeInterval
