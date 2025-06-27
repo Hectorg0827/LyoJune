@@ -260,9 +260,3 @@ struct RegisterRequest: Codable {
 struct RefreshTokenRequest: Codable {
     let refreshToken: String
 }
-
-struct LoginResponse: Codable {
-    let user: User
-    let accessToken: String
-    let refreshToken: String
-}
