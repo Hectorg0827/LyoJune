@@ -19,18 +19,6 @@ public struct LearningCourse: Codable, Identifiable {
     }
 }
 
-public struct AnalyticsEvent: Codable {
-    public let name: String
-    public let parameters: [String: String]
-    public let timestamp: Date
-    
-    public init(name: String, parameters: [String: String] = [:], timestamp: Date = Date()) {
-        self.name = name
-        self.parameters = parameters
-        self.timestamp = timestamp
-    }
-}
-
 // MARK: - Course API Service
 @MainActor
 class CourseAPIService: ObservableObject {
@@ -328,13 +316,6 @@ struct FeedResponse: Codable {
 struct CommentsResponse: Codable {
     let comments: [Comment]
     let pagination: PaginationInfo
-}
-
-struct PaginationInfo: Codable {
-    let currentPage: Int
-    let totalPages: Int
-    let hasNextPage: Bool
-    let totalCount: Int
 }
 
 struct LikeResponse: Codable {
