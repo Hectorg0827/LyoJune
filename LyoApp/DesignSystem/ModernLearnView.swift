@@ -1,5 +1,8 @@
 import SwiftUI
 
+// Import models to access CourseModel and other canonical types
+// Note: CourseModel is a typealias for Course in AppModels.swift
+
 /// Enhanced Learning View with modern design system
 struct ModernLearnView: View {
     @StateObject private var viewModel = LearnViewModel()
@@ -218,7 +221,7 @@ struct ModernTabSelector: View {
         HStack(spacing: 0) {
             ForEach(Array(tabs.enumerated()), id: \.offset) { index, tab in
                 Button(action: {
-                    HapticManager.shared.selection()
+                    HapticManager.shared.selectionFeedback()
                     withAnimation(AnimationSystem.Presets.spring) {
                         selectedTab = index
                     }
