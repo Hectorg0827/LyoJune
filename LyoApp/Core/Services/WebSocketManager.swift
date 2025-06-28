@@ -30,6 +30,12 @@ final class WebSocketManager: NSObject, ObservableObject {
     
     // MARK: - Public Methods
     
+    func reconnectIfNeeded() {
+        if !isConnected && connectionState == .disconnected {
+            connect()
+        }
+    }
+    
     func connect() {
         guard !isConnected else { return }
         
@@ -71,6 +77,17 @@ final class WebSocketManager: NSObject, ObservableObject {
             self.isConnected = false
             self.connectionState = .disconnected
         }
+    }
+    
+    func pauseConnection() {
+        // Temporarily pause the connection without full disconnect
+        reconnectTimer?.invalidate()
+        reconnectTimer = nil
+        
+        DispatchQueue.main.async {
+            self.connectionState = .connecting // Paused state
+        }
+        print("🔸 WebSocket connection paused")
     }
     
     func send<T: Codable>(_ message: T) {
@@ -297,11 +314,22 @@ extension WebSocketManager: URLSessionDelegate {
 
 // MARK: - Supporting Types
 
-enum ConnectionState {
+enum ConnectionState: Equatable {
     case disconnected
     case connecting
     case connected
     case error(Error)
+    
+    static func == (lhs: ConnectionState, rhs: ConnectionState) -> Bool {
+        switch (lhs, rhs) {
+        case (.disconnected, .disconnected), (.connecting, .connecting), (.connected, .connected):
+            return true
+        case (.error(_), .error(_)):
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 struct WebSocketMessage: Codable {
