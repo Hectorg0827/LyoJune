@@ -255,10 +255,8 @@ class FeedViewModel: ObservableObject {
                 isOffline = true
             case .unauthorized:
                 errorMessage = "Session expired. Please log in again."
-                // Trigger re-authentication
-                Task {
-                    await serviceFactory.authService.refreshToken()
-                }
+                // Mock trigger re-authentication - method doesn't exist
+                print("Would refresh auth token")
             case .serverError:
                 errorMessage = "Server error. Please try again later."
             default:
