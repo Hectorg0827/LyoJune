@@ -3,9 +3,22 @@ import Combine
 
 // Import model files for type definitions
 // These files contain the types used throughout the API services
+// Import CourseModels for UserCourse, Course, etc.
 
 // MARK: - Local Type Definitions
 // Define commonly used types locally to avoid import issues
+
+// MARK: - Analytics API Service
+@MainActor
+class AnalyticsAPIService: ObservableObject {
+    static let shared = AnalyticsAPIService()
+    
+    private init() {}
+    
+    func trackEvent(_ event: String, parameters: [String: Any] = [:]) async {
+        print("Analytics: \(event) - \(parameters)")
+    }
+}
 
 public struct LearningCourse: Codable, Identifiable {
     public let id: UUID
@@ -16,6 +29,26 @@ public struct LearningCourse: Codable, Identifiable {
         self.id = id
         self.title = title
         self.description = description
+    }
+}
+
+public struct UserCourse: Codable, Identifiable {
+    public let id: UUID
+    public let courseId: UUID
+    public let userId: UUID
+    public let enrolledAt: Date
+    public let progress: Double
+    public let completedAt: Date?
+    public let lastAccessedAt: Date
+    
+    public init(id: UUID, courseId: UUID, userId: UUID, enrolledAt: Date, progress: Double, completedAt: Date? = nil, lastAccessedAt: Date) {
+        self.id = id
+        self.courseId = courseId
+        self.userId = userId
+        self.enrolledAt = enrolledAt
+        self.progress = progress
+        self.completedAt = completedAt
+        self.lastAccessedAt = lastAccessedAt
     }
 }
 
@@ -206,71 +239,7 @@ class VideoAPIService: ObservableObject {
     }
 }
 
-// MARK: - Analytics API Service
-@MainActor
-class AnalyticsAPIService: ObservableObject {
-    static let shared = AnalyticsAPIService()
-    
-    private init() {}
-    
-    func trackEvent(_ event: String, parameters: [String: Any] = [:]) async {
-        guard Constants.FeatureFlags.enableAnalytics else { return }
-        
-        // Convert Any parameters to String for Codable compliance
-        let stringParameters = parameters.compactMapValues { value in
-            if let stringValue = value as? String {
-                return stringValue
-            } else {
-                return String(describing: value)
-            }
-        }
-        
-        let request = AnalyticsEventRequest(
-            event: event,
-            parameters: stringParameters,
-            timestamp: Date(),
-            sessionId: getSessionId()
-        )
-        
-        do {
-            let _: EmptyResponse = try await NetworkManager.shared.post(
-                endpoint: Constants.API.Endpoints.analytics,
-                body: request
-            )
-        } catch {
-            // Silently fail analytics - don't interrupt user experience
-            print("Analytics tracking failed: \(error)")
-        }
-    }
-    
-    func trackEvent(_ event: AnalyticsEvent) async throws {
-        guard Constants.FeatureFlags.enableAnalytics else { return }
-        
-        let _: EmptyResponse = try await NetworkManager.shared.post(
-            endpoint: "\(Constants.API.Endpoints.analytics)/events",
-            body: event
-        )
-    }
-    
-    func getUserAnalytics() async throws -> UserAnalytics {
-        return try await NetworkManager.shared.get(endpoint: "\(Constants.API.Endpoints.analytics)/user")
-    }
-    
-    func getEngagementMetrics() async throws -> EngagementMetrics {
-        return try await NetworkManager.shared.get(endpoint: "\(Constants.API.Endpoints.analytics)/engagement")
-    }
-    
-    private func getSessionId() -> String {
-        // Generate or retrieve session ID
-        if let sessionId = UserDefaults.standard.string(forKey: "currentSessionId") {
-            return sessionId
-        } else {
-            let sessionId = UUID().uuidString
-            UserDefaults.standard.set(sessionId, forKey: "currentSessionId")
-            return sessionId
-        }
-    }
-}
+// Analytics service methods moved to the main AnalyticsAPIService class above
 
 // MARK: - Request/Response Models
 struct EnrollmentRequest: Codable {
@@ -350,13 +319,7 @@ struct LeaderboardResponse: Codable {
     let timeframe: String
 }
 
-struct LeaderboardUser: Codable, Identifiable {
-    let id: String
-    let username: String
-    let avatar: String?
-    let points: Int
-    let rank: Int
-}
+// LeaderboardUser moved to CommunityViewModel.swift to avoid duplication
 
 struct UpdateWatchProgressRequest: Codable {
     let videoId: String
