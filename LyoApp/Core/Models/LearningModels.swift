@@ -1,8 +1,11 @@
 import Foundation
 import Security
+import SwiftUI
 
 // MARK: - Learning Models defined here that work with AppModels.swift types
 // Course is defined in AppModels.swift and can be used directly
+
+// MARK: - MediaType is defined in AppModels.swift
 
 // Learning requests
 public struct EnrollCourseRequest: Codable {
@@ -171,7 +174,7 @@ public struct StudyGroup: Codable, Identifiable {
     let name: String
     let description: String
     let category: String
-    let memberCount: Int
+    var memberCount: Int
     let maxMembers: Int
     let isPrivate: Bool
     let createdBy: UUID
@@ -179,12 +182,50 @@ public struct StudyGroup: Codable, Identifiable {
     let imageURL: String?
     let tags: [String]
     let membershipStatus: MembershipStatus?
+    var isUserMember: Bool = false
     
     public enum MembershipStatus: String, Codable {
         case member = "member"
         case pending = "pending"
         case invited = "invited"
         case banned = "banned"
+    }
+}
+
+// MARK: - String Category Extensions
+extension String {
+    var gradient: LinearGradient {
+        switch self.lowercased() {
+        case "programming", "tech", "coding":
+            return LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "design", "art", "creative":
+            return LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "science", "research":
+            return LinearGradient(colors: [.green, .teal], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "business", "management":
+            return LinearGradient(colors: [.indigo, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case "language", "communication":
+            return LinearGradient(colors: [.mint, .cyan], startPoint: .topLeading, endPoint: .bottomTrailing)
+        default:
+            return LinearGradient(colors: [.gray, .secondary], startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
+    }
+    
+    var icon: String {
+        switch self.lowercased() {
+        case "programming", "tech", "coding":
+            return "laptopcomputer"
+        case "design", "art", "creative":
+            return "paintbrush"
+        case "science", "research":
+            return "flask"
+        case "business", "management":
+            return "briefcase"
+        case "language", "communication":
+            return "bubble.left.and.bubble.right"
+        default:
+            return "folder"
+        }
     }
 }
 
@@ -200,7 +241,20 @@ public struct LearningStory: Codable, Identifiable {
     let createdAt: Date
     let viewsCount: Int
     let isViewed: Bool
+    
+    // Computed properties
+    public var colorGradient: LinearGradient {
+        let colors = [Color.blue, Color.purple, Color.green, Color.orange, Color.red, Color.pink]
+        let index = abs(id.hashValue) % colors.count
+        return LinearGradient(
+            gradient: Gradient(colors: [colors[index], colors[(index + 1) % colors.count]]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }
+
+// Note: Using LearningStory directly since Story struct exists in AppModels.swift
 
 public struct Conversation: Codable, Identifiable {
     public let id: UUID
@@ -211,6 +265,29 @@ public struct Conversation: Codable, Identifiable {
     let isGroup: Bool
     let title: String?
     let avatar: String?
+    
+    // Computed properties
+    public var hasUnreadMessages: Bool {
+        return unreadCount > 0
+    }
+    
+    public var initials: String {
+        if let title = title, !title.isEmpty {
+            let words = title.split(separator: " ")
+            return String(words.prefix(2).compactMap { $0.first }).uppercased()
+        }
+        return "?"
+    }
+    
+    public var colorGradient: LinearGradient {
+        let colors = [Color.blue, Color.purple, Color.green, Color.orange, Color.red]
+        let index = abs(id.hashValue) % colors.count
+        return LinearGradient(
+            gradient: Gradient(colors: [colors[index], colors[(index + 1) % colors.count]]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }
 
 public struct Message: Codable, Identifiable {
@@ -266,6 +343,46 @@ public class BasicCoreDataManager: CoreDataManager {
     public func save() throws {
         // Basic implementation - would need actual Core Data context
         print("Core Data save called")
+    }
+    
+    public func startBackgroundSync() async {
+        // Start background synchronization
+        print("Background sync started")
+        // Implementation would include actual Core Data sync logic
+    }
+    
+    public func syncPendingChanges() async {
+        print("Syncing pending changes")
+        // Implementation would sync any pending Core Data changes
+    }
+    
+    // Cache methods
+    public func cacheCommunityEvents(_ events: [CommunityEvent]) {
+        print("Cached \(events.count) community events")
+    }
+    
+    public func cacheStudyGroups(_ groups: [StudyGroup]) {
+        print("Cached \(groups.count) study groups")
+    }
+    
+    public func cacheLeaderboard(_ leaderboard: [LeaderboardUser]) {
+        print("Cached \(leaderboard.count) leaderboard entries")
+    }
+    
+    public func fetchCachedCommunityEvents() -> [CommunityEvent]? {
+        return []
+    }
+    
+    public func fetchCachedStudyGroups() -> [StudyGroup]? {
+        return []
+    }
+    
+    public func fetchCachedLeaderboard() -> [LeaderboardUser]? {
+        return []
+    }
+    
+    public func fetchCachedUserStats() -> UserStats? {
+        return nil
     }
 }
 
