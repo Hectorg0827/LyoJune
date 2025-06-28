@@ -29,6 +29,44 @@ final class EnhancedAuthService: ObservableObject {
     
     // MARK: - Public Methods
     
+    // Method aliases for compatibility with UI
+    func signIn(email: String, password: String) async throws -> User {
+        return try await login(email: email, password: password)
+    }
+    
+    func signUp(email: String, password: String, firstName: String, lastName: String, username: String) async throws -> User {
+        let fullName = "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+        return try await register(email: email, password: password, name: fullName)
+    }
+    
+    func clearError() {
+        authError = nil
+    }
+    
+    func resetPassword(email: String) async throws {
+        await MainActor.run { isLoading = true }
+        
+        let endpoint = APIEndpoint(path: "/auth/reset-password", method: .POST)
+        let request = ["email": email]
+        
+        do {
+            let data = try JSONEncoder().encode(request)
+            let _: EmptyResponse = try await networkManager.request(endpoint: endpoint, body: data)
+            
+            await MainActor.run {
+                self.isLoading = false
+                self.notificationGenerator.notificationOccurred(.success)
+            }
+        } catch {
+            await MainActor.run {
+                self.authError = .passwordResetFailed
+                self.isLoading = false
+                self.notificationGenerator.notificationOccurred(.error)
+            }
+            throw error
+        }
+    }
+    
     func login(email: String, password: String) async throws -> User {
         await MainActor.run { isLoading = true }
         
