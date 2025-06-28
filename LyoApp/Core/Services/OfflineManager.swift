@@ -9,6 +9,9 @@ class OfflineManager: ObservableObject {
     @Published var isOffline = false
     @Published var hasOfflineData = false
     @Published var lastOnlineTime: Date?
+    @Published var isSyncing = false
+    @Published var syncProgress: Double = 0.0
+    @Published var offlineMessage: String?
     
     private let monitor = NWPathMonitor()
     private let queue = DispatchQueue(label: "OfflineMonitor")
