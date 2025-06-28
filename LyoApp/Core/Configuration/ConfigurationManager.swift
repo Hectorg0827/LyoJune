@@ -182,7 +182,7 @@ extension ConfigurationManager {
     // MARK: - API Keys (Secure Access)
     var gemmaApiKey: String? {
         // First try to get from Keychain (production)
-        if let keychainKey = KeychainHelper.shared.load(for: "gemma_api_key"),
+        if let keychainKey = KeychainHelper.shared.retrieveData(for: "gemma_api_key"),
            let key = String(data: keychainKey, encoding: .utf8) {
             return key
         }
@@ -192,7 +192,7 @@ extension ConfigurationManager {
     }
     
     var openaiApiKey: String? {
-        if let keychainKey = KeychainHelper.shared.load(for: "openai_api_key"),
+        if let keychainKey = KeychainHelper.shared.retrieveData(for: "openai_api_key"),
            let key = String(data: keychainKey, encoding: .utf8) {
             return key
         }
@@ -200,7 +200,7 @@ extension ConfigurationManager {
     }
     
     var claudeApiKey: String? {
-        if let keychainKey = KeychainHelper.shared.load(for: "claude_api_key"),
+        if let keychainKey = KeychainHelper.shared.retrieveData(for: "claude_api_key"),
            let key = String(data: keychainKey, encoding: .utf8) {
             return key
         }
