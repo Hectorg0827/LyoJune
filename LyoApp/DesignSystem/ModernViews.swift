@@ -15,15 +15,15 @@ struct ModernLoadingView: View {
             DesignTokens.Colors.background
                 .ignoresSafeArea()
             
-            VStack(spacing: DesignTokens.Spacing.large) {
+            VStack(spacing: DesignTokens.Spacing.lg) {
                 // Modern loading animation
                 ZStack {
                     Circle()
                         .stroke(
                             DesignTokens.Colors.primary.opacity(0.2),
-                            lineWidth: DesignTokens.BorderRadius.medium
+                            lineWidth: 4
                         )
-                        .frame(size: 60)
+                        .frame(width: 60, height: 60)
                     
                     Circle()
                         .trim(from: 0, to: 0.7)
@@ -34,7 +34,7 @@ struct ModernLoadingView: View {
                                 lineCap: .round
                             )
                         )
-                        .frame(size: 60)
+                        .frame(width: 60, height: 60)
                         .rotationEffect(.degrees(isAnimating ? 360 : 0))
                         .animation(
                             .linear(duration: 1.0).repeatForever(autoreverses: false),
@@ -65,29 +65,28 @@ struct EnhancedContentView: View {
     @State private var showingOfflineAlert = false
     
     var body: some View {
-        Group {
+        ZStack {
             if authService.isLoading {
                 ModernLoadingView(message: "Initializing Lyo...")
-                    .transition(AnimationSystem.Presets.fadeInOut)
+                    .transition(.opacity)
             } else if authService.isAuthenticated {
                 EnhancedMainTabView()
                     .overlay(alignment: .top) {
-                        if !networkManager.isOnline {
+                        if !networkManager.isConnected {
                             ModernOfflineIndicatorView()
                         }
                     }
-                    .transition(AnimationSystem.Presets.slideUp)
+                    .transition(.move(edge: .bottom))
             } else {
                 EnhancedAuthenticationView()
-                    .transition(AnimationSystem.Presets.slideFromBottom)
+                    .transition(.move(edge: .bottom))
             }
         }
-        .animation(AnimationSystem.Presets.easeInOut, value: authService.isAuthenticated)
-        .animation(AnimationSystem.Presets.easeInOut, value: authService.isLoading)
-        .errorHandling()
+        .animation(AnimationPresets.easeInOut, value: authService.isAuthenticated)
+        .animation(AnimationPresets.easeInOut, value: authService.isLoading)
         .environmentObject(errorManager)
         .onAppear {
-            HapticManager.shared.impact(.light)
+            HapticManager.shared.lightImpact()
         }
     }
 }
@@ -97,31 +96,31 @@ struct ModernOfflineIndicatorView: View {
     @State private var isVisible = false
     
     var body: some View {
-        HStack(spacing: DesignTokens.Spacing.small) {
+        HStack(spacing: DesignTokens.Spacing.sm) {
             Image(systemName: "wifi.slash")
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(DesignTokens.Colors.error)
             
             Text("No Internet Connection")
-                .font(DesignTokens.Typography.caption)
+                .font(DesignTokens.Typography.labelSmall)
                 .foregroundColor(DesignTokens.Colors.error)
         }
-        .padding(.horizontal, DesignTokens.Spacing.medium)
-        .padding(.vertical, DesignTokens.Spacing.small)
+        .padding(.horizontal, DesignTokens.Spacing.md)
+        .padding(.vertical, DesignTokens.Spacing.sm)
         .background(
-            DesignTokens.Colors.errorBackground
-                .cornerRadius(DesignTokens.BorderRadius.medium)
+            DesignTokens.Colors.error.opacity(0.1)
+                .cornerRadius(DesignTokens.BorderRadius.md)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.medium)
+            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.md)
                 .stroke(DesignTokens.Colors.error, lineWidth: 1)
         )
         .scaleEffect(isVisible ? 1 : 0.8)
         .opacity(isVisible ? 1 : 0)
-        .animation(AnimationSystem.Presets.bounceIn, value: isVisible)
+        .animation(AnimationPresets.springBouncy, value: isVisible)
         .onAppear {
             isVisible = true
-            HapticManager.shared.notification(.warning)
+            HapticManager.shared.warning()
         }
     }
 }
