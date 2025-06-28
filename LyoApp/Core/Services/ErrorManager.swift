@@ -75,7 +75,12 @@ class ErrorManager: ObservableObject {
                     timestamp: error.timestamp
                 )
                 
-                try await AnalyticsAPIService.shared.trackEvent(event)
+                await AnalyticsAPIService.shared.trackEvent("error_occurred", parameters: [
+                    "error_type": error.type.rawValue,
+                    "error_message": error.userMessage,
+                    "severity": error.severity.rawValue,
+                    "context": error.context ?? "unknown"
+                ])
             } catch {
                 print("Failed to log error to analytics: \(error)")
             }
@@ -184,6 +189,32 @@ enum ErrorSeverity: String {
     case medium = "medium"
     case high = "high"
     case critical = "critical"
+    
+    var icon: String {
+        switch self {
+        case .low:
+            return "info.circle"
+        case .medium:
+            return "exclamationmark.triangle"
+        case .high:
+            return "exclamationmark.circle"
+        case .critical:
+            return "xmark.circle"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .low:
+            return .blue
+        case .medium:
+            return .orange
+        case .high:
+            return .red
+        case .critical:
+            return .red
+        }
+    }
 }
 
 // MARK: - Error Banner View
