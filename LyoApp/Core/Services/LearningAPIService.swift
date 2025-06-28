@@ -53,6 +53,27 @@ public enum LearningAPI {
     }
 
     // Removed duplicate QuizQuestion - use the canonical one from AppModels.swift
+    
+    // Local UserCourse type for API responses
+    public struct UserCourse: Codable, Identifiable {
+        public let id: UUID
+        public let courseId: UUID
+        public let userId: UUID
+        public let enrolledAt: Date
+        public let progress: Double
+        public let completedAt: Date?
+        public let lastAccessedAt: Date
+        
+        public init(id: UUID, courseId: UUID, userId: UUID, enrolledAt: Date, progress: Double, completedAt: Date? = nil, lastAccessedAt: Date) {
+            self.id = id
+            self.courseId = courseId
+            self.userId = userId
+            self.enrolledAt = enrolledAt
+            self.progress = progress
+            self.completedAt = completedAt
+            self.lastAccessedAt = lastAccessedAt
+        }
+    }
 }
 
 public struct LearningAPILessonProgress: Codable {
@@ -118,11 +139,11 @@ class LearningAPIService {
         return try await networkManager.get(endpoint: endpoint)
     }
 
-    func getUserCourses() async throws -> [UserCourse] {
+    func getUserCourses() async throws -> [LearningAPI.UserCourse] {
         return try await networkManager.get(endpoint: "/courses/enrolled")
     }
 
-    func enrollInCourse(_ courseId: String) async throws -> UserCourse {
+    func enrollInCourse(_ courseId: String) async throws -> LearningAPI.UserCourse {
         let request = EnrollCourseRequest(courseId: courseId)
         return try await networkManager.post(endpoint: "/courses/enroll", body: request)
     }
