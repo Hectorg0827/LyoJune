@@ -12,6 +12,7 @@ public enum AuthError: Error, LocalizedError {
     case validationFailed(String)
     case biometricNotAvailable
     case biometricNotEnabled
+    case biometricNotEnrolled
     case biometricAuthFailed
     case sessionExpired
     case twoFactorRequired
@@ -19,7 +20,9 @@ public enum AuthError: Error, LocalizedError {
     case registrationFailed
     case loginFailed(String)
     case tokenRefreshFailed
+    case tokenInvalid
     case noRefreshToken
+    case passwordResetFailed
     case unknown(Error)
 
     public var errorDescription: String? {
@@ -44,6 +47,8 @@ public enum AuthError: Error, LocalizedError {
             return "Biometric authentication is not available on this device"
         case .biometricNotEnabled:
             return "Biometric authentication is not enabled"
+        case .biometricNotEnrolled:
+            return "No biometric data is enrolled on this device"
         case .biometricAuthFailed:
             return "Biometric authentication failed"
         case .sessionExpired:
@@ -58,8 +63,12 @@ public enum AuthError: Error, LocalizedError {
             return "Login failed: \(message)"
         case .tokenRefreshFailed:
             return "Token refresh failed"
+        case .tokenInvalid:
+            return "Authentication token is invalid"
         case .noRefreshToken:
             return "No refresh token available"
+        case .passwordResetFailed:
+            return "Password reset failed. Please try again."
         case .unknown(let error):
             return error.localizedDescription
         }
