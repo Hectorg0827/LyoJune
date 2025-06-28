@@ -4,7 +4,7 @@ import SwiftUI
 // MARK: - Enhanced Service Factory
 @MainActor
 class EnhancedServiceFactory: ObservableObject {
-    static let shared = EnhancedServiceFactory()
+    nonisolated static let shared = EnhancedServiceFactory()
     
     // MARK: - Core Services
     @Published private var _networkManager: EnhancedNetworkManager?
@@ -15,7 +15,7 @@ class EnhancedServiceFactory: ObservableObject {
     
     private var isInitialized = false
     
-    private init() {}
+    nonisolated private init() {}
     
     // MARK: - Service Getters
     var networkManager: EnhancedNetworkManager {
