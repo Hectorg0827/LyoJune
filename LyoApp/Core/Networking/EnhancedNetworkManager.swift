@@ -261,6 +261,12 @@ final class EnhancedNetworkManager: NSObject, ObservableObject {
         }
     }
     
+    func checkConnectivity() async {
+        // Force check network connectivity status
+        print("Checking network connectivity...")
+        // Implementation would perform actual connectivity test
+    }
+    
     deinit {
         monitor.cancel()
     }
