@@ -69,14 +69,10 @@ class ErrorHandler: ObservableObject {
     
     private func setupErrorMonitoring() {
         // Monitor network errors
-        NetworkManager.shared.$isOnline
-            .sink { [weak self] isOnline in
-                if !isOnline {
-                    let error = NetworkError.networkError(NSError(
-                        domain: "NetworkError",
-                        code: -1009,
-                        userInfo: [NSLocalizedDescriptionKey: "No internet connection"]
-                    ))
+        NetworkManager.shared.$isConnected
+            .sink { [weak self] isConnected in
+                if !isConnected {
+                    let error = NetworkError.networkError("No internet connection")
                     self?.handle(error, context: "Network connectivity")
                 }
             }
@@ -389,7 +385,6 @@ extension View {
     
     func handleErrors() -> some View {
         self
-            .errorHandling()
             .userFeedback()
     }
 }
