@@ -62,7 +62,7 @@ struct OfflineIndicatorView: View {
     @EnvironmentObject var networkManager: NetworkManager
     
     var body: some View {
-        if !networkManager.isOnline {
+        if !networkManager.isConnected {
             HStack {
                 Image(systemName: "wifi.slash")
                     .foregroundColor(.white)
@@ -175,7 +175,7 @@ struct ErrorHandlingModifier: ViewModifier {
             .overlay(alignment: .top) {
                 ErrorBannerView(
                     message: errorManager.currentError?.localizedDescription ?? "",
-                    action: errorManager.retryAction,
+                    action: { errorManager.dismissError() },
                     isVisible: $showErrorBanner
                 )
                 .padding(.horizontal, 16)
@@ -192,20 +192,15 @@ struct ErrorHandlingModifier: ViewModifier {
                         withAnimation(.easeOut(duration: 0.3)) {
                             showErrorBanner = false
                         }
-                        errorManager.clearError()
+                        errorManager.dismissError()
                     }
                 }
             }
     }
 }
 
-extension View {
-    func errorHandling() -> some View {
-        modifier(ErrorHandlingModifier())
-    }
-}
-
 // MARK: - Error Manager
+// Note: errorHandling() extension is in ErrorHandler.swift to avoid duplicates
 
 // MARK: - Network Status View
 
@@ -217,7 +212,7 @@ struct NetworkStatusView: View {
         VStack {
             if offlineManager.isSyncing {
                 SyncProgressView(progress: offlineManager.syncProgress)
-            } else if !networkManager.isOnline {
+            } else if !networkManager.isConnected {
                 OfflineIndicatorView()
             }
             
