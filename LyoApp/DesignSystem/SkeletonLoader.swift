@@ -161,13 +161,13 @@ struct SkeletonLayouts {
             
             // Stats row
             HStack {
-                ForEach(0..<3, id: \.self) { _ in
+                ForEach(0..<3, id: \.self) { index in
                     VStack(spacing: DesignTokens.Spacing.xs) {
                         SkeletonComponents.title(width: 40)
                         SkeletonComponents.textLine(width: 60)
                     }
                     
-                    if _ < 2 { Spacer() }
+                    if index < 2 { Spacer() }
                 }
             }
             
@@ -208,9 +208,9 @@ struct SkeletonLayouts {
             
             // Action buttons
             HStack {
-                ForEach(0..<3, id: \.self) { _ in
+                ForEach(0..<3, id: \.self) { index in
                     SkeletonComponents.button(width: 80, height: 32)
-                    if _ < 2 { Spacer() }
+                    if index < 2 { Spacer() }
                 }
             }
         }
@@ -256,6 +256,23 @@ struct SkeletonLayouts {
         }
         .background(DesignTokens.Colors.surface)
         .cornerRadius(DesignTokens.BorderRadius.card)
+    }
+}
+
+// MARK: - Static Methods for Easy Access
+extension SkeletonLoader {
+    /// Create a rectangle skeleton
+    static func rectangle(width: CGFloat, height: CGFloat) -> some View {
+        SkeletonComponents.image(width: width, height: height)
+    }
+    
+    /// Create a feed list skeleton
+    static func feedList() -> some View {
+        VStack(spacing: DesignTokens.Spacing.md) {
+            ForEach(0..<5, id: \.self) { _ in
+                SkeletonLayouts.feedPost
+            }
+        }
     }
 }
 
