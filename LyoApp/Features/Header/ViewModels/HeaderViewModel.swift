@@ -8,7 +8,7 @@ class HeaderViewModel: ObservableObject {
     @Published var headerState: HeaderState = .minimized
     @Published var isStoryDrawerOpen = false
     @Published var unreadMessagesCount = 0
-    @Published var stories: [Story] = []
+    @Published var stories: [LearningStory] = []
     @Published var conversations: [HeaderConversation] = []
     @Published var searchSuggestions: [SearchSuggestion] = []
     @Published var userProfile: HeaderUserProfile?
@@ -22,7 +22,7 @@ class HeaderViewModel: ObservableObject {
     @Published var isSearchActive = false
     @Published var searchText = ""
     @Published var isListeningForVoice = false
-    @Published var selectedStory: Story?
+    @Published var selectedStory: LearningStory?
     @Published var isShowingStoryViewer = false
     @Published var selectedConversation: HeaderConversation?
     @Published var isShowingChatView = false
@@ -269,7 +269,7 @@ class HeaderViewModel: ObservableObject {
         showProfileSheet = false
     }
     
-    func handleStoryTap(_ story: Story) {
+    func handleStoryTap(_ story: LearningStory) {
         recordInteraction()
         
         // Mark story as watched
