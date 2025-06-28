@@ -1,14 +1,128 @@
 import Foundation
 
+public struct CourseProgress: Codable {
+    public let completionPercentage: Double
+    public let lessonsCompleted: Int
+    public let totalLessons: Int
+    public let timeSpent: TimeInterval
+    
+    public init(completionPercentage: Double, lessonsCompleted: Int, totalLessons: Int, timeSpent: TimeInterval) {
+        self.completionPercentage = completionPercentage
+        self.lessonsCompleted = lessonsCompleted
+        self.totalLessons = totalLessons
+        self.timeSpent = timeSpent
+    }
+}
+
+public struct CourseThumbnail: Codable {
+    public let url: String
+    
+    public init(url: String) {
+        self.url = url
+    }
+}
+
+public struct Instructor: Codable, Identifiable {
+    public let id: UUID
+    public let name: String
+    public let bio: String
+    public let avatarURL: URL?
+    public let expertise: [String]
+    public let rating: Double
+    public let totalStudents: Int
+    public let totalCourses: Int
+    public let isVerified: Bool
+    public let socialLinks: [String: String]
+    
+    public init(id: UUID, name: String, bio: String, avatarURL: URL? = nil, expertise: [String] = [], rating: Double = 0.0, totalStudents: Int = 0, totalCourses: Int = 0, isVerified: Bool = false, socialLinks: [String: String] = [:]) {
+        self.id = id
+        self.name = name
+        self.bio = bio
+        self.avatarURL = avatarURL
+        self.expertise = expertise
+        self.rating = rating
+        self.totalStudents = totalStudents
+        self.totalCourses = totalCourses
+        self.isVerified = isVerified
+        self.socialLinks = socialLinks
+    }
+}
+
 public struct Course: Codable, Identifiable {
     public let id: UUID
     public let title: String
     public let description: String
+    public let imageURL: String?
+    public let userProgress: CourseProgress?
+    public let thumbnail: CourseThumbnail?
+    public let instructor: Instructor
+    public let duration: TimeInterval
+    public let category: CourseCategory
+    public let difficulty: CourseDifficulty
+    
+    public init(id: UUID = UUID(), title: String, description: String, imageURL: String? = nil, userProgress: CourseProgress? = nil, thumbnail: CourseThumbnail? = nil, instructor: Instructor, category: CourseCategory = .programming, difficulty: CourseDifficulty = .beginner, duration: TimeInterval = 3600) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.imageURL = imageURL
+        self.userProgress = userProgress
+        self.thumbnail = thumbnail
+        self.instructor = instructor
+        self.category = category
+        self.difficulty = difficulty
+        self.duration = duration
+    }
 
     public static func mockCourses() -> [Course] {
+        let instructor1 = Instructor(
+            id: UUID(),
+            name: "Dr. Sarah Johnson",
+            bio: "iOS Development Expert with 10+ years experience",
+            avatarURL: nil,
+            expertise: ["iOS", "SwiftUI", "Mobile Development"],
+            rating: 4.8,
+            totalStudents: 1250,
+            totalCourses: 8,
+            isVerified: true
+        )
+        
+        let instructor2 = Instructor(
+            id: UUID(),
+            name: "Mark Thompson",
+            bio: "Senior iOS Engineer at Apple",
+            avatarURL: nil,
+            expertise: ["iOS", "Swift", "App Architecture"],
+            rating: 4.9,
+            totalStudents: 2100,
+            totalCourses: 12,
+            isVerified: true
+        )
+        
         return [
-            Course(id: UUID(), title: "Introduction to SwiftUI", description: "Learn the basics of building apps with SwiftUI."),
-            Course(id: UUID(), title: "Advanced iOS Development", description: "Take your iOS skills to the next level.")
+            Course(
+                id: UUID(),
+                title: "Introduction to SwiftUI",
+                description: "Learn the basics of building apps with SwiftUI.",
+                imageURL: nil,
+                userProgress: CourseProgress(completionPercentage: 0.75, lessonsCompleted: 15, totalLessons: 20, timeSpent: 3600),
+                thumbnail: CourseThumbnail(url: "https://via.placeholder.com/300x200"),
+                instructor: instructor1,
+                category: .programming,
+                difficulty: .beginner,
+                duration: 7200
+            ),
+            Course(
+                id: UUID(),
+                title: "Advanced iOS Development",
+                description: "Take your iOS skills to the next level.",
+                imageURL: nil,
+                userProgress: CourseProgress(completionPercentage: 0.30, lessonsCompleted: 6, totalLessons: 20, timeSpent: 1800),
+                thumbnail: CourseThumbnail(url: "https://via.placeholder.com/300x200"),
+                instructor: instructor2,
+                category: .development,
+                difficulty: .advanced,
+                duration: 10800
+            )
         ]
     }
 }
@@ -47,6 +161,17 @@ public struct UserProgress: Codable {
     public let studyStreak: Int
     public let averageSessionLength: TimeInterval
     public let weeklyProgress: [WeeklyProgress]
+    
+    public init(userId: UUID, totalXP: Int, currentLevel: Int, coursesCompleted: Int, lessonsCompleted: Int, studyStreak: Int, averageSessionLength: TimeInterval, weeklyProgress: [WeeklyProgress]) {
+        self.userId = userId
+        self.totalXP = totalXP
+        self.currentLevel = currentLevel
+        self.coursesCompleted = coursesCompleted
+        self.lessonsCompleted = lessonsCompleted
+        self.studyStreak = studyStreak
+        self.averageSessionLength = averageSessionLength
+        self.weeklyProgress = weeklyProgress
+    }
 }
 
 public struct WeeklyProgress: Codable {
