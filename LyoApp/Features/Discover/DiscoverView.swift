@@ -2,15 +2,27 @@ import SwiftUI
 
 struct DiscoverView: View {
     @StateObject private var viewModel = DiscoverViewModel()
-    @State private var searchText = ""
-    @State private var selectedCategory = "All"
+    @State private var searchText = "" {
+        didSet {
+            viewModel.searchText = searchText
+        }
+    }
+    @State private var selectedCategory = "All" {
+        didSet {
+            viewModel.selectedCategory = selectedCategory
+        }
+    }
     
     private let categories = ["All", "Tech", "Science", "Art", "Language", "Math", "History", "Physics"]
     
     var body: some View {
         NavigationView {
             ZStack {
-                GlassBackground()
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.black.opacity(0.1), Color.gray.opacity(0.05)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
                 
                 VStack(spacing: 0) {
                     // Dynamic Header
@@ -24,19 +36,16 @@ struct DiscoverView: View {
                     
                     // Posts feed
                     PostsFeedView(
-                        posts: viewModel.filteredPosts(
-                            searchText: searchText,
-                            category: selectedCategory
-                        ),
+                        posts: viewModel.filteredPosts,
                         isLoading: viewModel.isLoading,
                         onRefresh: {
                             Task {
-                                await viewModel.refreshPosts()
+                                await viewModel.refreshContent()
                             }
                         },
                         onLoadMore: {
                             Task {
-                                await viewModel.loadMorePosts()
+                                await viewModel.loadMoreContent()
                             }
                         }
                     )
