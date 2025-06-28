@@ -33,7 +33,11 @@ struct PostView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                GlassBackground()
+                LinearGradient(
+                    gradient: Gradient(colors: [Color.black.opacity(0.1), Color.gray.opacity(0.05)]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
                 
                 VStack(spacing: 24) {
                     // Header
