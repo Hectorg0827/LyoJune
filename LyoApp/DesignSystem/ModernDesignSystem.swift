@@ -76,6 +76,15 @@ public struct ModernDesignSystem {
             endPoint: .bottomTrailing
         )
         
+        public static let backgroundSecondary = LinearGradient(
+            gradient: Gradient(colors: [
+                Color(hex: "#1a1a2e"),
+                Color.black.opacity(0.9)
+            ]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+        
         public static let backgroundCard = LinearGradient(
             gradient: Gradient(colors: [
                 Color.white.opacity(0.1),
@@ -93,6 +102,11 @@ public struct ModernDesignSystem {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
+        
+        // Text colors (semantic)
+        public static let textPrimary = Color.white
+        public static let textSecondary = Color.white.opacity(0.7)
+        public static let textTertiary = Color.white.opacity(0.5)
     }
     
     // MARK: - Enhanced Typography
