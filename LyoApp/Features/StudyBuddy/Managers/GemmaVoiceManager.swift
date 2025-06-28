@@ -19,6 +19,13 @@ class GemmaVoiceManager: NSObject, ObservableObject {
     // MARK: - Private Properties
     private let aiService = EnhancedAIService.shared
     private var cancellables = Set<AnyCancellable>()
+    private let session = URLSession.shared
+    
+    // Speech Recognition
+    private let speechRecognizer = SFSpeechRecognizer(locale: Locale(identifier: "en-US"))
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: SFSpeechRecognitionTask?
+    private let audioEngine = AVAudioEngine()
     
     // Secure API configuration
     private var gemmaAPIEndpoint: String {
@@ -53,6 +60,9 @@ class GemmaVoiceManager: NSObject, ObservableObject {
         super.init()
         setupBindings()
         connectionStatus = .connected
+        speechRecognizer?.delegate = self
+        checkSpeechAuthorization()
+        setupAudioSession()
     }
     
     deinit {
@@ -555,7 +565,7 @@ extension GemmaVoiceManager {
         // a dedicated wake word detection library
         
         Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
+            Task { @MainActor in
                 guard let self = self else { return }
                 self.checkForWakeWord()
             }
@@ -566,6 +576,7 @@ extension GemmaVoiceManager {
         // Placeholder for wake word detection logic
         // In a real implementation, this would use a specialized wake word detection service
     }
+    
     
     // MARK: - Mock Response (for development)
     func getMockResponse(for input: String) -> GemmaAPIResponse {
