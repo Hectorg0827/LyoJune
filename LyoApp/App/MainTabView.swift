@@ -51,7 +51,7 @@ struct MainTabView: View {
                 }
                 .tag(AppState.TabItem.profile)
         }
-        .accentColor(ModernDesignSystem.Colors.primary)
+        .accentColor(.blue)
         .onAppear {
             configureTabBarAppearance()
         }
@@ -59,9 +59,7 @@ struct MainTabView: View {
             handleTabChange(from: previousTab, to: newValue)
             previousTab = newValue
         }
-        .overlay {
-            GamificationOverlay()
-        }
+        // Gamification overlay removed for now
     } // End of ZStack
     } // End of body property
     
@@ -69,16 +67,16 @@ struct MainTabView: View {
     
     @ViewBuilder
     private func tabItemView(for tab: AppState.TabItem) -> some View {
-        VStack(spacing: ModernDesignSystem.Spacing.xs) {
+        VStack(spacing: DesignTokens.Spacing.xs) {
             Image(systemName: appState.selectedTab == tab ? tab.selectedIcon : tab.icon)
                 .font(.system(size: 22, weight: .medium))
-                .foregroundColor(appState.selectedTab == tab ? ModernDesignSystem.Colors.primary : ModernDesignSystem.Colors.neutral400)
+                .foregroundColor(appState.selectedTab == tab ? .blue : .gray)
                 .scaleEffect(appState.selectedTab == tab ? 1.1 : 1.0)
-                .animation(ModernDesignSystem.Animations.springSnappy, value: appState.selectedTab)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: appState.selectedTab)
             
             Text(tab.title)
-                .font(ModernDesignSystem.Typography.caption)
-                .foregroundColor(appState.selectedTab == tab ? ModernDesignSystem.Colors.primary : ModernDesignSystem.Colors.neutral400)
+                .font(.caption)
+                .foregroundColor(appState.selectedTab == tab ? .blue : .gray)
         }
     }
     
@@ -92,7 +90,7 @@ struct MainTabView: View {
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
-        .animation(ModernDesignSystem.Animations.easeInOut, value: appState.selectedTab)
+        .animation(.easeInOut, value: appState.selectedTab)
     }
     
     // MARK: - Computed Properties
@@ -100,22 +98,22 @@ struct MainTabView: View {
     private var backgroundColorTop: Color {
         switch appState.selectedTab {
         case .home:
-            return ModernDesignSystem.Colors.backgroundSecondary
+            return Color.gray.opacity(0.1)
         case .discover:
-            return ModernDesignSystem.Colors.accent.opacity(0.1)
+            return Color.purple.opacity(0.1)
         case .learn:
-            return ModernDesignSystem.Colors.success.opacity(0.1)
+            return Color.green.opacity(0.1)
         case .post:
-            return ModernDesignSystem.Colors.secondary.opacity(0.1)
+            return Color.orange.opacity(0.1)
         case .community:
-            return ModernDesignSystem.Colors.warning.opacity(0.1)
+            return Color.yellow.opacity(0.1)
         case .profile:
-            return ModernDesignSystem.Colors.primary.opacity(0.1)
+            return Color.blue.opacity(0.1)
         }
     }
     
     private var backgroundColorBottom: Color {
-        ModernDesignSystem.Colors.backgroundPrimary
+        Color.black.opacity(0.05)
     }
     
     // MARK: - Private Methods
@@ -138,12 +136,12 @@ struct MainTabView: View {
         HapticManager.shared.selectionChanged()
         
         // Smooth animation
-        withAnimation(ModernDesignSystem.Animations.springSnappy) {
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
             tabBarOpacity = 0.9
         }
         
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(ModernDesignSystem.Animations.springSnappy) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
                 tabBarOpacity = 1.0
             }
         }
