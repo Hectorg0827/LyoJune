@@ -17,7 +17,7 @@ extension Notification.Name {
     static let achievementUnlocked = Notification.Name("achievementUnlocked")
     
     // Data synchronization
-    static let dataSync Started = Notification.Name("dataSyncStarted")
+    static let dataSyncStarted = Notification.Name("dataSyncStarted")
     static let dataSyncCompleted = Notification.Name("dataSyncCompleted")
     static let dataSyncFailed = Notification.Name("dataSyncFailed")
     static let offlineDataAvailable = Notification.Name("offlineDataAvailable")
