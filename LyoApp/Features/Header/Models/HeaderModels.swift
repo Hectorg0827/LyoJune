@@ -1,7 +1,8 @@
 import SwiftUI
 import Foundation
 
-// MARK: - Local Type Definitions
+// MARK: - Local Type Definitions for Header UI
+// Note: Using canonical types from AppModels.swift for data models
 
 // MARK: - Header State Models
 
@@ -39,133 +40,51 @@ enum HeaderState {
 }
 
 // MARK: - Story Models
-// Header-specific Story model with properties needed for the header UI
+// Use canonical Story from AppModels.swift
 
-public struct Story: Identifiable, Codable {
-    public let id: UUID
-    public let username: String
-    public let displayName: String
-    public let initials: String
-    public let avatarColors: [String]
-    public let hasUnwatchedStory: Bool
-    public let storyType: HeaderStoryType
-    public let timestamp: Date
-    public let previewImageURL: String?
-    
-    public init(id: UUID, username: String, displayName: String, initials: String, avatarColors: [String], hasUnwatchedStory: Bool, storyType: HeaderStoryType, timestamp: Date, previewImageURL: String?) {
-        self.id = id
-        self.username = username
-        self.displayName = displayName
-        self.initials = initials
-        self.avatarColors = avatarColors
-        self.hasUnwatchedStory = hasUnwatchedStory
-        self.storyType = storyType
-        self.timestamp = timestamp
-        self.previewImageURL = previewImageURL
-    }
-}
-
-public enum HeaderStoryType: String, Codable, CaseIterable {
-    case educational = "educational"
-    case achievement = "achievement"
-    case social = "social"
-    case announcement = "announcement"
-    
-    var icon: String {
-        switch self {
-        case .educational:
-            return "book.fill"
-        case .achievement:
-            return "trophy.fill"
-        case .social:
-            return "person.2.fill"
-        case .announcement:
-            return "megaphone.fill"
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .educational:
-            return .blue
-        case .achievement:
-            return .yellow
-        case .social:
-            return .green
-        case .announcement:
-            return .red
-        }
-    }
-}
+// Header-specific StoryType values are now part of the canonical StoryType enum
 
 // MARK: - Sample Data
 struct HeaderSampleData {
-    static let sampleStories: [Story] = [
-        Story(
+    static let sampleStories: [LearningStory] = [
+        LearningStory(
             id: UUID(),
+            userId: UUID(),
             username: "alice_learns",
-            displayName: "Alice",
-            initials: "AL",
-            avatarColors: ["FF6B9D", "A855F7"],
-            hasUnwatchedStory: true,
-            storyType: .educational,
-            timestamp: Date().addingTimeInterval(-3600),
-            previewImageURL: nil
+            userAvatar: "https://example.com/avatar1.jpg",
+            mediaURL: "https://example.com/story1.mp4",
+            mediaType: MediaType.video,
+            duration: 15,
+            caption: "Learning Swift today!",
+            createdAt: Date().addingTimeInterval(-3600),
+            viewsCount: 42,
+            isViewed: false
         ),
-        Story(
+        LearningStory(
             id: UUID(),
+            userId: UUID(),
             username: "bob_codes",
-            displayName: "Bob",
-            initials: "BO",
-            avatarColors: ["3B82F6", "06B6D4"],
-            hasUnwatchedStory: true,
-            storyType: .achievement,
-            timestamp: Date().addingTimeInterval(-7200),
-            previewImageURL: nil
+            userAvatar: "https://example.com/avatar2.jpg",
+            mediaURL: "https://example.com/story2.mp4",
+            mediaType: MediaType.video,
+            duration: 20,
+            caption: "Just completed my first iOS app!",
+            createdAt: Date().addingTimeInterval(-7200),
+            viewsCount: 68,
+            isViewed: false
         ),
-        Story(
+        LearningStory(
             id: UUID(),
+            userId: UUID(),
             username: "charlie_math",
-            displayName: "Charlie",
-            initials: "CH",
-            avatarColors: ["10B981", "6EE7B7"],
-            hasUnwatchedStory: false,
-            storyType: .educational,
-            timestamp: Date().addingTimeInterval(-86400),
-            previewImageURL: nil
-        ),
-        Story(
-            id: UUID(),
-            username: "diana_science",
-            displayName: "Diana",
-            initials: "DI",
-            avatarColors: ["F59E0B", "FCD34D"],
-            hasUnwatchedStory: true,
-            storyType: .social,
-            timestamp: Date().addingTimeInterval(-1800),
-            previewImageURL: nil
-        ),
-        Story(
-            id: UUID(),
-            username: "evan_history",
-            displayName: "Evan",
-            initials: "EV",
-            avatarColors: ["EF4444", "FB7185"],
-            hasUnwatchedStory: false,
-            storyType: .announcement,
-            timestamp: Date().addingTimeInterval(-43200),
-            previewImageURL: nil
-        ),
-        Story(
-            id: UUID(),
-            username: "fiona_art",
-            displayName: "Fiona",
-            initials: "FI",
-            avatarColors: ["8B5CF6", "3B82F6"],
-            hasUnwatchedStory: true,
-            storyType: .achievement,
-            timestamp: Date().addingTimeInterval(-900),
-            previewImageURL: nil
+            userAvatar: "https://example.com/avatar3.jpg",
+            mediaURL: "https://example.com/story3.jpg",
+            mediaType: MediaType.image,
+            duration: TimeInterval(0),
+            caption: "Solving calculus problems",
+            createdAt: Date().addingTimeInterval(-86400),
+            viewsCount: 23,
+            isViewed: true
         )
     ]
 }
@@ -530,33 +449,4 @@ struct HeaderUserProfile: Identifiable, Codable {
             )
         ]
     )
-}
-
-// MARK: - Color Extension
-
-extension Color {
-    init?(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            return nil
-        }
-        
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
-        )
-    }
 }
