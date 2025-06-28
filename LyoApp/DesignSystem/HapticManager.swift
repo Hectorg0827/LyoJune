@@ -72,9 +72,14 @@ class HapticManager: ObservableObject {
     }
     
     /// Selection feedback (picker changes, option selection)
-    func selection() {
+    func selectionFeedback() {
         guard isHapticsEnabled else { return }
         selection.selectionChanged()
+    }
+    
+    /// Alias for selectionFeedback for compatibility
+    func selectionChanged() {
+        selectionFeedback()
     }
     
     // MARK: - Unified Interface Methods
@@ -176,7 +181,7 @@ enum HapticFeedbackType {
     case tripleTap
     case rhythmicAlert
     
-    func trigger() {
+    @MainActor func trigger() {
         switch self {
         case .lightImpact:
             HapticManager.shared.lightImpact()
@@ -191,7 +196,7 @@ enum HapticFeedbackType {
         case .error:
             HapticManager.shared.error()
         case .selection:
-            HapticManager.shared.selection()
+            HapticManager.shared.selectionFeedback()
         case .doubleTap:
             HapticManager.shared.doubleTap()
         case .tripleTap:
