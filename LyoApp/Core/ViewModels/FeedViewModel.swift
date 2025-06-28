@@ -193,13 +193,8 @@ class FeedViewModel: ObservableObject {
     }
     
     private func setupRealTimeUpdates() {
-        // Listen for real-time post updates
-        webSocketManager.postUpdatesPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] update in
-                self?.handleRealTimePostUpdate(update)
-            }
-            .store(in: &cancellables)
+        // Mock real-time updates - postUpdatesPublisher doesn't exist
+        print("Real-time updates setup - would implement when WebSocket publisher is available")
     }
     
     private func handleRealTimePostUpdate(_ update: PostUpdate) {
