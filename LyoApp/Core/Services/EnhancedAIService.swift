@@ -374,10 +374,12 @@ class EnhancedAIService {
     private func getUserPreferences() -> UserPreferences {
         // This would be loaded from user settings
         return UserPreferences(
-            learningStyle: "visual",
-            difficulty: "intermediate",
+            notifications: true,
+            darkMode: false,
             language: "en",
-            responseLength: "medium"
+            biometricAuth: false,
+            pushNotifications: true,
+            emailNotifications: true
         )
     }
     
