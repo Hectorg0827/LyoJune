@@ -8,8 +8,11 @@ public struct DesignTokens {
     // MARK: - Spacing System
     /// Consistent spacing scale based on 8pt grid
     public struct Spacing {
+        public static let extraSmall: CGFloat = 2   // 0.125rem
         public static let xs: CGFloat = 4      // 0.25rem
+        public static let small: CGFloat = 8   // 0.5rem (alias for sm)
         public static let sm: CGFloat = 8      // 0.5rem  
+        public static let medium: CGFloat = 16 // 1rem (alias for md)
         public static let md: CGFloat = 16     // 1rem
         public static let lg: CGFloat = 24     // 1.5rem
         public static let xl: CGFloat = 32     // 2rem
@@ -52,6 +55,9 @@ public struct DesignTokens {
         public static let labelLarge = Font.system(size: 14, weight: .medium, design: .default)
         public static let labelMedium = Font.system(size: 12, weight: .medium, design: .default)
         public static let labelSmall = Font.system(size: 11, weight: .medium, design: .default)
+        
+        // Caption
+        public static let caption = Font.system(size: 10, weight: .regular, design: .default)
     }
     
     // MARK: - Color Palette
@@ -104,6 +110,11 @@ public struct DesignTokens {
         public static let interactiveHover = Color("InteractiveHover")
         public static let interactivePressed = Color("InteractivePressed")
         public static let interactiveDisabled = Color("InteractiveDisabled")
+        
+        // Additional colors for compatibility
+        public static let accent = primary
+        public static let backgroundPrimary = background
+        public static let backgroundSecondary = backgroundVariant
     }
     
     // MARK: - Border Radius
@@ -122,6 +133,7 @@ public struct DesignTokens {
         public static let card = lg
         public static let modal = xl
         public static let avatar = full
+        public static let medium = md  // Alias for md
     }
     
     // MARK: - Shadows
