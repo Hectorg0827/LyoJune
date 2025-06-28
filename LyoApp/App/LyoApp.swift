@@ -38,13 +38,10 @@ struct LyoApp: App {
             }
             
             // Track app launch
-            await serviceFactory.apiService.trackAnalyticsEvent(
-                eventName: "app_launched",
-                properties: [
-                    "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
-                    "platform": "ios"
-                ]
-            )
+            await AnalyticsAPIService.shared.trackEvent("app_launched", parameters: [
+                "app_version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "unknown",
+                "platform": "ios"
+            ])
         }
     }
     
@@ -63,9 +60,7 @@ struct LyoApp: App {
     
     private func handleAppWillResignActive() {
         // Pause real-time connections to save battery
-        Task {
-            await serviceFactory.webSocketManager.pauseConnection()
-        }
+        serviceFactory.webSocketManager.pauseConnection()
     }
     
     private func handleAppWillTerminate() {
