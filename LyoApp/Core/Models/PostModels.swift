@@ -44,15 +44,17 @@ struct DiscoverPost: Identifiable, Codable {
     let author: String
     let content: String
     let timeAgo: String
-    let likes: Int
+    var likes: Int
     let comments: Int
-    let shares: Int
+    var shares: Int
     let hasMedia: Bool
     let mediaTypeString: String? // Changed to string to avoid MediaType conflict
     let category: VideoCategory
     let tags: [String]
     let createdAt: Date
     let updatedAt: Date
+    var isLiked: Bool = false
+    var isBookmarked: Bool = false
     
     // Computed property for MediaType
     var mediaType: MediaType? {
