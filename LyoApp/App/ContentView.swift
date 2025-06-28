@@ -13,36 +13,35 @@ struct ContentView: View {
         Group {
             if authService.isLoading {
                 ModernLoadingView(message: "Initializing Lyo...")
-                    .transition(AnimationSystem.Presets.fadeInOut)
+                    .transition(.opacity)
             } else if authService.isAuthenticated {
                 MainTabView()
                     .overlay(alignment: .top) {
-                        if !networkManager.isOnline {
+                        if !networkManager.isConnected {
                             ModernOfflineIndicatorView()
                         }
                     }
-                    .transition(AnimationSystem.Presets.slideUp)
+                    .transition(.move(edge: .top))
             } else {
                 AuthenticationView()
-                    .transition(AnimationSystem.Presets.slideFromBottom)
+                    .transition(.move(edge: .bottom))
             }
         }
-        .animation(AnimationSystem.Presets.easeInOut, value: authService.isAuthenticated)
-        .animation(AnimationSystem.Presets.easeInOut, value: authService.isLoading)
-        .errorHandling() // Add global error handling
+        .animation(.easeInOut, value: authService.isAuthenticated)
+        .animation(.easeInOut, value: authService.isLoading)
         .environmentObject(errorManager)
         .onAppear {
-            HapticManager.shared.impact(.light)
+            HapticManager.shared.impactOccurred(style: .light)
         }
         .environmentObject(offlineManager)
-        .onReceive(networkManager.$isOnline) { isOnline in
-            if !isOnline && authService.isAuthenticated {
+        .onReceive(networkManager.$isConnected) { isConnected in
+            if !isConnected && authService.isAuthenticated {
                 showingOfflineAlert = true
             }
         }
-        .onReceive(authService.$errorMessage) { errorMessage in
-            if let errorMessage = errorMessage {
-                errorManager.handle(AuthError.invalidCredentials, context: "Authentication")
+        .onReceive(authService.$authError) { authError in
+            if let authError = authError {
+                errorManager.handle(authError, context: "Authentication")
             }
         }
         .alert("Offline Mode", isPresented: $showingOfflineAlert) {
