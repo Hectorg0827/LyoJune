@@ -77,6 +77,36 @@ public struct User: Identifiable, Codable, Hashable, Syncable {
         return syncStatus == .pending || syncStatus == .failed
     }
     
+    // Computed property for profile image URL
+    public var profileImageURL: String? {
+        return avatar.url
+    }
+    
+    // Computed property for display name
+    public var displayName: String {
+        return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+    }
+    
+    // Computed property for bio (from profile)
+    public var bio: String? {
+        return profile.bio
+    }
+    
+    // Computed property for courses completed
+    public var coursesCompleted: Int {
+        return learningStats.coursesCompleted
+    }
+    
+    // Computed property for total XP
+    public var totalXP: Int {
+        return learningStats.totalPoints
+    }
+    
+    // Computed property for current streak
+    public var currentStreak: Int {
+        return learningStats.currentStreak
+    }
+    
     // API Endpoints
     public static let endpoints = UserEndpoints()
     
@@ -342,10 +372,10 @@ public struct UserProfile: Codable, Hashable {
 public struct LoginResponse: Codable {
     public let accessToken: String
     public let refreshToken: String
-    public let user: UserProfile
+    public let user: User
     public let expiresIn: TimeInterval
     
-    public init(accessToken: String, refreshToken: String, user: UserProfile, expiresIn: TimeInterval) {
+    public init(accessToken: String, refreshToken: String, user: User, expiresIn: TimeInterval) {
         self.accessToken = accessToken
         self.refreshToken = refreshToken
         self.user = user
@@ -356,6 +386,7 @@ public struct LoginResponse: Codable {
 // MARK: - Course Support Types
 public enum CourseCategory: String, Codable, CaseIterable {
     case programming = "programming"
+    case development = "development"
     case design = "design"
     case business = "business"
     case marketing = "marketing"
@@ -747,12 +778,52 @@ public enum DownloadStatus: String, Codable, CaseIterable {
     case cancelled = "cancelled"
 }
 
+// MARK: - Author Models
+public struct Author: Codable, Identifiable {
+    public let id: String
+    public let name: String
+    public let avatarURL: String?
+    
+    // Computed property for display name
+    public var displayName: String {
+        return name
+    }
+    
+    public init(id: String, name: String, avatarURL: String? = nil) {
+        self.id = id
+        self.name = name
+        self.avatarURL = avatarURL
+    }
+}
+
 // MARK: - Post Models
 public struct Post: Codable, Identifiable, Syncable {
     public let id: String
     public let authorId: String
     public let authorName: String
     public let authorAvatar: String?
+    
+    // Computed property for author
+    public var author: Author {
+        return Author(id: authorId, name: authorName, avatarURL: authorAvatar)
+    }
+    
+    // Computed property for formatted timestamp
+    public var formattedTimestamp: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.dateTimeStyle = .named
+        return formatter.localizedString(for: createdAt, relativeTo: Date())
+    }
+    
+    // Computed property for likes count
+    public var likesCount: Int {
+        return likes
+    }
+    
+    // Computed property for comments count
+    public var commentsCount: Int {
+        return comments
+    }
     public let content: String
     public let imageURL: String?
     public let videoURL: String?
@@ -1091,6 +1162,43 @@ public struct Achievement: Identifiable, Codable, Hashable {
             requirements: requirements,
             progress: progress
         )
+    }
+    
+    // Mock data for development and testing
+    public static func mockAchievements() -> [Achievement] {
+        return [
+            Achievement(
+                id: "first_lesson",
+                title: "First Steps",
+                description: "Complete your first lesson",
+                points: 10,
+                isUnlocked: true,
+                unlockedAt: Date().addingTimeInterval(-86400),
+                category: .learning,
+                rarity: .common,
+                progress: 1.0
+            ),
+            Achievement(
+                id: "streak_week",
+                title: "Week Warrior",
+                description: "Study for 7 days in a row",
+                points: 50,
+                isUnlocked: false,
+                category: .streak,
+                rarity: .uncommon,
+                progress: 0.6
+            ),
+            Achievement(
+                id: "social_helper",
+                title: "Community Helper",
+                description: "Help 10 other students",
+                points: 25,
+                isUnlocked: false,
+                category: .social,
+                rarity: .rare,
+                progress: 0.3
+            )
+        ]
     }
 }
 
@@ -1569,7 +1677,6 @@ extension Color {
         return String(format: "#%02X%02X%02X", r, g, b)
     }
     
-    /*
     public init?(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
@@ -1594,7 +1701,6 @@ extension Color {
             opacity: Double(a) / 255
         )
     }
-    */
 }
 
 // MARK: - API Response Helpers
@@ -2571,6 +2677,214 @@ public struct UserCourseProgress: Identifiable, Codable, Hashable {
         self.completionPercentage = completionPercentage
         self.lastAccessedAt = lastAccessedAt
         self.timeSpent = timeSpent
+    }
+}
+
+// MARK: - Story Models
+public struct Story: Identifiable, Codable, Hashable, Syncable {
+    public let id: UUID
+    public let username: String
+    public let displayName: String
+    public let initials: String
+    public let avatarColors: [String]
+    public let hasUnwatchedStory: Bool
+    public let storyType: StoryType
+    public let timestamp: Date
+    public let previewImageURL: String?
+    public let mediaURL: String?
+    public let mediaType: MediaType?
+    public let duration: TimeInterval?
+    public let caption: String?
+    public let viewsCount: Int
+    public let isViewed: Bool
+    
+    // Backend Integration Properties
+    public let serverID: String?
+    public let syncStatus: SyncStatus
+    public let lastSyncedAt: Date?
+    public let version: Int
+    public let etag: String?
+    
+    public var needsSync: Bool {
+        return syncStatus == .pending || syncStatus == .failed
+    }
+    
+    public init(
+        id: UUID = UUID(),
+        username: String,
+        displayName: String,
+        initials: String,
+        avatarColors: [String],
+        hasUnwatchedStory: Bool,
+        storyType: StoryType,
+        timestamp: Date,
+        previewImageURL: String? = nil,
+        mediaURL: String? = nil,
+        mediaType: MediaType? = nil,
+        duration: TimeInterval? = nil,
+        caption: String? = nil,
+        viewsCount: Int = 0,
+        isViewed: Bool = false,
+        serverID: String? = nil,
+        syncStatus: SyncStatus = .pending,
+        lastSyncedAt: Date? = nil,
+        version: Int = 1,
+        etag: String? = nil
+    ) {
+        self.id = id
+        self.username = username
+        self.displayName = displayName
+        self.initials = initials
+        self.avatarColors = avatarColors
+        self.hasUnwatchedStory = hasUnwatchedStory
+        self.storyType = storyType
+        self.timestamp = timestamp
+        self.previewImageURL = previewImageURL
+        self.mediaURL = mediaURL
+        self.mediaType = mediaType
+        self.duration = duration
+        self.caption = caption
+        self.viewsCount = viewsCount
+        self.isViewed = isViewed
+        self.serverID = serverID
+        self.syncStatus = syncStatus
+        self.lastSyncedAt = lastSyncedAt
+        self.version = version
+        self.etag = etag
+    }
+    
+    // Backend Integration Methods
+    public func toAPIPayload() -> [String: Any] {
+        var payload: [String: Any] = [
+            "id": id.uuidString,
+            "username": username,
+            "displayName": displayName,
+            "initials": initials,
+            "avatarColors": avatarColors,
+            "hasUnwatchedStory": hasUnwatchedStory,
+            "storyType": storyType.rawValue,
+            "timestamp": ISO8601DateFormatter().string(from: timestamp),
+            "viewsCount": viewsCount,
+            "isViewed": isViewed,
+            "version": version
+        ]
+        
+        if let previewImageURL = previewImageURL {
+            payload["previewImageURL"] = previewImageURL
+        }
+        if let mediaURL = mediaURL {
+            payload["mediaURL"] = mediaURL
+        }
+        if let mediaType = mediaType {
+            payload["mediaType"] = mediaType.rawValue
+        }
+        if let duration = duration {
+            payload["duration"] = duration
+        }
+        if let caption = caption {
+            payload["caption"] = caption
+        }
+        if let serverID = serverID {
+            payload["serverID"] = serverID
+        }
+        if let lastSyncedAt = lastSyncedAt {
+            payload["lastSyncedAt"] = ISO8601DateFormatter().string(from: lastSyncedAt)
+        }
+        if let etag = etag {
+            payload["etag"] = etag
+        }
+        
+        payload["syncStatus"] = syncStatus.rawValue
+        
+        return payload
+    }
+    
+    public static func fromAPIResponse(_ data: [String: Any]) -> Story? {
+        guard let idString = data["id"] as? String,
+              let id = UUID(uuidString: idString),
+              let username = data["username"] as? String,
+              let displayName = data["displayName"] as? String,
+              let initials = data["initials"] as? String,
+              let avatarColors = data["avatarColors"] as? [String],
+              let hasUnwatchedStory = data["hasUnwatchedStory"] as? Bool,
+              let storyTypeString = data["storyType"] as? String,
+              let storyType = StoryType(rawValue: storyTypeString),
+              let timestampString = data["timestamp"] as? String,
+              let timestamp = ISO8601DateFormatter().date(from: timestampString),
+              let viewsCount = data["viewsCount"] as? Int,
+              let isViewed = data["isViewed"] as? Bool,
+              let version = data["version"] as? Int else {
+            return nil
+        }
+        
+        let lastSyncedAt = (data["lastSyncedAt"] as? String).flatMap { ISO8601DateFormatter().date(from: $0) }
+        let mediaType = (data["mediaType"] as? String).flatMap { MediaType(rawValue: $0) }
+        
+        return Story(
+            id: id,
+            username: username,
+            displayName: displayName,
+            initials: initials,
+            avatarColors: avatarColors,
+            hasUnwatchedStory: hasUnwatchedStory,
+            storyType: storyType,
+            timestamp: timestamp,
+            previewImageURL: data["previewImageURL"] as? String,
+            mediaURL: data["mediaURL"] as? String,
+            mediaType: mediaType,
+            duration: data["duration"] as? TimeInterval,
+            caption: data["caption"] as? String,
+            viewsCount: viewsCount,
+            isViewed: isViewed,
+            serverID: data["serverID"] as? String,
+            syncStatus: SyncStatus(rawValue: data["syncStatus"] as? String ?? "pending") ?? .pending,
+            lastSyncedAt: lastSyncedAt,
+            version: version,
+            etag: data["etag"] as? String
+        )
+    }
+}
+
+public enum StoryType: String, Codable, CaseIterable {
+    case educational = "educational"
+    case achievement = "achievement"
+    case social = "social"
+    case announcement = "announcement"
+    case learning = "learning"
+    case personal = "personal"
+    
+    public var icon: String {
+        switch self {
+        case .educational:
+            return "book.fill"
+        case .achievement:
+            return "trophy.fill"
+        case .social:
+            return "person.2.fill"
+        case .announcement:
+            return "megaphone.fill"
+        case .learning:
+            return "graduationcap.fill"
+        case .personal:
+            return "person.fill"
+        }
+    }
+    
+    public var displayName: String {
+        switch self {
+        case .educational:
+            return "Educational"
+        case .achievement:
+            return "Achievement"
+        case .social:
+            return "Social"
+        case .announcement:
+            return "Announcement"
+        case .learning:
+            return "Learning"
+        case .personal:
+            return "Personal"
+        }
     }
 }
 
