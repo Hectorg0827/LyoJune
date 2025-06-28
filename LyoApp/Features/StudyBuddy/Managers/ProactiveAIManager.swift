@@ -30,10 +30,10 @@ class ProactiveAIManager: ObservableObject {
     private let aiService = EnhancedAIService.shared
     private let gamificationService = GamificationAPIService.shared
     private let analyticsService = AnalyticsAPIService.shared
-    private let proactiveAI = ProactiveAIManager.shared
+    // Removed circular reference to ProactiveAIManager.shared
     
     enum EmotionState: String, CaseIterable {
-        case happy, encouraging, neutral, concerned, excited
+        case happy, encouraging, neutral, concerned, excited, celebrating
         
         var emoji: String {
             switch self {
@@ -42,6 +42,18 @@ class ProactiveAIManager: ObservableObject {
             case .neutral: return "🤖"
             case .concerned: return "🤔"
             case .excited: return "🎉"
+            case .celebrating: return "🥳"
+            }
+        }
+        
+        var toGemmaEmotion: GemmaAPIResponse.EmotionState {
+            switch self {
+            case .happy: return .encouraging
+            case .encouraging: return .encouraging
+            case .neutral: return .neutral
+            case .concerned: return .concerned
+            case .excited: return .celebrating
+            case .celebrating: return .celebrating
             }
         }
     }
@@ -87,13 +99,8 @@ class ProactiveAIManager: ObservableObject {
     }
     
     private func bindToProactiveAI() {
-        proactiveAI.$suggestions
-            .assign(to: \.suggestions, on: self)
-            .store(in: &cancellables)
-        
-        proactiveAI.$isActive
-            .assign(to: \.isActive, on: self)
-            .store(in: &cancellables)
+        // Removed dependency on proactiveAI instance
+        // Suggestions and isActive are now managed internally
     }
     
     private func setupProactiveMonitoring() {
@@ -110,13 +117,11 @@ class ProactiveAIManager: ObservableObject {
     
     func startProactiveMode() {
         isActive = true
-        proactiveAI.startProactiveMode()
         generateWelcomeMessage()
     }
     
     func stopProactiveMode() {
         isActive = false
-        proactiveAI.stopProactiveMode()
         suggestions.removeAll()
         shouldShowProactiveMessage = false
     }
@@ -137,7 +142,7 @@ class ProactiveAIManager: ObservableObject {
             timestamp: Date()
         )
         
-        proactiveAI.updateContext(userActivity: activity)
+        // ProactiveAI context update removed
         
         // Update engagement level
         updateEngagementLevel(based: context)
@@ -403,12 +408,24 @@ class ProactiveAIManager: ObservableObject {
             return .courseViewing
         }
     }
+    
+    func updateCurrentScreen(_ screen: String) {
+        currentScreen = screen
+        print("Updated current screen to: \(screen)")
+    }
+    
+    func dismissProactiveMessage() {
+        shouldShowProactiveMessage = false
+        currentProactiveMessage = nil
+        print("Dismissed proactive message")
+    }
 }
 
 // MARK: - Performance Monitor
 class PerformanceMonitor {
     private var sessionStartTime = Date()
     private var interactionCount = 0
+    var totalAttempts = 0
     
     func recordInteraction() {
         interactionCount += 1
@@ -427,6 +444,7 @@ class PerformanceMonitor {
     func reset() {
         sessionStartTime = Date()
         interactionCount = 0
+        totalAttempts = 0
     }
 }
 
@@ -438,6 +456,10 @@ enum ProactiveTrigger: Identifiable {
     case learningStruggle(topic: String)
     case timeBasedReminder(time: Date)
     case errorFrequency(count: Int)
+    case repeatedErrors(count: Int)
+    case voiceWakeWord(phrase: String)
+    case encouragementNeeded
+    case sessionMilestone(achievement: String)
     
     var id: String {
         switch self {
@@ -453,6 +475,14 @@ enum ProactiveTrigger: Identifiable {
             return "reminder_\(time.timeIntervalSince1970)"
         case .errorFrequency(let count):
             return "error_\(count)"
+        case .repeatedErrors(let count):
+            return "repeated_error_\(count)"
+        case .voiceWakeWord(let phrase):
+            return "voice_\(phrase)"
+        case .encouragementNeeded:
+            return "encouragement"
+        case .sessionMilestone(let achievement):
+            return "milestone_\(achievement)"
         }
     }
     
@@ -470,305 +500,20 @@ enum ProactiveTrigger: Identifiable {
             return true
         case .errorFrequency(let count):
             return count > 5
-        }
-    }
-}
-
-// Extension for ProactiveAIManager
-extension ProactiveAIManager {
-    private func startIdleTimer() {
-        idleTimer?.invalidate()
-        idleTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                self.updateIdleTime()
-            }
-        }
-    }
-    
-    private func updateIdleTime() {
-        userIdleTime = Date().timeIntervalSince(lastUserInteraction)
-        
-        let idleTrigger = ProactiveTrigger.userIdleTime(duration: userIdleTime)
-        if idleTrigger.shouldTrigger && !hasActiveTrigger(idleTrigger) {
-            processTrigger(idleTrigger)
-        }
-    }
-    
-    func recordUserInteraction() {
-        lastUserInteraction = Date()
-        userIdleTime = 0
-        
-        // Remove idle-related triggers
-        activeTriggers.removeAll { trigger in
-            if case .userIdleTime = trigger {
-                return true
-            }
-            return false
-        }
-    }
-    
-    // MARK: - Screen Focus Monitoring
-    
-    private func startScreenFocusMonitoring() {
-        screenFocusTimer?.invalidate()
-        screenFocusTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            Task { @MainActor [weak self] in
-                guard let self = self else { return }
-                self.updateScreenFocusTime()
-            }
-        }
-    }
-    
-    private func updateScreenFocusTime() {
-        screenFocusTime += 1.0
-        
-        let focusTrigger = ProactiveTrigger.screenFocus(screen: currentScreen, duration: screenFocusTime)
-        if focusTrigger.shouldTrigger && !hasActiveTrigger(focusTrigger) {
-            processTrigger(focusTrigger)
-        }
-    }
-    
-    func updateCurrentScreen(_ screen: String) {
-        if currentScreen != screen {
-            currentScreen = screen
-            screenFocusTime = 0
-            
-            // Remove previous screen focus triggers
-            activeTriggers.removeAll { trigger in
-                if case .screenFocus = trigger {
-                    return true
-                }
-                return false
-            }
-        }
-    }
-    
-    // MARK: - Performance Monitoring
-    
-    private func startPerformanceMonitoring() {
-        performanceMonitor.onPerformanceUpdate = { [weak self] score in
-            self?.currentPerformanceScore = score
-            
-            let performanceTrigger = ProactiveTrigger.lowPerformance(score: score)
-            if performanceTrigger.shouldTrigger && !(self?.hasActiveTrigger(performanceTrigger) ?? false) {
-                self?.processTrigger(performanceTrigger)
-            }
-        }
-    }
-    
-    func recordQuizResult(score: Double, topic: String) {
-        performanceMonitor.recordQuizResult(score: score, topic: topic)
-        
-        if score < 0.6 {
-            let struggleTrigger = ProactiveTrigger.learningStruggle(topic: topic)
-            processTrigger(struggleTrigger)
-        } else if score > 0.8 {
-            let milestoneTrigger = ProactiveTrigger.sessionMilestone(achievement: "High score in \(topic)!")
-            processTrigger(milestoneTrigger)
-        }
-    }
-    
-    // MARK: - Error Pattern Monitoring
-    
-    private func startErrorPatternMonitoring() {
-        // Monitor for repeated errors in learning activities
-    }
-    
-    func recordError() {
-        errorCount += 1
-        
-        let errorTrigger = ProactiveTrigger.repeatedErrors(count: errorCount)
-        if errorTrigger.shouldTrigger && !hasActiveTrigger(errorTrigger) {
-            processTrigger(errorTrigger)
-        }
-    }
-    
-    func resetErrorCount() {
-        errorCount = 0
-        
-        // Remove error-related triggers
-        activeTriggers.removeAll { trigger in
-            if case .repeatedErrors = trigger {
-                return true
-            }
-            return false
-        }
-    }
-    
-    // MARK: - Voice Wake Word Detection
-    
-    func processWakeWord(_ phrase: String) {
-        let wakeWordTrigger = ProactiveTrigger.voiceWakeWord(phrase: phrase)
-        processTrigger(wakeWordTrigger)
-    }
-    
-    // MARK: - Trigger Processing
-    
-    private func processTrigger(_ trigger: ProactiveTrigger) {
-        guard config.proactiveAssistance else { return }
-        
-        activeTriggers.append(trigger)
-        
-        // Generate appropriate proactive message
-        let message = generateProactiveMessage(for: trigger)
-        currentProactiveMessage = message.content
-        proactiveMessageEmotion = message.emotion
-        shouldShowProactiveMessage = true
-        
-        // Schedule trigger cleanup based on priority
-        scheduleTriggerCleanup(trigger)
-    }
-    
-    private func generateProactiveMessage(for trigger: ProactiveTrigger) -> (content: String, emotion: GemmaAPIResponse.EmotionState) {
-        switch trigger {
-        case .userIdleTime(let duration):
-            if duration > 60 {
-                return ("I notice you've been away for a while. Would you like to continue where you left off?", .encouraging)
-            } else {
-                return ("Need help with anything? I'm here when you're ready!", .neutral)
-            }
-            
-        case .lowPerformance(_):
-            return ("I see you're working hard! Let me suggest some strategies that might help improve your understanding.", .encouraging)
-            
         case .repeatedErrors(let count):
-            if count >= 5 {
-                return ("Don't get discouraged! Making mistakes is part of learning. Would you like me to explain this concept differently?", .encouraging)
-            } else {
-                return ("I notice this topic might be challenging. Let's break it down step by step!", .explaining)
-            }
-            
-        case .voiceWakeWord(let phrase):
-            return ("I heard you say '\(phrase)'. How can I help you today?", .questioning)
-            
-        case .screenFocus(let screen, _):
-            switch screen {
-            case "learn":
-                return ("You've been studying for a while! Great dedication. Would you like a quick summary or practice quiz?", .encouraging)
-            case "discover":
-                return ("Exploring new topics? I can help you understand anything that catches your interest!", .neutral)
-            default:
-                return ("I'm here if you need any help or explanations!", .neutral)
-            }
-            
-        case .learningStruggle(let topic):
-            return ("I see you're working on \(topic). This can be tricky! Would you like me to explain it in a different way?", .explaining)
-            
+            return count > 3
+        case .voiceWakeWord(_):
+            return true
         case .encouragementNeeded:
-            return ("You're doing great! Remember, every expert was once a beginner. Keep up the amazing work!", .celebrating)
-            
-        case .sessionMilestone(let achievement):
-            return ("Congratulations! \(achievement) You're making excellent progress!", .celebrating)
+            return true
+        case .sessionMilestone(_):
+            return true
         }
-    }
-    
-    private func hasActiveTrigger(_ trigger: ProactiveTrigger) -> Bool {
-        return activeTriggers.contains { activeTrigger in
-            switch (activeTrigger, trigger) {
-            case (.userIdleTime, .userIdleTime):
-                return true
-            case (.lowPerformance, .lowPerformance):
-                return true
-            case (.repeatedErrors, .repeatedErrors):
-                return true
-            case (.screenFocus(let screen1, _), .screenFocus(let screen2, _)):
-                return screen1 == screen2
-            case (.learningStruggle(let topic1), .learningStruggle(let topic2)):
-                return topic1 == topic2
-            default:
-                return false
-            }
-        }
-    }
-    
-    private func scheduleTriggerCleanup(_ trigger: ProactiveTrigger) {
-        let delay: TimeInterval
-        
-        switch trigger.priority {
-        case .immediate:
-            delay = 30.0 // 30 seconds
-        case .high:
-            delay = 120.0 // 2 minutes
-        case .medium:
-            delay = 300.0 // 5 minutes
-        case .low:
-            delay = 600.0 // 10 minutes
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            self?.removeTrigger(trigger)
-        }
-    }
-    
-    private func removeTrigger(_ trigger: ProactiveTrigger) {
-        activeTriggers.removeAll { $0.priority == trigger.priority }
-    }
-    
-    // MARK: - Manual Trigger Controls
-    
-    func dismissProactiveMessage() {
-        shouldShowProactiveMessage = false
-        currentProactiveMessage = nil
-    }
-    
-    func triggerEncouragement() {
-        let encouragementTrigger = ProactiveTrigger.encouragementNeeded
-        processTrigger(encouragementTrigger)
-    }
-    
-    func triggerMilestone(_ achievement: String) {
-        let milestoneTrigger = ProactiveTrigger.sessionMilestone(achievement: achievement)
-        processTrigger(milestoneTrigger)
-    }
-    
-    // MARK: - Analytics and Insights
-    
-    func getProactiveAnalytics() -> ProactiveAnalytics {
-        return ProactiveAnalytics(
-            totalTriggers: activeTriggers.count,
-            triggersByType: Dictionary(grouping: activeTriggers) { String(describing: type(of: $0)) }.mapValues { $0.count },
-            averageIdleTime: userIdleTime,
-            currentPerformance: currentPerformanceScore,
-            errorRate: Double(errorCount) / max(1.0, Double(performanceMonitor.totalAttempts))
-        )
-    }
-    
-    deinit {
-        idleTimer?.invalidate()
-        screenFocusTimer?.invalidate()
     }
 }
 
-// MARK: - Performance Monitor
 
-class PerformanceMonitor: ObservableObject {
-    @Published var averageScore: Double = 1.0
-    @Published var totalAttempts: Int = 0
-    @Published var recentScores: [Double] = []
-    
-    var onPerformanceUpdate: ((Double) -> Void)?
-    
-    func recordQuizResult(score: Double, topic: String) {
-        totalAttempts += 1
-        recentScores.append(score)
-        
-        // Keep only recent 10 scores
-        if recentScores.count > 10 {
-            recentScores.removeFirst()
-        }
-        
-        // Calculate average
-        averageScore = recentScores.reduce(0, +) / Double(recentScores.count)
-        
-        onPerformanceUpdate?(averageScore)
-    }
-    
-    func recordUserActivity(type: String, success: Bool) {
-        let score = success ? 1.0 : 0.0
-        recordQuizResult(score: score, topic: type)
-    }
-}
+// MARK: - Performance Monitor (consolidated - removed duplicate)
 
 // MARK: - Analytics Types
 
