@@ -60,7 +60,7 @@ struct DiscoverView: View {
         }
         .onAppear {
             Task {
-                await viewModel.loadPosts()
+                await viewModel.loadContent()
             }
         }
     }
