@@ -31,10 +31,10 @@ struct LyoApp: App {
         // Initialize enhanced services
         Task {
             // Check authentication status
-            let isAuthenticated = await serviceFactory.authService.isAuthenticated
+            let isAuthenticated = serviceFactory.authService.isAuthenticated
             if isAuthenticated {
                 await serviceFactory.coreDataManager.startBackgroundSync()
-                await serviceFactory.webSocketManager.connect()
+                serviceFactory.webSocketManager.connect()
             }
             
             // Track app launch
@@ -50,10 +50,10 @@ struct LyoApp: App {
         Task {
             await serviceFactory.networkManager.checkConnectivity()
             
-            let isAuthenticated = await serviceFactory.authService.isAuthenticated
+            let isAuthenticated = serviceFactory.authService.isAuthenticated
             if isAuthenticated {
                 await serviceFactory.coreDataManager.syncPendingChanges()
-                await serviceFactory.webSocketManager.reconnectIfNeeded()
+                serviceFactory.webSocketManager.reconnectIfNeeded()
             }
         }
     }
@@ -66,7 +66,7 @@ struct LyoApp: App {
     private func handleAppWillTerminate() {
         // Cleanup services on app termination
         Task {
-            await serviceFactory.shutdown()
+            serviceFactory.shutdown()
         }
     }
 }
