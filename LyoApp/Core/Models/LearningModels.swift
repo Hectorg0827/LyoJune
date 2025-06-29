@@ -184,6 +184,22 @@ public struct StudyGroup: Codable, Identifiable {
     let membershipStatus: MembershipStatus?
     var isUserMember: Bool = false
     
+    public init(id: UUID = UUID(), name: String, description: String, category: String, memberCount: Int = 1, maxMembers: Int = 20, isPrivate: Bool = false, createdBy: UUID, createdAt: Date = Date(), imageURL: String? = nil, tags: [String] = [], membershipStatus: MembershipStatus? = nil, isUserMember: Bool = false) {
+        self.id = id
+        self.name = name
+        self.description = description
+        self.category = category
+        self.memberCount = memberCount
+        self.maxMembers = maxMembers
+        self.isPrivate = isPrivate
+        self.createdBy = createdBy
+        self.createdAt = createdAt
+        self.imageURL = imageURL
+        self.tags = tags
+        self.membershipStatus = membershipStatus
+        self.isUserMember = isUserMember
+    }
+    
     public enum MembershipStatus: String, Codable {
         case member = "member"
         case pending = "pending"
@@ -479,8 +495,11 @@ public struct UserProgress: Codable {
     public let streakDays: Int
     public let level: Int
     public let xp: Int
+    public let recentAchievements: [Achievement]
+    public let completedCourses: Int
+    public let totalHours: TimeInterval
     
-    public init(totalCoursesEnrolled: Int, totalCoursesCompleted: Int, totalLessonsCompleted: Int, totalTimeSpent: TimeInterval, streakDays: Int, level: Int, xp: Int) {
+    public init(totalCoursesEnrolled: Int, totalCoursesCompleted: Int, totalLessonsCompleted: Int, totalTimeSpent: TimeInterval, streakDays: Int, level: Int, xp: Int, recentAchievements: [Achievement] = [], completedCourses: Int = 0, totalHours: TimeInterval = 0) {
         self.totalCoursesEnrolled = totalCoursesEnrolled
         self.totalCoursesCompleted = totalCoursesCompleted
         self.totalLessonsCompleted = totalLessonsCompleted
@@ -488,6 +507,9 @@ public struct UserProgress: Codable {
         self.streakDays = streakDays
         self.level = level
         self.xp = xp
+        self.recentAchievements = recentAchievements
+        self.completedCourses = completedCourses
+        self.totalHours = totalHours
     }
 }
 
