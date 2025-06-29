@@ -9,7 +9,10 @@ struct CommunityView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                GlassBackground()
+                // Glass background effect
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Custom tab selector
@@ -148,7 +151,7 @@ struct EventCard: View {
                 HStack {
                     Image(systemName: "calendar")
                         .foregroundColor(.blue)
-                    Text(event.date)
+                    Text(event.date, style: .date)
                         .font(.body)
                         .foregroundColor(.white.opacity(0.9))
                 }
@@ -226,7 +229,7 @@ struct StudyGroupCard: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.white)
                     
-                    Text("\(group.members) members")
+                    Text("\(group.memberCount) members")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.7))
                 }
@@ -259,15 +262,15 @@ struct StudyGroupCard: View {
             
             // Group stats
             HStack {
-                GroupStatItem(icon: "clock", value: group.meetingFrequency)
+                GroupStatItem(icon: "clock", value: "Weekly") // Default frequency
                 
                 Spacer()
                 
-                GroupStatItem(icon: "star.fill", value: String(format: "%.1f", group.rating))
+                GroupStatItem(icon: "star.fill", value: "4.5") // Default rating
                 
                 Spacer()
                 
-                GroupStatItem(icon: "message", value: group.isActive ? "Active" : "Inactive")
+                GroupStatItem(icon: "message", value: !group.isPrivate ? "Public" : "Private")
             }
             .font(.caption)
             .foregroundColor(.white.opacity(0.7))
@@ -386,7 +389,10 @@ struct CreateEventView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                GlassBackground()
+                // Glass background effect
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .ignoresSafeArea()
                 
                 VStack(spacing: 20) {
                     Text("Create Event")
