@@ -87,6 +87,11 @@ public struct User: Identifiable, Codable, Hashable, Syncable {
         return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
     }
     
+    // Computed property for name (alias for displayName for compatibility)
+    public var name: String {
+        return displayName
+    }
+    
     // Computed property for bio (from profile)
     public var bio: String? {
         return profile.bio
@@ -396,6 +401,49 @@ public enum CourseCategory: String, Codable, CaseIterable {
     case arts = "arts"
     case health = "health"
     case other = "other"
+    
+    var gradient: LinearGradient {
+        switch self {
+        case .programming:
+            return LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .development:
+            return LinearGradient(colors: [.green, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .design:
+            return LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .business:
+            return LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .marketing:
+            return LinearGradient(colors: [.purple, .pink], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .science:
+            return LinearGradient(colors: [.cyan, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .math:
+            return LinearGradient(colors: [.indigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .language:
+            return LinearGradient(colors: [.mint, .green], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .arts:
+            return LinearGradient(colors: [.yellow, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .health:
+            return LinearGradient(colors: [.red, .pink], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .other:
+            return LinearGradient(colors: [.gray, .secondary], startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .programming: return "chevron.left.forwardslash.chevron.right"
+        case .development: return "hammer.fill"
+        case .design: return "paintbrush.fill"
+        case .business: return "briefcase.fill"
+        case .marketing: return "megaphone.fill"
+        case .science: return "flask.fill"
+        case .math: return "function"
+        case .language: return "globe"
+        case .arts: return "palette.fill"
+        case .health: return "heart.fill"
+        case .other: return "ellipsis.circle.fill"
+        }
+    }
 }
 
 public enum CourseDifficulty: String, Codable, CaseIterable {
@@ -823,6 +871,18 @@ public struct Post: Codable, Identifiable, Syncable {
     // Computed property for comments count
     public var commentsCount: Int {
         return comments
+    }
+    
+    // Computed property for media URLs (for compatibility)
+    public var mediaUrls: [String] {
+        var urls: [String] = []
+        if let imageURL = imageURL {
+            urls.append(imageURL)
+        }
+        if let videoURL = videoURL {
+            urls.append(videoURL)
+        }
+        return urls
     }
     public let content: String
     public let imageURL: String?
