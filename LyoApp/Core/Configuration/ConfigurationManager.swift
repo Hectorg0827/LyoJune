@@ -29,14 +29,14 @@ struct ConfigurationManager {
         
         // First try bundle resource (added to Xcode project)
         if let envPath = bundle.path(forResource: ".env", ofType: nil) {
-            envContent = try? String(contentsOfFile: envPath)
+            envContent = try? String(contentsOfFile: envPath, encoding: .utf8)
         }
         
         // Fallback to project root (development)
         if envContent == nil {
             let projectRoot = bundle.bundlePath.replacingOccurrences(of: "/build/", with: "/")
             let envPath = projectRoot + "/.env"
-            envContent = try? String(contentsOfFile: envPath)
+            envContent = try? String(contentsOfFile: envPath, encoding: .utf8)
         }
         
         guard let content = envContent else {
