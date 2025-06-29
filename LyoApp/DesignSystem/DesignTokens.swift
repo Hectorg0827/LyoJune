@@ -136,6 +136,24 @@ public struct DesignTokens {
         public static let medium = md  // Alias for md
     }
     
+    // MARK: - Corner Radius (alias for BorderRadius)
+    public struct CornerRadius {
+        public static let none: CGFloat = BorderRadius.none
+        public static let xs: CGFloat = BorderRadius.xs
+        public static let sm: CGFloat = BorderRadius.sm
+        public static let md: CGFloat = BorderRadius.md
+        public static let lg: CGFloat = BorderRadius.lg
+        public static let xl: CGFloat = BorderRadius.xl
+        public static let full: CGFloat = BorderRadius.full
+        
+        // Semantic radius
+        public static let button = BorderRadius.button
+        public static let card = BorderRadius.card
+        public static let modal = BorderRadius.modal
+        public static let avatar = BorderRadius.avatar
+        public static let medium = BorderRadius.medium
+    }
+    
     // MARK: - Shadows
     /// Elevation-based shadow system
     public struct Shadow {
@@ -162,17 +180,34 @@ public struct DesignTokens {
         public static let loadingState = normal
     }
     
-    // MARK: - Z-Index
-    /// Layer ordering system
-    public struct ZIndex {
-        public static let base: Double = 0
-        public static let raised: Double = 1
-        public static let overlay: Double = 10
-        public static let modal: Double = 20
-        public static let popover: Double = 30
-        public static let tooltip: Double = 40
-        public static let notification: Double = 50
+    // MARK: - Animation System
+    /// Consistent animation timing and easing
+    public struct Animations {
+        // Standard durations
+        public static let instant = Animation.linear(duration: 0)
+        public static let fast = Animation.easeInOut(duration: 0.15)
+        public static let standard = Animation.easeInOut(duration: 0.25)
+        public static let slow = Animation.easeInOut(duration: 0.4)
+        
+        // Spring animations
+        public static let spring = Animation.spring(response: 0.5, dampingFraction: 0.8)
+        public static let springBouncy = Animation.spring(response: 0.6, dampingFraction: 0.7)
+        public static let springSnappy = Animation.spring(response: 0.3, dampingFraction: 1.0)
+        
+        // Micro-interactions
+        public static let buttonPress = Animation.easeInOut(duration: 0.1)
+        public static let cardHover = Animation.easeOut(duration: 0.2)
+        public static let pageTransition = Animation.easeInOut(duration: 0.4)
+        
+        // Loading states
+        public static let shimmer = Animation.linear(duration: 1.5).repeatForever(autoreverses: false)
+        public static let pulse = Animation.easeInOut(duration: 1.0).repeatForever(autoreverses: true)
+        
+        // Aliases for compatibility
+        public static let easeInOut = standard
+        public static let easeOut = Animation.easeOut(duration: 0.25)
     }
+
 }
 
 // MARK: - Shadow Style Extension
