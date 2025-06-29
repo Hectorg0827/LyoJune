@@ -38,7 +38,7 @@ struct HomeFeedView: View {
             setupFeed()
         }
         .refreshable {
-            await viewModel.refreshFeed()
+            await viewModel.refreshContent()
         }
     }
     
@@ -51,17 +51,16 @@ struct HomeFeedView: View {
             LinearGradient(
                 gradient: Gradient(stops: [
                     .init(color: currentVideoBackgroundColor.opacity(0.1), location: 0.0),
-                    .init(color: ModernDesignSystem.Colors.backgroundPrimary, location: 0.3),
-                    .init(color: ModernDesignSystem.Colors.backgroundSecondary, location: 1.0)
+                    .init(color: DesignTokens.Colors.backgroundPrimary, location: 0.3),
+                    .init(color: DesignTokens.Colors.backgroundSecondary, location: 1.0)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
             )
-            .animation(ModernDesignSystem.Animations.easeInOut, value: currentVideoIndex)
+            .animation(DesignTokens.Animations.standard, value: currentVideoIndex)
             
             // Subtle pattern overlay
             PatternOverlay()
-                .opacity(0.02)
         }
     }
     
@@ -88,7 +87,7 @@ struct HomeFeedView: View {
         .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
         .ignoresSafeArea()
         .opacity(feedOpacity)
-        .animation(ModernDesignSystem.Animations.easeInOut, value: feedOpacity)
+        .animation(DesignTokens.Animations.easeInOut, value: feedOpacity)
         .onChange(of: currentVideoIndex) { _, newIndex in
             handleVideoIndexChange(newIndex)
         }
@@ -101,14 +100,14 @@ struct HomeFeedView: View {
                 isMinimized: !isHeaderVisible,
                 currentVideoTitle: currentVideo?.title,
                 onHeaderTap: {
-                    withAnimation(ModernDesignSystem.Animations.springSnappy) {
+                    withAnimation(DesignTokens.Animations.springSnappy) {
                         isHeaderVisible.toggle()
                     }
                 }
             )
             .opacity(isHeaderVisible ? 1.0 : 0.3)
             .scaleEffect(isHeaderVisible ? 1.0 : 0.9)
-            .animation(ModernDesignSystem.Animations.spring, value: isHeaderVisible)
+            .animation(DesignTokens.Animations.spring, value: isHeaderVisible)
             
             Spacer()
         }
@@ -129,8 +128,8 @@ struct HomeFeedView: View {
                         // Handle study buddy action
                     }
                 )
-                .padding(.trailing, ModernDesignSystem.Spacing.lg)
-                .padding(.bottom, ModernDesignSystem.Spacing.xl)
+                .padding(.trailing, DesignTokens.Spacing.lg)
+                .padding(.bottom, DesignTokens.Spacing.xl)
             }
         }
         .ignoresSafeArea(.keyboard)
@@ -156,21 +155,21 @@ struct HomeFeedView: View {
     
     private var currentVideoBackgroundColor: Color {
         // Extract dominant color from current video or use default
-        return ModernDesignSystem.Colors.accent
+        return DesignTokens.Colors.accent
     }
     
     // MARK: - Private Methods
     
     private func setupFeed() {
         Task {
-            await viewModel.loadVideos()
+            await viewModel.loadContent()
         }
     }
     
     private func handleVideoAppearance(index: Int) {
         if index == viewModel.videos.count - 2 {
             Task {
-                await viewModel.loadMoreVideos()
+                await viewModel.loadMoreContent()
             }
         }
         
@@ -188,7 +187,7 @@ struct HomeFeedView: View {
         HapticManager.shared.lightImpact()
         
         // Update background color based on video
-        withAnimation(ModernDesignSystem.Animations.easeInOut) {
+        withAnimation(DesignTokens.Animations.easeInOut) {
             // Background color change animation
         }
     }
@@ -198,7 +197,7 @@ struct HomeFeedView: View {
         
         scrollDirection = direction
         
-        withAnimation(ModernDesignSystem.Animations.springSnappy) {
+        withAnimation(DesignTokens.Animations.springSnappy) {
             switch direction {
             case .up:
                 isHeaderVisible = false
@@ -224,14 +223,14 @@ struct EnhancedLyoHeaderView: View {
         Button(action: onHeaderTap) {
             HStack {
                 Text("LyoApp")
-                    .font(isMinimized ? ModernDesignSystem.Typography.headlineSmall : ModernDesignSystem.Typography.headlineLarge)
+                    .font(isMinimized ? DesignTokens.Typography.headlineSmall : DesignTokens.Typography.headlineLarge)
                     .fontWeight(.bold)
-                    .foregroundColor(ModernDesignSystem.Colors.primary)
+                    .foregroundColor(DesignTokens.Colors.primary)
                 
                 if let title = currentVideoTitle, isMinimized {
                     Text("• \(title)")
-                        .font(ModernDesignSystem.Typography.bodyMedium)
-                        .foregroundColor(ModernDesignSystem.Colors.textSecondary)
+                        .font(DesignTokens.Typography.bodyMedium)
+                        .foregroundColor(DesignTokens.Colors.textSecondary)
                         .lineLimit(1)
                 }
                 
@@ -239,13 +238,13 @@ struct EnhancedLyoHeaderView: View {
                 
                 Image(systemName: "bell")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
             }
-            .padding(.horizontal, ModernDesignSystem.Spacing.lg)
-            .padding(.vertical, ModernDesignSystem.Spacing.md)
+            .padding(.horizontal, DesignTokens.Spacing.lg)
+            .padding(.vertical, DesignTokens.Spacing.md)
             .background(
                 Rectangle()
-                    .fill(ModernDesignSystem.Colors.backgroundPrimary.opacity(0.8))
+                    .fill(DesignTokens.Colors.backgroundPrimary.opacity(0.8))
                     .blur(radius: 10)
             )
         }
@@ -259,25 +258,25 @@ struct EnhancedStudyBuddyFAB: View {
     
     var body: some View {
         Button(action: onTap) {
-            HStack(spacing: ModernDesignSystem.Spacing.sm) {
+            HStack(spacing: DesignTokens.Spacing.sm) {
                 Image(systemName: "person.2.fill")
                     .font(.system(size: 20, weight: .medium))
                 
                 if isExpanded {
                     Text("Study Buddy")
-                        .font(ModernDesignSystem.Typography.bodyMedium.weight(.semibold))
+                        .font(DesignTokens.Typography.bodyMedium.weight(.semibold))
                 }
             }
             .foregroundColor(.white)
-            .padding(.horizontal, isExpanded ? ModernDesignSystem.Spacing.lg : ModernDesignSystem.Spacing.md)
-            .padding(.vertical, ModernDesignSystem.Spacing.md)
+            .padding(.horizontal, isExpanded ? DesignTokens.Spacing.lg : DesignTokens.Spacing.md)
+            .padding(.vertical, DesignTokens.Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.full)
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.full)
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                ModernDesignSystem.Colors.accent,
-                                ModernDesignSystem.Colors.secondary
+                                DesignTokens.Colors.accent,
+                                DesignTokens.Colors.secondary
                             ]),
                             startPoint: .leading,
                             endPoint: .trailing
@@ -285,14 +284,14 @@ struct EnhancedStudyBuddyFAB: View {
                     )
             )
             .shadow(
-                color: ModernDesignSystem.Colors.accent.opacity(0.3),
+                color: DesignTokens.Colors.accent.opacity(0.3),
                 radius: 10,
                 x: 0,
                 y: 5
             )
         }
         .scaleEffect(isExpanded ? 1.0 : 0.9)
-        .animation(ModernDesignSystem.Animations.springSnappy, value: isExpanded)
+        .animation(DesignTokens.Animations.springSnappy, value: isExpanded)
     }
 }
 
