@@ -94,6 +94,10 @@ class HapticManager: ObservableObject {
             mediumImpact()
         case .heavy:
             heavyImpact()
+        case .rigid:
+            heavyImpact() // Use heavy for rigid
+        case .soft:
+            lightImpact() // Use light for soft
         @unknown default:
             mediumImpact()
         }
@@ -257,7 +261,7 @@ struct HapticToggle: View {
             Spacer()
             
             Toggle("", isOn: $isOn)
-                .onChange(of: isOn) { newValue in
+                .onChange(of: isOn) { _, newValue in
                     if newValue {
                         HapticManager.shared.success()
                     } else {
@@ -275,7 +279,7 @@ struct HapticFeedbackModifier: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .onChange(of: trigger) { _ in
+            .onChange(of: trigger) { _, _ in
                 hapticType.trigger()
             }
     }
@@ -296,7 +300,7 @@ extension View {
         of value: T,
         hapticType: HapticFeedbackType = .selection
     ) -> some View {
-        onChange(of: value) { _ in
+        onChange(of: value) { _, _ in
             hapticType.trigger()
         }
     }
