@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import CoreLocation
+import Foundation
 
 // MARK: - CoreLocation Extensions
 extension CLLocationCoordinate2D: Codable {
@@ -32,7 +33,7 @@ extension Notification.Name {
 
 // MARK: - Community Type Definitions
 public struct CommunityEvent: Identifiable, Codable {
-    public let id = UUID()
+    public let id: UUID
     public let title: String
     public let description: String
     public let date: Date
@@ -45,6 +46,7 @@ public struct CommunityEvent: Identifiable, Codable {
     public var isUserAttending: Bool
     
     public init(title: String, description: String, date: Date, location: String, organizer: String = "Community", category: EventCategory = .study, attendees: Int = 0, maxAttendees: Int? = nil, isJoined: Bool = false, isUserAttending: Bool = false) {
+        self.id = UUID()
         self.title = title
         self.description = description
         self.date = date
@@ -67,7 +69,7 @@ public enum EventCategory: String, CaseIterable, Codable {
 }
 
 struct LearningLocation: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let name: String
     let address: String
     let coordinate: CLLocationCoordinate2D
@@ -77,6 +79,7 @@ struct LearningLocation: Identifiable, Codable {
     let amenities: [String]
     
     init(name: String, address: String, coordinate: CLLocationCoordinate2D, type: LocationType, rating: Double = 4.0, studySpots: Int = 10, amenities: [String] = []) {
+        self.id = UUID()
         self.name = name
         self.address = address
         self.coordinate = coordinate
@@ -85,46 +88,47 @@ struct LearningLocation: Identifiable, Codable {
         self.studySpots = studySpots
         self.amenities = amenities
     }
+}
+
+enum LocationType: String, CaseIterable, Codable {
+    case library = "library"
+    case cafe = "cafe"
+    case campus = "campus"
+    case coworking = "coworking"
+    case park = "park"
     
-    enum LocationType: String, CaseIterable, Codable {
-        case library = "library"
-        case cafe = "cafe"
-        case campus = "campus"
-        case coworking = "coworking"
-        case park = "park"
-        
-        var color: Color {
-            switch self {
-            case .library:
-                return .blue
-            case .cafe:
-                return .brown
-            case .campus:
-                return .green
-            case .coworking:
-                return .purple
-            case .park:
-                return .mint
-            }
+    var color: Color {
+        switch self {
+        case .library:
+            return .blue
+        case .cafe:
+            return .brown
+        case .campus:
+            return .green
+        case .coworking:
+            return .purple
+        case .park:
+            return .mint
         }
-        
-        var icon: String {
-            switch self {
-            case .library:
-                return "books.vertical"
-            case .cafe:
-                return "cup.and.saucer"
-            case .campus:
-                return "building.columns"
-            case .coworking:
-                return "person.2.square.stack"
-            case .park:
-                return "tree"
-            }
+    }
+    
+    var icon: String {
+        switch self {
+        case .library:
+            return "books.vertical"
+        case .cafe:
+            return "cup.and.saucer"
+        case .campus:
+            return "building.columns"
+        case .coworking:
+            return "person.2.square.stack"
+        case .park:
+            return "tree"
         }
     }
 }
 
+// MARK: - CommunityViewModel
 @MainActor
 class CommunityViewModel: ObservableObject {
     @Published var localEvents: [CommunityEvent] = []
@@ -234,15 +238,16 @@ class CommunityViewModel: ObservableObject {
         syncProgress = 0.0
         
         do {
-            async let eventsTask = loadEvents()
-            async let groupsTask = loadStudyGroups()
-            async let leaderboardTask = loadLeaderboard()
-            async let statsTask = loadUserStats()
-            
-            await eventsTask
-            await groupsTask
-            await leaderboardTask
-            await statsTask
+            // Load data concurrently using Task.group
+            try await withThrowingTaskGroup(of: Void.self) { group in
+                group.addTask { await self.loadEvents() }
+                group.addTask { await self.loadStudyGroups() }
+                group.addTask { await self.loadLeaderboard() }
+                group.addTask { await self.loadUserStats() }
+                
+                // Wait for all tasks to complete
+                try await group.waitForAll()
+            }
             
             await syncData()
             
@@ -272,32 +277,24 @@ class CommunityViewModel: ObservableObject {
             print("Community data synced")
             
             NotificationCenter.default.post(name: .dataSynced, object: "community")
-            
-        } catch {
-            print("Sync failed: \(error)")
         }
     }
     
     func joinEvent(_ event: CommunityEvent) async {
-        do {
-            // Simulate API call for now
-            print("Joining event: \(event.title)")
-            
-            // Update event attendance locally
-            if let index = localEvents.firstIndex(where: { $0.id == event.id }) {
-                localEvents[index].attendees += 1
-                localEvents[index].isUserAttending = true
-            }
-            
-            // Track analytics - simplified for now
-            print("Analytics: event_joined - \(event.title)")
-            
-            // Cache updated data - simplified for now
-            print("Cached updated events")
-            
-        } catch {
-            errorMessage = "Failed to join event: \(error.localizedDescription)"
+        // Simulate API call for now
+        print("Joining event: \(event.title)")
+        
+        // Update event attendance locally
+        if let index = localEvents.firstIndex(where: { $0.id == event.id }) {
+            localEvents[index].attendees += 1
+            localEvents[index].isUserAttending = true
         }
+        
+        // Track analytics - simplified for now
+        print("Analytics: event_joined - \(event.title)")
+        
+        // Cache updated data - simplified for now
+        print("Cached updated events")
     }
     
     func leaveEvent(_ event: CommunityEvent) async {
@@ -309,25 +306,20 @@ class CommunityViewModel: ObservableObject {
     }
     
     func joinStudyGroup(_ group: StudyGroup) async {
-        do {
-            // Simulate API call for now
-            print("Joining study group: \(group.name)")
-            
-            // Update group membership locally
-            if let index = studyGroups.firstIndex(where: { $0.id == group.id }) {
-                studyGroups[index].memberCount += 1
-                studyGroups[index].isUserMember = true
-            }
-            
-            // Track analytics - simplified for now
-            print("Analytics: study_group_joined - \(group.name)")
-            
-            // Cache updated data - simplified for now
-            print("Cached updated study groups")
-            
-        } catch {
-            errorMessage = "Failed to join study group: \(error.localizedDescription)"
+        // Simulate API call for now
+        print("Joining study group: \(group.name)")
+        
+        // Update group membership locally
+        if let index = studyGroups.firstIndex(where: { $0.id == group.id }) {
+            studyGroups[index].memberCount += 1
+            studyGroups[index].isUserMember = true
         }
+        
+        // Track analytics - simplified for now
+        print("Analytics: study_group_joined - \(group.name)")
+        
+        // Cache updated data - simplified for now
+        print("Cached updated study groups")
     }
     
     func leaveStudyGroup(_ group: StudyGroup) async {
