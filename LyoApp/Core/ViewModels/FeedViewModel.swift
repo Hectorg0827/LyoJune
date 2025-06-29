@@ -41,7 +41,7 @@ class FeedViewModel: ObservableObject {
     // Enhanced services
     private let serviceFactory = EnhancedServiceFactory.shared
     
-    private var apiService: EnhancedAPIService {
+    private var apiService: EnhancedNetworkManager {
         serviceFactory.apiService
     }
     
@@ -56,7 +56,9 @@ class FeedViewModel: ObservableObject {
     init() {
         setupNotifications()
         setupRealTimeUpdates()
-        loadCachedData()
+        Task {
+            await loadCachedData()
+        }
     }
     
     deinit {
@@ -71,31 +73,22 @@ class FeedViewModel: ObservableObject {
         errorMessage = nil
         currentPage = 1
         
-        do {
-            // Load from cache first for instant UI
-            await loadCachedData()
-            
-            // Mock fetch fresh data from API - method doesn't exist
-            let mockPosts: [Post] = []
-            let mockVideos: [EducationalVideo] = []
-            let mockHasMore = false
-            
-            posts = mockPosts
-            videos = mockVideos
-            hasMoreContent = mockHasMore
-            
-            // Mock cache the new data - method doesn't exist
-            await cacheData(posts: mockPosts, videos: mockVideos)
-            
-            isOffline = false
-            
-        } catch {
-            handleError(error)
-            // If network fails, show cached data
-            if posts.isEmpty {
-                await loadCachedData()
-            }
-        }
+        // Load from cache first for instant UI
+        await loadCachedData()
+        
+        // Mock fetch fresh data from API - method doesn't exist
+        let mockPosts: [Post] = []
+        let mockVideos: [EducationalVideo] = []
+        let mockHasMore = false
+        
+        posts = mockPosts
+        videos = mockVideos
+        hasMoreContent = mockHasMore
+        
+        // Mock cache the new data - method doesn't exist
+        await cacheData(posts: mockPosts, videos: mockVideos)
+        
+        isOffline = false
         
         isLoading = false
     }
@@ -106,23 +99,17 @@ class FeedViewModel: ObservableObject {
         isLoading = true
         currentPage += 1
         
-        do {
-            // Mock fetch more data - method doesn't exist
-            let mockPosts: [Post] = []
-            let mockVideos: [EducationalVideo] = []
-            let mockHasMore = false
-            
-            posts.append(contentsOf: mockPosts)
-            videos.append(contentsOf: mockVideos)
-            hasMoreContent = mockHasMore
-            
-            // Mock cache the new data - method doesn't exist
-            await cacheData(posts: mockPosts, videos: mockVideos)
-            
-        } catch {
-            handleError(error)
-            currentPage -= 1 // Revert page increment on error
-        }
+        // Mock fetch more data - method doesn't exist
+        let mockPosts: [Post] = []
+        let mockVideos: [EducationalVideo] = []
+        let mockHasMore = false
+        
+        posts.append(contentsOf: mockPosts)
+        videos.append(contentsOf: mockVideos)
+        hasMoreContent = mockHasMore
+        
+        // Mock cache the new data - method doesn't exist
+        await cacheData(posts: mockPosts, videos: mockVideos)
         
         isLoading = false
     }
@@ -143,23 +130,16 @@ class FeedViewModel: ObservableObject {
             // Note: Cannot mutate immutable properties, so we simulate the change
             let newLikesCount = wasLiked ? posts[index].likes - 1 : posts[index].likes + 1
             
-            do {
-                if wasLiked {
-                    // Mock unlike - method doesn't exist
-                    print("Unlike post: \(postId)")
-                } else {
-                    // Mock like - method doesn't exist  
-                    print("Like post: \(postId)")
-                }
-                
-                // Mock update cached data - method doesn't exist
-                print("Updated post like status in cache")
-                
-            } catch {
-                // Mock error since methods don't exist
-                print("Failed to update like status: \(error)")
-                handleError(APIError.networkError(NSError(domain: "MockError", code: 500)))
+            if wasLiked {
+                // Mock unlike - method doesn't exist
+                print("Unlike post: \(postId)")
+            } else {
+                // Mock like - method doesn't exist  
+                print("Like post: \(postId)")
             }
+            
+            // Mock update cached data - method doesn't exist
+            print("Updated post like status in cache")
         }
     }
     
@@ -171,11 +151,11 @@ class FeedViewModel: ObservableObject {
     // MARK: - Private Methods
     private func setupNotifications() {
         // Listen for network connectivity changes
-        NotificationCenter.default.publisher(for: .networkConnectivityChanged)
+        NotificationCenter.default.publisher(for: NSNotification.Name("networkConnectivityChanged"))
             .sink { [weak self] notification in
                 Task { @MainActor in
                     self?.isOffline = !(notification.object as? Bool ?? true)
-                    if !self!.isOffline && self!.posts.isEmpty {
+                    if !(self?.isOffline ?? true) && (self?.posts.isEmpty ?? true) {
                         await self?.loadContent()
                     }
                 }
@@ -183,7 +163,7 @@ class FeedViewModel: ObservableObject {
             .store(in: &cancellables)
         
         // Listen for authentication changes
-        NotificationCenter.default.publisher(for: .authenticationStateChanged)
+        NotificationCenter.default.publisher(for: NSNotification.Name("authenticationStateChanged"))
             .sink { [weak self] _ in
                 Task { @MainActor in
                     await self?.loadContent()
@@ -204,17 +184,17 @@ class FeedViewModel: ObservableObject {
                 posts.insert(newPost, at: 0)
             }
         case .likeUpdate:
-            if let postId = update.postId, let index = posts.firstIndex(where: { $0.id == postId }) {
+            if let postId = update.postId, posts.firstIndex(where: { $0.id == postId }) != nil {
                 // Mock update - Post properties are immutable, so we can't update them directly
                 print("Would update likes for post: \(postId)")
             }
         case .commentUpdate:
-            if let postId = update.postId, let index = posts.firstIndex(where: { $0.id == postId }) {
+            if let postId = update.postId, posts.firstIndex(where: { $0.id == postId }) != nil {
                 // Mock update - Post properties are immutable, so we can't update them directly
                 print("Would update comments for post: \(postId)")
             }
         case .shareUpdate:
-            if let postId = update.postId, let index = posts.firstIndex(where: { $0.id == postId }) {
+            if let postId = update.postId, posts.firstIndex(where: { $0.id == postId }) != nil {
                 // Mock update - Post properties are immutable, so we can't update them directly
                 print("Would update shares for post: \(postId)")
             }
@@ -226,29 +206,21 @@ class FeedViewModel: ObservableObject {
     }
     
     private func loadCachedData() async {
-        do {
-            // Mock load cached posts - method doesn't exist
-            let cachedPosts: [Post] = []
-            if !cachedPosts.isEmpty {
-                posts = cachedPosts
-                isOffline = true
-            }
-        } catch {
-            print("Failed to load cached posts: \(error.localizedDescription)")
+        // Mock load cached posts - method doesn't exist
+        let cachedPosts: [Post] = []
+        if !cachedPosts.isEmpty {
+            posts = cachedPosts
+            isOffline = true
         }
     }
     
     private func cacheData(posts: [Post], videos: [EducationalVideo]) async {
-        do {
-            // Mock cache posts - method doesn't exist
-            print("Cached \(posts.count) posts and \(videos.count) videos")
-        } catch {
-            print("Failed to cache posts: \(error.localizedDescription)")
-        }
+        // Mock cache posts - method doesn't exist
+        print("Cached \(posts.count) posts and \(videos.count) videos")
     }
     
     private func handleError(_ error: Error) {
-        if let apiError = error as? APIError {
+        if let apiError = error as? NetworkError {
             switch apiError {
             case .networkError:
                 errorMessage = "No internet connection. Showing cached content."
