@@ -73,8 +73,10 @@ struct ShimmerView: View {
 // MARK: - Glass Background Component
 // Enhanced glass morphism background
 
-struct GlassBackground: View {
-    var body: some View {
+public struct GlassBackground: View {
+    public init() {}
+    
+    public var body: some View {
         ZStack {
             // Base background
             ModernDesignSystem.Colors.backgroundPrimary
