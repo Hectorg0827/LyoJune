@@ -274,6 +274,26 @@ extension SkeletonLoader {
             }
         }
     }
+    
+    /// Create a course list skeleton
+    static func courseList() -> some View {
+        VStack(spacing: DesignTokens.Spacing.md) {
+            ForEach(0..<3, id: \.self) { _ in
+                HStack(spacing: DesignTokens.Spacing.md) {
+                    SkeletonLoader.image(width: 80, height: 60)
+                    VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                        SkeletonLoader.title(width: 180)
+                        SkeletonLoader.textLine(width: 120)
+                        SkeletonLoader.textLine(width: 90)
+                    }
+                    Spacer()
+                }
+                .padding(DesignTokens.Spacing.md)
+                .background(DesignTokens.Colors.neutral100)
+                .cornerRadius(DesignTokens.BorderRadius.md)
+            }
+        }
+    }
 }
 
 // MARK: - Loading State Manager
