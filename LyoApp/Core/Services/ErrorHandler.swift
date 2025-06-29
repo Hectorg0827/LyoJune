@@ -118,7 +118,7 @@ class ErrorHandler: ObservableObject {
     
     private func logError(_ error: AppError) {
         print("🚨 Error: \(error.originalError.localizedDescription)")
-        print("📍 Context: \(error.context)")
+        print("📍 Context: \(error.context ?? "Unknown")")
         print("⏰ Time: \(error.timestamp)")
         
         // In production, send to crash reporting service
