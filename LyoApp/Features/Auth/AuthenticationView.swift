@@ -430,7 +430,7 @@ struct AuthenticationView: View {
         Task {
             do {
                 if isSignUp {
-                    try await authService.signUp(
+                    _ = try await authService.signUp(
                         email: email,
                         password: password,
                         firstName: firstName,
@@ -438,7 +438,7 @@ struct AuthenticationView: View {
                         username: username
                     )
                 } else {
-                    try await authService.signIn(email: email, password: password)
+                    _ = try await authService.signIn(email: email, password: password)
                 }
             } catch {
                 // Error handling is managed by the authService
