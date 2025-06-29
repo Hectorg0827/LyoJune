@@ -35,7 +35,9 @@ class DiscoverViewModel: ObservableObject {
         setupNotifications()
         setupWebSocketListeners()
         setupSearchDebounce()
-        loadCachedData()
+        Task {
+            await loadCachedData()
+        }
     }
     
     deinit {
@@ -54,7 +56,7 @@ class DiscoverViewModel: ObservableObject {
     }
     
     private func setupNotifications() {
-        NotificationCenter.default.publisher(for: .networkConnectivityChanged)
+        NotificationCenter.default.publisher(for: NSNotification.Name("networkConnectivityChanged"))
             .sink { [weak self] notification in
                 if let isConnected = notification.object as? Bool {
                     self?.isOffline = !isConnected
@@ -66,7 +68,7 @@ class DiscoverViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
-    private func loadCachedData() {
+    private func loadCachedData() async {
         // Load cached discover data
         // Mock cached data loading - methods don't exist in CoreDataManager
         self.posts = []
@@ -85,22 +87,11 @@ class DiscoverViewModel: ObservableObject {
         currentPage = 1
         syncProgress = 0.0
         
-        do {
-            async let postsTask = loadPosts()
-            async let trendingTask = loadTrendingTopics()
-            async let creatorsTask = loadFeaturedCreators()
-            
-            // Await tasks with proper error handling
-            try await postsTask
-            try await trendingTask
-            try await creatorsTask
-            
-            await syncData()
-            
-        } catch {
-            errorMessage = error.localizedDescription
-            NotificationCenter.default.post(name: .dataSyncFailed, object: error)
-        }
+        await loadPosts()
+        await loadTrendingTopics()
+        await loadFeaturedCreators()
+        
+        await syncData()
         
         isLoading = false
         syncProgress = 1.0
@@ -112,12 +103,7 @@ class DiscoverViewModel: ObservableObject {
         isLoading = true
         currentPage += 1
         
-        do {
-            try await loadPosts()
-        } catch {
-            errorMessage = error.localizedDescription
-            currentPage -= 1 // Revert on error
-        }
+        await loadPosts()
         
         isLoading = false
     }
@@ -133,24 +119,19 @@ class DiscoverViewModel: ObservableObject {
     func syncData() async {
         guard !isOffline else { return }
         
-        do {
-            // Mock sync - method doesn't exist
-            let syncResult = (posts: posts, discoverPosts: discoverPosts)
-            lastSyncTime = Date()
-            
-            // Update UI with synced data
-            if !syncResult.posts.isEmpty {
-                posts = syncResult.posts
-            }
-            if !syncResult.discoverPosts.isEmpty {
-                discoverPosts = syncResult.discoverPosts
-            }
-            
-            NotificationCenter.default.post(name: .dataSyncCompleted, object: "discover")
-            
-        } catch {
-            print("Discover sync failed: \(error)")
+        // Mock sync - method doesn't exist
+        let syncResult = (posts: posts, discoverPosts: discoverPosts)
+        lastSyncTime = Date()
+        
+        // Update UI with synced data
+        if !syncResult.posts.isEmpty {
+            posts = syncResult.posts
         }
+        if !syncResult.discoverPosts.isEmpty {
+            discoverPosts = syncResult.discoverPosts
+        }
+        
+        NotificationCenter.default.post(name: NSNotification.Name("dataSyncCompleted"), object: "discover")
     }
     
     func searchContent() async {
@@ -161,42 +142,36 @@ class DiscoverViewModel: ObservableObject {
         
         isSearching = true
         
-        do {
-            // Mock search - method doesn't exist
-            let searchResults: [Post] = []
-            
-            // Convert to DiscoverPost format for compatibility
-            discoverPosts = searchResults.compactMap { post in
-                DiscoverPost(
-                    id: UUID(),
-                    author: post.author.name,
-                    content: post.content,
-                    timeAgo: "now",
-                    likes: post.likes,
-                    comments: post.comments,
-                    shares: post.shares,
-                    hasMedia: post.imageURL != nil,
-                    mediaTypeString: post.imageURL != nil ? "image" : nil,
-                    category: VideoCategory.programming,
-                    tags: [],
-                    createdAt: post.createdAt,
-                    updatedAt: post.updatedAt,
-                    isLiked: post.isLiked,
-                    isBookmarked: false
-                )
-            }
-            
-            // Mock analytics tracking - method doesn't exist
-            await AnalyticsAPIService.shared.trackEvent("search_performed", parameters: [
-                "query": searchText,
-                "category": selectedCategory,
-                "results_count": String(discoverPosts.count)
-            ])
-            
-        } catch {
-            errorMessage = "Search failed: \(error.localizedDescription)"
-            discoverPosts = []
+        // Mock search - method doesn't exist
+        let searchResults: [Post] = []
+        
+        // Convert to DiscoverPost format for compatibility
+        discoverPosts = searchResults.compactMap { post in
+            DiscoverPost(
+                id: UUID(),
+                author: post.author.name,
+                content: post.content,
+                timeAgo: "now",
+                likes: post.likes,
+                comments: post.comments,
+                shares: post.shares,
+                hasMedia: post.imageURL != nil,
+                mediaTypeString: post.imageURL != nil ? "image" : nil,
+                category: VideoCategory.programming,
+                tags: [],
+                createdAt: post.createdAt,
+                updatedAt: post.updatedAt,
+                isLiked: post.isLiked,
+                isBookmarked: false
+            )
         }
+        
+        // Mock analytics tracking - method doesn't exist
+        await AnalyticsAPIService.shared.trackEvent("search_performed", parameters: [
+            "query": searchText,
+            "category": selectedCategory,
+            "results_count": String(discoverPosts.count)
+        ])
         
         isSearching = false
     }
@@ -257,7 +232,7 @@ class DiscoverViewModel: ObservableObject {
     }
     
     // MARK: - Private Methods
-    private func loadPosts() async throws {
+    private func loadPosts() async {
         // Mock discover posts - method doesn't exist
         let mockPosts: [Post] = []
         let mockHasNextPage = false
@@ -275,11 +250,11 @@ class DiscoverViewModel: ObservableObject {
         
         // Load cached posts if no network data
         if currentPage == 1 && posts.isEmpty {
-            loadCachedPosts()
+            await loadCachedPosts()
         }
     }
     
-    private func loadTrendingTopics() async throws {
+    private func loadTrendingTopics() async {
         // Mock trending topics - method doesn't exist
         let topics: [String] = ["iOS", "SwiftUI", "Programming", "Design", "Science"]
         trendingTopics = topics
@@ -287,7 +262,7 @@ class DiscoverViewModel: ObservableObject {
         print("Cached \(topics.count) trending topics")
     }
     
-    private func loadFeaturedCreators() async throws {
+    private func loadFeaturedCreators() async {
         // Mock featured creators - method doesn't exist
         let creators: [User] = []
         featuredCreators = creators
@@ -298,12 +273,32 @@ class DiscoverViewModel: ObservableObject {
         if creators.isEmpty && !posts.isEmpty {
             let uniqueAuthors = Array(Set(posts.map { $0.author.name }))
             featuredCreators = Array(uniqueAuthors.prefix(10).compactMap { name in
-                posts.first { $0.author.name == name }?.author
+                // Create mock User from post author name
+                User(
+                    id: UUID(),
+                    username: name.lowercased().replacingOccurrences(of: " ", with: "_"),
+                    email: "\(name.lowercased().replacingOccurrences(of: " ", with: "."))@example.com",
+                    firstName: name.components(separatedBy: " ").first ?? name,
+                    lastName: name.components(separatedBy: " ").last ?? "",
+                    avatar: UserAvatar(),
+                    preferences: UserPreferences(),
+                    profile: UserProfile(),
+                    subscriptionTier: .free,
+                    achievements: [],
+                    learningStats: LearningStats(),
+                    createdAt: Date(),
+                    updatedAt: Date(),
+                    serverID: nil,
+                    syncStatus: .synced,
+                    lastSyncedAt: Date(),
+                    version: 1,
+                    etag: nil
+                )
             })
         }
     }
     
-    private func loadCachedPosts() {
+    private func loadCachedPosts() async {
         // Mock cache check - method doesn't exist
         let cached: [Post]? = nil
         if let cached = cached {
