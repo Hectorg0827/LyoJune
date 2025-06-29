@@ -66,7 +66,7 @@ struct EnhancedMainTabView: View {
         .onAppear {
             setupTabBarAppearance()
         }
-        .onChange(of: appState.selectedTab) { newTab in
+        .onChange(of: appState.selectedTab) { _, newTab in
             handleTabChange(from: previousTab, to: newTab)
             previousTab = newTab
         }
@@ -252,12 +252,10 @@ struct EnhancedTikTokVideoView: View {
                             .foregroundColor(.white)
                             .lineLimit(2)
                         
-                        if let description = video.description {
-                            Text(description)
-                                .font(DesignTokens.Typography.bodyMedium)
-                                .foregroundColor(.white.opacity(0.8))
-                                .lineLimit(3)
-                        }
+                        Text("By \(video.author)")
+                            .font(DesignTokens.Typography.bodyMedium)
+                            .foregroundColor(.white.opacity(0.8))
+                            .lineLimit(1)
                     }
                     
                     Spacer()
