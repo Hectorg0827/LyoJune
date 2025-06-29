@@ -215,7 +215,7 @@ public struct ModernTextField: View {
         .onTapGesture {
             textFieldFocused = true
         }
-        .onChange(of: textFieldFocused) { focused in
+        .onChange(of: textFieldFocused) { _, focused in
             withAnimation(.easeInOut(duration: 0.2)) {
                 isFocused = focused
             }
@@ -547,7 +547,7 @@ struct ProgressBar: View {
                 animatedProgress = progress
             }
         }
-        .onChange(of: progress) { newProgress in
+        .onChange(of: progress) { _, newProgress in
             withAnimation(.easeOut) {
                 animatedProgress = newProgress
             }
