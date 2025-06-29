@@ -11,8 +11,9 @@ struct LearningPath: Identifiable, Codable {
     let difficulty: String
     let category: String
     let progress: Double
+    let completedCourses: Int
     
-    init(id: UUID = UUID(), title: String, description: String, courses: [String] = [], estimatedDuration: TimeInterval = 0, difficulty: String = "beginner", category: String = "general", progress: Double = 0.0) {
+    init(id: UUID = UUID(), title: String, description: String, courses: [String] = [], estimatedDuration: TimeInterval = 0, difficulty: String = "beginner", category: String = "general", progress: Double = 0.0, completedCourses: Int = 0) {
         self.id = id
         self.title = title
         self.description = description
@@ -21,6 +22,7 @@ struct LearningPath: Identifiable, Codable {
         self.difficulty = difficulty
         self.category = category
         self.progress = progress
+        self.completedCourses = completedCourses
     }
 }
 
