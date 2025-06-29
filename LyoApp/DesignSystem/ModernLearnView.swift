@@ -71,20 +71,20 @@ struct ModernLearnView: View {
                 }
             }
         }
-        .navigationBarTitleDisplayMode(.never)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             Task {
                 await loadContent()
             }
         }
         .refreshable {
-            await viewModel.refreshContent()
+            await viewModel.refreshData()
         }
     }
     
     private func loadContent() async {
         isLoading = true
-        await viewModel.loadContent()
+        await viewModel.loadData()
         
         // Simulate loading for better UX
         try? await Task.sleep(nanoseconds: 300_000_000) // 0.3 seconds
@@ -135,7 +135,7 @@ struct ModernHeaderView: View {
                 
                 if showSearch {
                     Button(action: {
-                        HapticManager.shared.impact(.light)
+                        HapticManager.shared.lightImpact()
                         withAnimation(AnimationSystem.Presets.spring) {
                             isSearching.toggle()
                         }
@@ -184,7 +184,7 @@ struct ModernSearchBar: View {
             if !text.isEmpty {
                 Button(action: {
                     text = ""
-                    HapticManager.shared.impact(.light)
+                    HapticManager.shared.lightImpact()
                 }) {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 16))
@@ -200,7 +200,7 @@ struct ModernSearchBar: View {
                 .overlay(
                     RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.large)
                         .stroke(
-                            isFocused ? DesignTokens.Colors.primary : DesignTokens.Colors.border,
+                            isFocused ? DesignTokens.Colors.primary : DesignTokens.Colors.neutral300,
                             lineWidth: isFocused ? 2 : 1
                         )
                 )
@@ -352,7 +352,7 @@ struct ModernLearningPathCard: View {
                 Spacer()
                 
                 Button(action: {
-                    HapticManager.shared.impact(.light)
+                    HapticManager.shared.lightImpact()
                     withAnimation(AnimationSystem.Presets.spring) {
                         isExpanded.toggle()
                     }
