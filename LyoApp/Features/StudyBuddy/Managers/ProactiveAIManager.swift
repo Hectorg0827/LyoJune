@@ -130,7 +130,7 @@ class ProactiveAIManager: ObservableObject {
         learningContext = context
         
         // Update proactive AI with new context
-        let activity = UserActivity(
+        let _ = UserActivity(
             type: determineActivityType(from: context),
             duration: context.timeSpent,
             context: [
