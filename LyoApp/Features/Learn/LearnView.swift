@@ -3,7 +3,7 @@ import SwiftUI
 // MARK: - Learn Type Definitions
 // Note: Course type is defined in AppModels.swift and used throughout this file
 struct LearningGoal: Identifiable, Codable {
-    let id = UUID()
+    let id: UUID
     let title: String
     let description: String
     let target: Int
@@ -17,6 +17,7 @@ struct LearningGoal: Identifiable, Codable {
     }
     
     init(title: String, description: String, target: Int, current: Int = 0, deadline: Date? = nil, category: String = "general") {
+        self.id = UUID()
         self.title = title
         self.description = description
         self.target = target
@@ -33,7 +34,10 @@ struct LearnView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                GlassBackground()
+                // Glass background effect
+                Rectangle()
+                    .fill(.ultraThinMaterial)
+                    .ignoresSafeArea()
                 
                 VStack(spacing: 0) {
                     // Dynamic Header
@@ -183,7 +187,7 @@ struct CourseCard: View {
                     .foregroundColor(.white)
                     .lineLimit(2)
                 
-                Text(course.instructor)
+                Text(course.instructor.name)
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.7))
                 
