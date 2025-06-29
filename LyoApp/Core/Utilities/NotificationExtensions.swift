@@ -58,15 +58,7 @@ struct NotificationUserInfoKeys {
 }
 
 // MARK: - Real-time Update Models
-struct PostUpdate: Codable {
-    let postId: String
-    let type: PostUpdateType
-    let post: Post?
-    let likesCount: Int?
-    let commentsCount: Int?
-    let isLiked: Bool?
-    let timestamp: Date
-}
+// Note: PostUpdate is defined in FeedViewModel.swift to avoid conflicts
 
 enum PostUpdateType: String, Codable {
     case newPost = "new_post"
