@@ -371,16 +371,6 @@ struct HeaderUserProfile: Identifiable, Codable {
         }
     }
     
-    struct UserStats: Codable {
-        let coursesCompleted: Int
-        let hoursLearned: Double
-        let followersCount: Int
-        let followingCount: Int
-        let streakDays: Int
-        let averageScore: Double
-        let totalPoints: Int
-    }
-    
     struct UserCourse: Identifiable, Codable {
         let id: UUID
         let courseId: String
@@ -409,13 +399,18 @@ struct HeaderUserProfile: Identifiable, Codable {
         bio: "Passionate learner exploring the intersection of technology and education. Always eager to discover new concepts and share knowledge with fellow students.",
         joinDate: Date().addingTimeInterval(-2592000), // 30 days ago
         stats: UserStats(
+            totalStudyTime: 48.5,
             coursesCompleted: 12,
-            hoursLearned: 48.5,
-            followersCount: 234,
-            followingCount: 189,
-            streakDays: 15,
-            averageScore: 87.5,
-            totalPoints: 12450
+            eventsAttended: 5,
+            groupsJoined: 3,
+            postsCreated: 15,
+            currentStreak: 15,
+            longestStreak: 25,
+            totalPoints: 12450,
+            level: 8,
+            rank: 234,
+            achievementsCount: 8,
+            userId: UUID()
         ),
         preferences: UserPreferences(
             notifications: true,
