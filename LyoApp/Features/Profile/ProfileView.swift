@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 // MARK: - Phase 2 Enhanced Profile View
 // Modern, personalized, and engaging profile experience
@@ -27,7 +28,7 @@ struct ProfileView: View {
             .onAppear {
                 startProfileAnimation()
                 Task {
-                    await viewModel.loadProfile()
+                    await viewModel.loadData()
                 }
             }
         }
@@ -42,15 +43,16 @@ struct ProfileView: View {
             LinearGradient(
                 gradient: Gradient(stops: [
                     .init(color: userThemeColor.opacity(0.2), location: 0.0),
-                    .init(color: ModernDesignSystem.Colors.backgroundPrimary, location: 0.4),
-                    .init(color: ModernDesignSystem.Colors.backgroundSecondary, location: 1.0)
+                    .init(color: DesignTokens.Colors.background, location: 0.4),
+                    .init(color: DesignTokens.Colors.surface, location: 1.0)
                 ]),
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
             
             // Subtle pattern overlay
-            PatternOverlay()
+            Rectangle()
+                .fill(.ultraThinMaterial)
                 .opacity(0.03)
         }
     }
@@ -61,34 +63,34 @@ struct ProfileView: View {
             LazyVStack(spacing: 0) {
                 // Enhanced profile header
                 enhancedProfileHeader
-                    .padding(.top, ModernDesignSystem.Spacing.xl)
+                    .padding(.top, DesignTokens.Spacing.xl)
                 
                 // Modern stats section
                 modernStatsSection
-                    .padding(.top, ModernDesignSystem.Spacing.lg)
+                    .padding(.top, DesignTokens.Spacing.lg)
                 
                 // Enhanced achievements section
                 enhancedAchievementsSection
-                    .padding(.top, ModernDesignSystem.Spacing.lg)
+                    .padding(.top, DesignTokens.Spacing.lg)
                 
                 // Modern activity section
                 modernActivitySection
-                    .padding(.top, ModernDesignSystem.Spacing.lg)
+                    .padding(.top, DesignTokens.Spacing.lg)
                 
                 // Enhanced settings section
                 enhancedSettingsSection
-                    .padding(.top, ModernDesignSystem.Spacing.lg)
-                    .padding(.bottom, ModernDesignSystem.Spacing.xxl)
+                    .padding(.top, DesignTokens.Spacing.lg)
+                    .padding(.bottom, DesignTokens.Spacing.xxl)
             }
         }
         .refreshable {
-            await viewModel.refreshProfile()
+            await viewModel.refreshData()
         }
     }
     
     @ViewBuilder
     private var enhancedProfileHeader: some View {
-        VStack(spacing: ModernDesignSystem.Spacing.lg) {
+        VStack(spacing: DesignTokens.Spacing.lg) {
             // Profile image with modern design
             ZStack {
                 // Background glow effect
@@ -98,7 +100,7 @@ struct ProfileView: View {
                     .blur(radius: 20)
                     .scaleEffect(profileImageScale)
                     .animation(
-                        ModernDesignSystem.Animations.pulse,
+                        DesignTokens.Animations.pulse,
                         value: profileImageScale
                     )
                 
@@ -133,7 +135,7 @@ struct ProfileView: View {
                             LinearGradient(
                                 gradient: Gradient(colors: [
                                     userThemeColor,
-                                    ModernDesignSystem.Colors.accent
+                                    DesignTokens.Colors.accent
                                 ]),
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
@@ -149,7 +151,7 @@ struct ProfileView: View {
                 )
                 .scaleEffect(isAnimating ? 1.0 : 0.8)
                 .animation(
-                    ModernDesignSystem.Animations.spring.delay(0.2),
+                    DesignTokens.Animations.spring.delay(0.2),
                     value: isAnimating
                 )
                 
@@ -164,10 +166,10 @@ struct ProfileView: View {
                         .frame(width: 32, height: 32)
                         .background(
                             Circle()
-                                .fill(ModernDesignSystem.Colors.primary)
+                                .fill(DesignTokens.Colors.primary)
                         )
                         .shadow(
-                            color: ModernDesignSystem.Colors.primary.opacity(0.3),
+                            color: DesignTokens.Colors.primary.opacity(0.3),
                             radius: 8,
                             x: 0,
                             y: 4
@@ -176,55 +178,54 @@ struct ProfileView: View {
                 .offset(x: 40, y: 40)
                 .scaleEffect(isAnimating ? 1.0 : 0.5)
                 .animation(
-                    ModernDesignSystem.Animations.springBouncy.delay(0.4),
+                    DesignTokens.Animations.springBouncy.delay(0.4),
                     value: isAnimating
                 )
             }
             
             // User info
-            VStack(spacing: ModernDesignSystem.Spacing.sm) {
+            VStack(spacing: DesignTokens.Spacing.sm) {
                 Text(authService.currentUser?.displayName ?? "Unknown User")
-                    .font(ModernDesignSystem.Typography.headlineLarge)
+                    .font(DesignTokens.Typography.headlineLarge)
                     .fontWeight(.bold)
-                    .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
                     .opacity(isAnimating ? 1.0 : 0.3)
                     .animation(
-                        ModernDesignSystem.Animations.easeInOut.delay(0.6),
+                        DesignTokens.Animations.easeInOut.delay(0.6),
                         value: isAnimating
                     )
                 
                 if let username = authService.currentUser?.username {
                     Text("@\(username)")
-                        .font(ModernDesignSystem.Typography.bodyLarge)
-                        .foregroundColor(ModernDesignSystem.Colors.textSecondary)
+                        .font(DesignTokens.Typography.bodyLarge)
+                        .foregroundColor(DesignTokens.Colors.textSecondary)
                         .opacity(isAnimating ? 1.0 : 0.3)
                         .animation(
-                            ModernDesignSystem.Animations.easeInOut.delay(0.7),
+                            DesignTokens.Animations.easeInOut.delay(0.7),
                             value: isAnimating
                         )
                 }
                 
                 if let bio = authService.currentUser?.bio {
                     Text(bio)
-                        .font(ModernDesignSystem.Typography.bodyMedium)
-                        .foregroundColor(ModernDesignSystem.Colors.textSecondary)
+                        .font(DesignTokens.Typography.bodyMedium)
+                        .foregroundColor(DesignTokens.Colors.textSecondary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+                        .padding(.horizontal, DesignTokens.Spacing.lg)
                         .opacity(isAnimating ? 1.0 : 0.3)
                         .animation(
-                            ModernDesignSystem.Animations.easeInOut.delay(0.8),
+                            DesignTokens.Animations.easeInOut.delay(0.8),
                             value: isAnimating
                         )
                 }
             }
             
             // Action buttons
-            HStack(spacing: ModernDesignSystem.Spacing.md) {
+            HStack(spacing: DesignTokens.Spacing.md) {
                 ModernButton(
                     title: "Edit Profile",
                     style: .primary,
-                    size: .medium,
-                    icon: "pencil"
+                    size: .medium
                 ) {
                     showingEditProfile = true
                 }
@@ -233,72 +234,72 @@ struct ProfileView: View {
                     title: "Share",
                     style: .secondary,
                     size: .medium,
-                    icon: "square.and.arrow.up"
-                ) {
-                    shareProfile()
-                }
+                    action: {
+                        shareProfile()
+                    }
+                )
             }
             .opacity(isAnimating ? 1.0 : 0.3)
             .offset(y: isAnimating ? 0 : 20)
             .animation(
-                ModernDesignSystem.Animations.spring.delay(1.0),
+                DesignTokens.Animations.spring.delay(1.0),
                 value: isAnimating
             )
         }
-        .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+        .padding(.horizontal, DesignTokens.Spacing.lg)
     }
     
     @ViewBuilder
     private var modernStatsSection: some View {
         if let stats = viewModel.userStats {
-            VStack(spacing: ModernDesignSystem.Spacing.md) {
+            VStack(spacing: DesignTokens.Spacing.md) {
                 HStack {
                     Text("Your Stats")
-                        .font(ModernDesignSystem.Typography.headlineSmall)
+                        .font(DesignTokens.Typography.headlineSmall)
                         .fontWeight(.semibold)
-                        .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                        .foregroundColor(DesignTokens.Colors.textPrimary)
                     
                     Spacer()
                 }
-                .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+                .padding(.horizontal, DesignTokens.Spacing.lg)
                 
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: ModernDesignSystem.Spacing.md) {
+                    HStack(spacing: DesignTokens.Spacing.md) {
                         modernStatCard(
-                            title: "Videos Watched",
-                            value: "\(stats.videosWatched)",
+                            title: "Courses Completed",
+                            value: "\(stats.coursesCompleted)",
                             icon: "play.circle.fill",
-                            color: ModernDesignSystem.Colors.primary
+                            color: DesignTokens.Colors.primary
                         )
                         
                         modernStatCard(
-                            title: "Study Hours",
-                            value: "\(stats.studyHours)",
+                            title: "Study Time",
+                            value: "\(Int(stats.totalStudyTime / 3600))h",
                             icon: "clock.fill",
-                            color: ModernDesignSystem.Colors.accent
+                            color: DesignTokens.Colors.accent
                         )
                         
                         modernStatCard(
                             title: "Streak",
                             value: "\(stats.currentStreak) days",
                             icon: "flame.fill",
-                            color: ModernDesignSystem.Colors.warning
+                            color: DesignTokens.Colors.warning
                         )
                         
                         modernStatCard(
-                            title: "Level",
-                            value: "\(stats.level)",
+                            title: "Total Points",
+                            value: "\(stats.totalPoints)",
                             icon: "star.fill",
-                            color: ModernDesignSystem.Colors.success
+                            color: DesignTokens.Colors.success
                         )
                     }
-                    .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+                    .padding(.horizontal, DesignTokens.Spacing.lg)
                 }
             }
             .opacity(isAnimating ? 1.0 : 0.3)
             .offset(y: isAnimating ? 0 : 30)
             .animation(
-                ModernDesignSystem.Animations.spring.delay(1.2),
+                DesignTokens.Animations.spring.delay(1.2),
                 value: isAnimating
             )
         }
@@ -311,30 +312,30 @@ struct ProfileView: View {
         icon: String,
         color: Color
     ) -> some View {
-        VStack(spacing: ModernDesignSystem.Spacing.sm) {
+        VStack(spacing: DesignTokens.Spacing.sm) {
             Image(systemName: icon)
                 .font(.system(size: 24, weight: .medium))
                 .foregroundColor(color)
             
             Text(value)
-                .font(ModernDesignSystem.Typography.headlineSmall)
+                .font(DesignTokens.Typography.headlineSmall)
                 .fontWeight(.bold)
-                .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                .foregroundColor(DesignTokens.Colors.textPrimary)
             
             Text(title)
-                .font(ModernDesignSystem.Typography.caption)
-                .foregroundColor(ModernDesignSystem.Colors.textSecondary)
+                .font(DesignTokens.Typography.caption)
+                .foregroundColor(DesignTokens.Colors.textSecondary)
                 .multilineTextAlignment(.center)
         }
-        .padding(ModernDesignSystem.Spacing.lg)
+        .padding(DesignTokens.Spacing.lg)
         .frame(minWidth: 100)
         .background(
-            RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.lg)
-                .fill(ModernDesignSystem.Colors.backgroundSecondary)
-                .overlay(
-                    RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.lg)
-                        .stroke(color.opacity(0.3), lineWidth: 1)
-                )
+            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg)
+                .fill(DesignTokens.Colors.backgroundSecondary)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.lg)
+                .stroke(color.opacity(0.3), lineWidth: 1)
         )
         .shadow(
             color: color.opacity(0.1),
@@ -346,50 +347,50 @@ struct ProfileView: View {
     
     @ViewBuilder
     private var enhancedAchievementsSection: some View {
-        VStack(spacing: ModernDesignSystem.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.md) {
             HStack {
                 Text("Achievements")
-                    .font(ModernDesignSystem.Typography.headlineSmall)
+                    .font(DesignTokens.Typography.headlineSmall)
                     .fontWeight(.semibold)
-                    .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
                 
                 Spacer()
                 
                 Button("View All") {
                     // Navigate to achievements
                 }
-                .font(ModernDesignSystem.Typography.bodyMedium)
-                .foregroundColor(ModernDesignSystem.Colors.primary)
+                .font(DesignTokens.Typography.bodyMedium)
+                .foregroundColor(DesignTokens.Colors.primary)
             }
-            .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+            .padding(.horizontal, DesignTokens.Spacing.lg)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: ModernDesignSystem.Spacing.md) {
+                HStack(spacing: DesignTokens.Spacing.md) {
                     ForEach(viewModel.achievements.prefix(5), id: \.id) { achievement in
                         modernAchievementCard(achievement: achievement)
                     }
                 }
-                .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+                .padding(.horizontal, DesignTokens.Spacing.lg)
             }
         }
         .opacity(isAnimating ? 1.0 : 0.3)
         .offset(y: isAnimating ? 0 : 40)
         .animation(
-            ModernDesignSystem.Animations.spring.delay(1.4),
+            DesignTokens.Animations.spring.delay(1.4),
             value: isAnimating
         )
     }
     
     @ViewBuilder
     private func modernAchievementCard(achievement: Achievement) -> some View {
-        VStack(spacing: ModernDesignSystem.Spacing.sm) {
+        VStack(spacing: DesignTokens.Spacing.sm) {
             ZStack {
                 Circle()
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                ModernDesignSystem.Colors.accent,
-                                ModernDesignSystem.Colors.secondary
+                                DesignTokens.Colors.accent,
+                                DesignTokens.Colors.secondary
                             ]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -397,15 +398,15 @@ struct ProfileView: View {
                     )
                     .frame(width: 60, height: 60)
                 
-                Image(systemName: achievement.iconName)
+                Image(systemName: achievementIcon(for: achievement))
                     .font(.system(size: 24, weight: .medium))
                     .foregroundColor(.white)
             }
             
             Text(achievement.title)
-                .font(ModernDesignSystem.Typography.caption)
+                .font(DesignTokens.Typography.caption)
                 .fontWeight(.medium)
-                .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                .foregroundColor(DesignTokens.Colors.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
         }
@@ -414,86 +415,86 @@ struct ProfileView: View {
     
     @ViewBuilder
     private var modernActivitySection: some View {
-        VStack(spacing: ModernDesignSystem.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.md) {
             HStack {
                 Text("Recent Activity")
-                    .font(ModernDesignSystem.Typography.headlineSmall)
+                    .font(DesignTokens.Typography.headlineSmall)
                     .fontWeight(.semibold)
-                    .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
                 
                 Spacer()
             }
-            .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+            .padding(.horizontal, DesignTokens.Spacing.lg)
             
-            LazyVStack(spacing: ModernDesignSystem.Spacing.sm) {
+            LazyVStack(spacing: DesignTokens.Spacing.sm) {
                 ForEach(viewModel.recentActivities.prefix(3), id: \.id) { activity in
                     modernActivityCard(activity: activity)
                 }
             }
-            .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+            .padding(.horizontal, DesignTokens.Spacing.lg)
         }
         .opacity(isAnimating ? 1.0 : 0.3)
         .offset(y: isAnimating ? 0 : 50)
         .animation(
-            ModernDesignSystem.Animations.spring.delay(1.6),
+            DesignTokens.Animations.spring.delay(1.6),
             value: isAnimating
         )
     }
     
     @ViewBuilder
     private func modernActivityCard(activity: Activity) -> some View {
-        HStack(spacing: ModernDesignSystem.Spacing.md) {
+        HStack(spacing: DesignTokens.Spacing.md) {
             // Activity icon
-            Image(systemName: activity.iconName)
+            Image(systemName: iconName(for: String(describing: activity.type)))
                 .font(.system(size: 20, weight: .medium))
-                .foregroundColor(ModernDesignSystem.Colors.accent)
+                .foregroundColor(DesignTokens.Colors.accent)
                 .frame(width: 40, height: 40)
                 .background(
                     Circle()
-                        .fill(ModernDesignSystem.Colors.accent.opacity(0.1))
+                        .fill(DesignTokens.Colors.accent.opacity(0.1))
                 )
             
             // Activity details
-            VStack(alignment: .leading, spacing: ModernDesignSystem.Spacing.xs) {
+            VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
                 Text(activity.title)
-                    .font(ModernDesignSystem.Typography.bodyMedium)
+                    .font(DesignTokens.Typography.bodyMedium)
                     .fontWeight(.medium)
-                    .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
                 
                 Text(activity.description)
-                    .font(ModernDesignSystem.Typography.bodySmall)
-                    .foregroundColor(ModernDesignSystem.Colors.textSecondary)
+                    .font(DesignTokens.Typography.bodySmall)
+                    .foregroundColor(DesignTokens.Colors.textSecondary)
                     .lineLimit(2)
             }
             
             Spacer()
             
             // Timestamp
-            Text(activity.timestamp.formatted(.relative(presentation: .named)))
-                .font(ModernDesignSystem.Typography.caption)
-                .foregroundColor(ModernDesignSystem.Colors.textSecondary)
+            Text(timeAgoString(from: activity.timestamp))
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.5))
         }
-        .padding(ModernDesignSystem.Spacing.md)
+        .padding(DesignTokens.Spacing.md)
         .background(
-            RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.md)
-                .fill(ModernDesignSystem.Colors.backgroundSecondary)
+            RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
+                .fill(DesignTokens.Colors.backgroundSecondary)
         )
     }
     
     @ViewBuilder
     private var enhancedSettingsSection: some View {
-        VStack(spacing: ModernDesignSystem.Spacing.md) {
+        VStack(spacing: DesignTokens.Spacing.md) {
             HStack {
                 Text("Settings")
-                    .font(ModernDesignSystem.Typography.headlineSmall)
+                    .font(DesignTokens.Typography.headlineSmall)
                     .fontWeight(.semibold)
-                    .foregroundColor(ModernDesignSystem.Colors.textPrimary)
+                    .foregroundColor(DesignTokens.Colors.textPrimary)
                 
                 Spacer()
             }
-            .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+            .padding(.horizontal, DesignTokens.Spacing.lg)
             
-            VStack(spacing: ModernDesignSystem.Spacing.xs) {
+            VStack(spacing: DesignTokens.Spacing.xs) {
                 modernSettingsRow(
                     icon: "gear",
                     title: "Preferences",
@@ -523,17 +524,19 @@ struct ProfileView: View {
                     title: "Sign Out",
                     isDestructive: true,
                     action: {
-                        authService.signOut()
+                        Task {
+                            await authService.logout()
+                        }
                         HapticManager.shared.mediumImpact()
                     }
                 )
             }
-            .padding(.horizontal, ModernDesignSystem.Spacing.lg)
+            .padding(.horizontal, DesignTokens.Spacing.lg)
         }
         .opacity(isAnimating ? 1.0 : 0.3)
         .offset(y: isAnimating ? 0 : 60)
         .animation(
-            ModernDesignSystem.Animations.spring.delay(1.8),
+            DesignTokens.Animations.spring.delay(1.8),
             value: isAnimating
         )
     }
@@ -549,26 +552,26 @@ struct ProfileView: View {
             HapticManager.shared.lightImpact()
             action()
         }) {
-            HStack(spacing: ModernDesignSystem.Spacing.md) {
+            HStack(spacing: DesignTokens.Spacing.md) {
                 Image(systemName: icon)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(isDestructive ? ModernDesignSystem.Colors.error : ModernDesignSystem.Colors.textSecondary)
-                    .frame(width: 24)
+                    .foregroundColor(isDestructive ? DesignTokens.Colors.error : DesignTokens.Colors.textSecondary)
+                    .frame(width: 20)
                 
                 Text(title)
-                    .font(ModernDesignSystem.Typography.bodyMedium)
-                    .foregroundColor(isDestructive ? ModernDesignSystem.Colors.error : ModernDesignSystem.Colors.textPrimary)
+                    .font(DesignTokens.Typography.bodyMedium)
+                    .foregroundColor(isDestructive ? DesignTokens.Colors.error : DesignTokens.Colors.textPrimary)
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(ModernDesignSystem.Colors.textSecondary)
+                    .foregroundColor(DesignTokens.Colors.textSecondary)
             }
-            .padding(ModernDesignSystem.Spacing.md)
+            .padding(DesignTokens.Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.md)
-                    .fill(ModernDesignSystem.Colors.backgroundSecondary)
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
+                    .fill(DesignTokens.Colors.backgroundSecondary)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -578,7 +581,7 @@ struct ProfileView: View {
     
     private var userThemeColor: Color {
         // Generate a theme color based on user preferences or default
-        return ModernDesignSystem.Colors.primary
+        return DesignTokens.Colors.primary
     }
     
     // MARK: - Private Methods
@@ -592,7 +595,7 @@ struct ProfileView: View {
         
         // Start profile image scale animation
         Timer.scheduledTimer(withTimeInterval: 3.0, repeats: true) { _ in
-            withAnimation(ModernDesignSystem.Animations.easeInOut) {
+            withAnimation(DesignTokens.Animations.easeInOut) {
                 profileImageScale = profileImageScale == 1.0 ? 1.1 : 1.0
             }
         }
@@ -625,7 +628,6 @@ struct ProfileHeader: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 100, height: 100)
                 .overlay(
                     Group {
                         if let user = user {
@@ -713,21 +715,21 @@ struct ProfileStatsSection: View {
             ], spacing: 16) {
                 ProfileStatCard(
                     title: "Total Courses",
-                    value: "\(stats.totalCourses)",
+                    value: "\(stats.coursesCompleted + stats.coursesInProgress)",
                     icon: "book",
                     color: .blue
                 )
                 
                 ProfileStatCard(
                     title: "Completed",
-                    value: "\(stats.completedCourses)",
+                    value: "\(stats.coursesCompleted)",
                     icon: "checkmark.circle",
                     color: .green
                 )
                 
                 ProfileStatCard(
                     title: "Study Hours",
-                    value: "\(Int(stats.totalHours))",
+                    value: "\(Int(stats.totalStudyTime / 3600))",
                     icon: "clock",
                     color: .orange
                 )
@@ -830,10 +832,10 @@ struct AchievementBadge: View {
     var body: some View {
         VStack(spacing: 8) {
             Circle()
-                .fill(achievement.color.gradient)
+                .fill(rarityColor(for: achievement.rarity).gradient)
                 .frame(width: 60, height: 60)
                 .overlay(
-                    Image(systemName: achievement.icon)
+                    Image(systemName: achievementIcon(for: achievement))
                         .font(.title2)
                         .foregroundColor(.white)
                 )
@@ -881,28 +883,28 @@ struct ActivityItem: View {
     var body: some View {
         HStack {
             Circle()
-                .fill(activity.type.color)
+                .fill(activityColor(for: String(describing: activity.type)))
                 .frame(width: 40, height: 40)
                 .overlay(
-                    Image(systemName: activity.type.icon)
+                    Image(systemName: iconName(for: String(describing: activity.type)))
                         .foregroundColor(.white)
                         .font(.system(size: 16))
                 )
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(activity.title)
-                    .font(.body)
+                    .font(DesignTokens.Typography.bodyMedium)
                     .fontWeight(.medium)
                     .foregroundColor(.white)
                 
                 Text(activity.description)
-                    .font(.caption)
+                    .font(DesignTokens.Typography.bodySmall)
                     .foregroundColor(.white.opacity(0.7))
             }
             
             Spacer()
             
-            Text(activity.timeAgo)
+            Text(timeAgoString(from: activity.timestamp))
                 .font(.caption)
                 .foregroundColor(.white.opacity(0.5))
         }
@@ -986,7 +988,8 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                GlassBackground()
+                Rectangle()
+                    .fill(.ultraThinMaterial)
                 
                 Text("Settings View")
                     .font(.title)
@@ -994,7 +997,7 @@ struct SettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(Material.ultraThin, for: .navigationBar)
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
@@ -1015,7 +1018,8 @@ struct EditProfileView: View {
     var body: some View {
         NavigationView {
             ZStack {
-                GlassBackground()
+                Rectangle()
+                    .fill(.ultraThinMaterial)
                 
                 VStack(spacing: 20) {
                     Text("Edit Profile")
@@ -1078,7 +1082,73 @@ struct EditProfileView: View {
     }
 }
 
-#Preview {
-    ProfileView()
-        .environmentObject(EnhancedAuthService.shared)
+// MARK: - Shared Helper Functions
+
+private func iconName(for activityType: String) -> String {
+    switch activityType.lowercased() {
+    case "course":
+        return "play.circle"
+    case "quiz":
+        return "questionmark.circle"
+    case "achievement":
+        return "star.circle"
+    case "study":
+        return "book.circle"
+    default:
+        return "circle"
+    }
+}
+
+private func rarityColor(for rarity: AchievementRarity) -> Color {
+    switch rarity {
+    case .common:
+        return .gray
+    case .uncommon:
+        return .green
+    case .rare:
+        return .blue
+    case .epic:
+        return .purple
+    case .legendary:
+        return .orange
+    }
+}
+
+private func activityColor(for activityType: String) -> Color {
+    switch activityType.lowercased() {
+    case "course":
+        return DesignTokens.Colors.primary
+    case "quiz":
+        return DesignTokens.Colors.accent
+    case "achievement":
+        return DesignTokens.Colors.success
+    case "study":
+        return DesignTokens.Colors.info
+    default:
+        return DesignTokens.Colors.neutral500
+    }
+}
+
+private func achievementIcon(for achievement: Achievement) -> String {
+    switch achievement.category {
+    case .learning:
+        return "book.circle"
+    case .social:
+        return "person.2.circle"
+    case .streak:
+        return "flame"
+    case .completion:
+        return "checkmark.circle"
+    case .engagement:
+        return "bolt.circle"
+    case .special:
+        return "star.circle"
+    }
+}
+
+private func timeAgoString(from date: Date) -> String {
+    let formatter = RelativeDateTimeFormatter()
+    formatter.dateTimeStyle = .named
+    formatter.unitsStyle = .full
+    return formatter.string(from: date, relativeTo: Date())
 }
