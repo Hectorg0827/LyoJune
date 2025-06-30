@@ -3,6 +3,15 @@ import SwiftUI
 // MARK: - Modern Animation System
 // Phase 2C: Smooth animations and micro-interactions
 
+struct TransitionPresets {
+    // MARK: - Basic Transitions
+    static let fadeInOut = AnyTransition.opacity
+    static let slideUp = AnyTransition.slideFromBottom
+    static let slideDown = AnyTransition.move(edge: .top)
+    static let slideFromLeading = AnyTransition.slideFromLeading
+    static let scaleAndFade = AnyTransition.scaleAndFade
+}
+
 struct AnimationSystem {
     struct Presets {
         // Basic animations
