@@ -111,6 +111,26 @@ struct SkeletonComponents {
             width: width
         )
     }
+    
+    /// Create a course list skeleton
+    static func courseList() -> some View {
+        VStack(spacing: DesignTokens.Spacing.md) {
+            ForEach(0..<3, id: \.self) { _ in
+                HStack(spacing: DesignTokens.Spacing.md) {
+                    SkeletonComponents.image(width: 80, height: 60)
+                    VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
+                        SkeletonComponents.title(width: 180)
+                        SkeletonComponents.textLine(width: 120)
+                        SkeletonComponents.textLine(width: 90)
+                    }
+                    Spacer()
+                }
+                .padding(DesignTokens.Spacing.md)
+                .background(DesignTokens.Colors.neutral100)
+                .cornerRadius(DesignTokens.BorderRadius.md)
+            }
+        }
+    }
 }
 
 // MARK: - Complex Skeleton Layouts
@@ -271,26 +291,6 @@ extension SkeletonLoader {
         VStack(spacing: DesignTokens.Spacing.md) {
             ForEach(0..<5, id: \.self) { _ in
                 SkeletonLayouts.feedPost
-            }
-        }
-    }
-    
-    /// Create a course list skeleton
-    static func courseList() -> some View {
-        VStack(spacing: DesignTokens.Spacing.md) {
-            ForEach(0..<3, id: \.self) { _ in
-                HStack(spacing: DesignTokens.Spacing.md) {
-                    SkeletonLoader.image(width: 80, height: 60)
-                    VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                        SkeletonLoader.title(width: 180)
-                        SkeletonLoader.textLine(width: 120)
-                        SkeletonLoader.textLine(width: 90)
-                    }
-                    Spacer()
-                }
-                .padding(DesignTokens.Spacing.md)
-                .background(DesignTokens.Colors.neutral100)
-                .cornerRadius(DesignTokens.BorderRadius.md)
             }
         }
     }
