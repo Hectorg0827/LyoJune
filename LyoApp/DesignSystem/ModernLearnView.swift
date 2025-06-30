@@ -1,7 +1,7 @@
 import SwiftUI
 
-// Import models to access CourseModel and other canonical types
-// Note: CourseModel is a typealias for Course in AppModels.swift
+// Import models to access Course and other canonical types
+// CourseModel is a typealias for Course from AppModels.swift
 
 /// Enhanced Learning View with modern design system
 struct ModernLearnView: View {
@@ -44,8 +44,12 @@ struct ModernLearnView: View {
                     
                     // Content
                     if isLoading {
-                        SkeletonLoader.courseList()
-                            .transition(AnimationSystem.Presets.fadeInOut)
+                        VStack(spacing: DesignTokens.Spacing.md) {
+                            ForEach(0..<3, id: \.self) { _ in
+                                SkeletonLoader(blockSize: 80)
+                            }
+                        }
+                        .transition(AnimationSystem.Presets.fadeInOut)
                     } else {
                         TabView(selection: $selectedTab) {
                             ModernCoursesView(
@@ -60,10 +64,15 @@ struct ModernLearnView: View {
                             )
                             .tag(1)
                             
-                            ModernProgressView(
-                                progress: viewModel.userProgress
-                            )
-                            .tag(2)
+                            if let userProgress = viewModel.userProgress {
+                                ModernProgressView(
+                                    progress: userProgress
+                                )
+                                .tag(2)
+                            } else {
+                                EmptyProgressView()
+                                    .tag(2)
+                            }
                         }
                         .tabViewStyle(.page(indexDisplayMode: .never))
                         .transition(AnimationSystem.Presets.slideUp)
@@ -150,7 +159,7 @@ struct ModernHeaderView: View {
                                     .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
                             )
                     }
-                    .buttonStyle(HapticButtonStyle())
+                    .buttonStyle(.plain)
                 }
             }
             
@@ -195,10 +204,10 @@ struct ModernSearchBar: View {
         .padding(.horizontal, DesignTokens.Spacing.medium)
         .padding(.vertical, DesignTokens.Spacing.small)
         .background(
-            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.large)
+            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.lg)
                 .fill(DesignTokens.Colors.surface)
                 .overlay(
-                    RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.large)
+                    RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.lg)
                         .stroke(
                             isFocused ? DesignTokens.Colors.primary : DesignTokens.Colors.neutral300,
                             lineWidth: isFocused ? 2 : 1
@@ -219,7 +228,7 @@ struct ModernTabSelector: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(Array(tabs.enumerated()), id: \.offset) { index, tab in
+            ForEach(Array(tabs.enumerated()), id: ".offset") { index, tab in
                 Button(action: {
                     HapticManager.shared.selectionFeedback()
                     withAnimation(AnimationSystem.Presets.spring) {
@@ -228,23 +237,16 @@ struct ModernTabSelector: View {
                 }) {
                     VStack(spacing: DesignTokens.Spacing.extraSmall) {
                         Text(tab)
-                            .font(selectedTab == index ? 
-                                  DesignTokens.Typography.titleMedium : 
-                                  DesignTokens.Typography.bodyMedium)
-                            .foregroundColor(
-                                selectedTab == index ? 
-                                DesignTokens.Colors.primary : 
-                                DesignTokens.Colors.textSecondary
-                            )
+                            .font(tabFont(for: index))
+                            .foregroundColor(tabColor(for: index))
                             .animation(AnimationSystem.Presets.easeInOut, value: selectedTab)
-                        
                         if selectedTab == index {
-                            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.small)
+                            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.xs)
                                 .fill(DesignTokens.Colors.primary)
                                 .frame(height: 3)
                                 .matchedGeometryEffect(id: "tab_indicator", in: tabNamespace)
                         } else {
-                            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.small)
+                            RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.xs)
                                 .fill(Color.clear)
                                 .frame(height: 3)
                         }
@@ -260,6 +262,15 @@ struct ModernTabSelector: View {
                 .fill(DesignTokens.Colors.surface.opacity(0.5))
         )
     }
+    
+    // Helper functions for tab styling
+    private func tabFont(for index: Int) -> Font {
+        selectedTab == index ? DesignTokens.Typography.labelLarge : DesignTokens.Typography.labelMedium
+    }
+    
+    private func tabColor(for index: Int) -> Color {
+        selectedTab == index ? DesignTokens.Colors.primary : DesignTokens.Colors.textSecondary
+    }
 }
 
 /// Modern courses view with enhanced cards
@@ -273,7 +284,7 @@ struct ModernCoursesView: View {
         }
         return courses.filter { course in
             course.title.lowercased().contains(searchText.lowercased()) ||
-            course.description?.lowercased().contains(searchText.lowercased()) == true
+            course.description.lowercased().contains(searchText.lowercased())
         }
     }
     
@@ -287,7 +298,13 @@ struct ModernCoursesView: View {
                 spacing: DesignTokens.Spacing.medium
             ) {
                 ForEach(filteredCourses, id: \.id) { course in
-                    EnhancedCourseCard(course: course)
+                    EnhancedCourseCard(
+                        course: course,
+                        isLoading: false,
+                        onTap: {
+                            // Handle course tap
+                        }
+                    )
                         .transition(AnimationSystem.Presets.scaleIn)
                 }
             }
@@ -308,8 +325,8 @@ struct ModernLearningPathsView: View {
             return paths
         }
         return paths.filter { path in
-            path.name.lowercased().contains(searchText.lowercased()) ||
-            path.description?.lowercased().contains(searchText.lowercased()) == true
+            path.title.lowercased().contains(searchText.lowercased()) ||
+            path.description.lowercased().contains(searchText.lowercased())
         }
     }
     
@@ -337,12 +354,12 @@ struct ModernLearningPathCard: View {
         VStack(alignment: .leading, spacing: DesignTokens.Spacing.medium) {
             HStack {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.small) {
-                    Text(path.name)
+                    Text(path.title)
                         .font(DesignTokens.Typography.titleMedium)
                         .foregroundColor(DesignTokens.Colors.textPrimary)
                     
-                    if let description = path.description {
-                        Text(description)
+                    if !path.description.isEmpty {
+                        Text(path.description)
                             .font(DesignTokens.Typography.bodyMedium)
                             .foregroundColor(DesignTokens.Colors.textSecondary)
                             .lineLimit(isExpanded ? nil : 2)
@@ -361,15 +378,16 @@ struct ModernLearningPathCard: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(DesignTokens.Colors.textSecondary)
                         .rotationEffect(.degrees(isExpanded ? 180 : 0))
-                        .animation(AnimationSystem.Presets.easeInOut, value: isExpanded)
+                        .animation(.easeInOut(duration: 0.25), value: isExpanded)
                 }
             }
             
             // Progress indicator
             ProgressBar(
                 progress: path.progress,
-                showPercentage: true,
-                color: DesignTokens.Colors.success
+                blockSize: 8,
+                backgroundColor: DesignTokens.Colors.neutral200,
+                foregroundColor: DesignTokens.Colors.success
             )
             
             if isExpanded {
@@ -380,15 +398,13 @@ struct ModernLearningPathCard: View {
                     
                     ForEach(path.courses, id: \.id) { course in
                         HStack {
-                            Image(systemName: course.isCompleted ? "checkmark.circle.fill" : "circle")
+                            // TODO: Show checkmark if course is completed by user
+                            Image(systemName: "circle")
                                 .font(.system(size: 16))
-                                .foregroundColor(course.isCompleted ? DesignTokens.Colors.success : DesignTokens.Colors.textSecondary)
-                            
+                                .foregroundColor(DesignTokens.Colors.textSecondary)
                             Text(course.title)
                                 .font(DesignTokens.Typography.bodyMedium)
                                 .foregroundColor(DesignTokens.Colors.textPrimary)
-                                .strikethrough(course.isCompleted)
-                            
                             Spacer()
                         }
                     }
@@ -413,7 +429,7 @@ struct ModernProgressView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: DesignTokens.Spacing.large) {
+            VStack(spacing: DesignTokens.Spacing.lg) {
                 // Overall progress card
                 OverallProgressCard(progress: progress)
                 
@@ -438,8 +454,34 @@ struct ModernProgressView: View {
 struct OverallProgressCard: View {
     let progress: UserProgress
     
+    var completedStat: some View {
+        StatView(
+            title: "Completed",
+            value: "\(progress.completedCourses)",
+            delay: 0.0
+        )
+    }
+    
+    var inProgressStat: some View {
+        StatView(
+            title: "In Progress",
+            value: "\(progress.inProgressCourses)",
+            delay: 0.1
+        )
+    }
+    
+    var totalHoursStat: some View {
+        StatView(
+            title: "Total Hours",
+            value: "\(progress.totalLearningHours)",
+            delay: 0.2
+        )
+    }
+    
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.medium) {
+            let percentComplete = Int(Double(progress.totalCoursesCompleted) / Double(max(progress.totalCoursesEnrolled, 1)) * 100)
+            let progressRatio = Double(progress.totalCoursesCompleted) / Double(max(progress.totalCoursesEnrolled, 1))
             HStack {
                 Text("Your Progress")
                     .font(DesignTokens.Typography.titleLarge)
@@ -447,43 +489,28 @@ struct OverallProgressCard: View {
                 
                 Spacer()
                 
-                Text("\(Int(progress.overallProgress * 100))%")
+                Text("\(percentComplete)%")
                     .font(DesignTokens.Typography.headlineSmall)
                     .foregroundColor(DesignTokens.Colors.primary)
             }
             
             ProgressBar(
-                progress: progress.overallProgress,
-                showPercentage: false,
-                color: DesignTokens.Colors.primary,
-                height: 12
+                progress: progressRatio,
+                blockSize: 12,
+                backgroundColor: DesignTokens.Colors.neutral200,
+                foregroundColor: DesignTokens.Colors.primary
             )
             
             HStack {
-                StatView(
-                    title: "Completed",
-                    value: "\(progress.completedCourses)",
-                    icon: "checkmark.circle.fill",
-                    color: DesignTokens.Colors.success
-                )
+                completedStat
                 
                 Spacer()
                 
-                StatView(
-                    title: "In Progress",
-                    value: "\(progress.inProgressCourses)",
-                    icon: "clock.fill",
-                    color: DesignTokens.Colors.warning
-                )
+                inProgressStat
                 
                 Spacer()
                 
-                StatView(
-                    title: "Total Hours",
-                    value: "\(progress.totalLearningHours)",
-                    icon: "clock.fill",
-                    color: DesignTokens.Colors.info
-                )
+                totalHoursStat
             }
         }
         .padding(DesignTokens.Spacing.medium)
@@ -523,7 +550,7 @@ struct AchievementCard: View {
     
     var body: some View {
         VStack(spacing: DesignTokens.Spacing.small) {
-            Image(systemName: achievement.icon)
+            Image(systemName: "star.fill")
                 .font(.system(size: 32))
                 .foregroundColor(DesignTokens.Colors.primary)
             
@@ -532,9 +559,11 @@ struct AchievementCard: View {
                 .foregroundColor(DesignTokens.Colors.textPrimary)
                 .multilineTextAlignment(.center)
             
-            Text(achievement.dateEarned.formatted(date: .abbreviated, time: .omitted))
-                .font(DesignTokens.Typography.caption)
-                .foregroundColor(DesignTokens.Colors.textSecondary)
+            if let unlockedAt = achievement.unlockedAt {
+                Text(unlockedAt.formatted(date: .abbreviated, time: .omitted))
+                    .font(DesignTokens.Typography.caption)
+                    .foregroundColor(DesignTokens.Colors.textSecondary)
+            }
         }
         .frame(width: 120)
         .padding(DesignTokens.Spacing.medium)
@@ -566,7 +595,7 @@ struct LearningStreaksCard: View {
                 
                 Spacer()
                 
-                Text("\(progress.currentStreak) days")
+                Text("\(progress.streakDays) days")
                     .font(DesignTokens.Typography.headlineSmall)
                     .foregroundColor(DesignTokens.Colors.warning)
             }
@@ -619,14 +648,14 @@ struct WeeklyGoalsCard: View {
             VStack(spacing: DesignTokens.Spacing.small) {
                 GoalRow(
                     title: "Complete 3 courses",
-                    current: progress.weeklyGoals.completedCourses,
-                    target: progress.weeklyGoals.targetCourses
+                    current: progress.totalCoursesCompleted,
+                    target: 3
                 )
                 
                 GoalRow(
                     title: "Study 10 hours",
-                    current: progress.weeklyGoals.studyHours,
-                    target: progress.weeklyGoals.targetHours
+                    current: Int(progress.totalTimeSpent / 3600),
+                    target: 10
                 )
                 
                 GoalRow(
@@ -671,11 +700,32 @@ struct GoalRow: View {
             
             ProgressBar(
                 progress: min(progress, 1.0),
-                showPercentage: false,
-                color: progress >= 1.0 ? DesignTokens.Colors.success : DesignTokens.Colors.info,
-                height: 6
+                blockSize: 6,
+                backgroundColor: DesignTokens.Colors.neutral200,
+                foregroundColor: progress >= 1.0 ? DesignTokens.Colors.success : DesignTokens.Colors.info
             )
         }
+    }
+}
+
+/// Empty progress view for when no user progress is available
+struct EmptyProgressView: View {
+    var body: some View {
+        VStack(spacing: DesignTokens.Spacing.lg) {
+            Image(systemName: "chart.line.uptrend.xyaxis")
+                .font(.system(size: 64))
+                .foregroundColor(DesignTokens.Colors.textSecondary)
+            
+            Text("No Progress Yet")
+                .font(DesignTokens.Typography.titleLarge)
+                .foregroundColor(DesignTokens.Colors.textPrimary)
+            
+            Text("Start learning to see your progress here")
+                .font(DesignTokens.Typography.bodyMedium)
+                .foregroundColor(DesignTokens.Colors.textSecondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(DesignTokens.Spacing.xl)
     }
 }
 
