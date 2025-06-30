@@ -54,8 +54,10 @@ struct LearnView: View {
                         LearningPathsView(paths: viewModel.learningPaths)
                             .tag(1)
                         
-                        LearningProgressView(progress: viewModel.userProgress)
-                            .tag(2)
+                        if let userProgress = viewModel.userProgress {
+                            LearningProgressView(progress: userProgress)
+                                .tag(2)
+                        }
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                 }
@@ -103,11 +105,11 @@ struct LearnTabSelector: View {
                         
                         Rectangle()
                             .fill(selectedTab == index ? Color.blue : Color.clear)
-                            .frame(height: 3)
+                            .frame(blockSize: 3)
                             .cornerRadius(1.5)
                     }
                 }
-                .frame(maxWidth: .infinity)
+                .frame(maxInlineSize: .infinity)
             }
         }
         .padding(.horizontal)
@@ -210,13 +212,13 @@ struct CourseCard: View {
             }
             .padding(style == .featured ? 12 : 8)
         }
-        .frame(width: style == .featured ? 200 : nil)
+        .frame(inlineSize: style == .featured ? 200 : nil)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
                 )
         )
     }
@@ -250,7 +252,7 @@ struct ListCourseHeader: View {
         HStack {
             Circle()
                 .fill(course.category.gradient)
-                .frame(width: 50, height: 50)
+                .frame(inlineSize: 50, blockSize: 50)
                 .overlay(
                     Image(systemName: course.category.icon)
                         .font(.title2)
@@ -303,7 +305,7 @@ struct LearningPathCard: View {
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
-                    Text("of \(path.totalCourses)")
+                    Text("of \(path.courses.count)")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.6))
                 }
@@ -330,7 +332,7 @@ struct LearningPathCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
                 )
         )
     }
@@ -382,7 +384,7 @@ struct StatsOverviewCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
                 )
         )
     }
@@ -408,7 +410,7 @@ struct StatItem: View {
                 .font(.caption)
                 .foregroundColor(.white.opacity(0.7))
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxInlineSize: .infinity)
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
@@ -431,7 +433,7 @@ struct RecentAchievementsCard: View {
                 HStack {
                     Circle()
                         .fill(Color.yellow.gradient)
-                        .frame(width: 40, height: 40)
+                        .frame(inlineSize: 40, blockSize: 40)
                         .overlay(
                             Image(systemName: "trophy.fill")
                                 .foregroundColor(.white)
@@ -456,7 +458,7 @@ struct RecentAchievementsCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
                 )
         )
     }
@@ -497,7 +499,7 @@ struct LearningGoalsCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
                 )
         )
     }
