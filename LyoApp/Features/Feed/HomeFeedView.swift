@@ -60,7 +60,9 @@ struct HomeFeedView: View {
             .animation(DesignTokens.Animations.standard, value: currentVideoIndex)
             
             // Subtle pattern overlay
-            PatternOverlay()
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.1)
         }
     }
     
@@ -70,10 +72,7 @@ struct HomeFeedView: View {
             ForEach(Array(viewModel.videos.enumerated()), id: \.offset) { index, video in
                 EnhancedTikTokVideoView(
                     video: video,
-                    isCurrentVideo: currentVideoIndex == index,
-                    onScrollDetection: { direction in
-                        handleScrollDetection(direction)
-                    }
+                    isCurrentVideo: currentVideoIndex == index
                 )
                 .tag(index)
                 .onAppear {
@@ -139,8 +138,7 @@ struct HomeFeedView: View {
     private var loadingStateView: some View {
         if viewModel.isLoading && viewModel.videos.isEmpty {
             ModernLoadingView(
-                message: "Loading amazing content...",
-                style: .shimmer
+                message: "Loading amazing content..."
             )
             .transition(.opacity.combined(with: .scale))
         }
@@ -174,7 +172,7 @@ struct HomeFeedView: View {
         }
         
         // Track video view
-        if let video = viewModel.videos[safe: index] {
+        if viewModel.videos[safe: index] != nil {
             // Analytics tracking would go here
         }
     }
@@ -271,7 +269,7 @@ struct EnhancedStudyBuddyFAB: View {
             .padding(.horizontal, isExpanded ? DesignTokens.Spacing.lg : DesignTokens.Spacing.md)
             .padding(.vertical, DesignTokens.Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.full)
+                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.full)
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
@@ -307,28 +305,28 @@ struct ModernTag: View {
     
     var backgroundColor: Color {
         switch style {
-        case .primary: return ModernDesignSystem.Colors.primary.opacity(0.2)
-        case .secondary: return ModernDesignSystem.Colors.secondary.opacity(0.2)
-        case .accent: return ModernDesignSystem.Colors.accent.opacity(0.2)
+        case .primary: return DesignTokens.Colors.primary.opacity(0.2)
+        case .secondary: return DesignTokens.Colors.secondary.opacity(0.2)
+        case .accent: return DesignTokens.Colors.primary.opacity(0.2)
         }
     }
     
     var textColor: Color {
         switch style {
-        case .primary: return ModernDesignSystem.Colors.primary
-        case .secondary: return ModernDesignSystem.Colors.secondary
-        case .accent: return ModernDesignSystem.Colors.accent
+        case .primary: return DesignTokens.Colors.primary
+        case .secondary: return DesignTokens.Colors.secondary
+        case .accent: return DesignTokens.Colors.primary
         }
     }
     
     var body: some View {
         Text("#\(text)")
-            .font(ModernDesignSystem.Typography.caption.weight(.medium))
+            .font(DesignTokens.Typography.caption.weight(.medium))
             .foregroundColor(textColor)
-            .padding(.horizontal, ModernDesignSystem.Spacing.sm)
-            .padding(.vertical, ModernDesignSystem.Spacing.xs)
+            .padding(.horizontal, DesignTokens.Spacing.sm)
+            .padding(.vertical, DesignTokens.Spacing.xs)
             .background(
-                RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.full)
+                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.full)
                     .fill(backgroundColor)
             )
     }
