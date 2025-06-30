@@ -545,15 +545,6 @@ struct StreakInfo: Codable {
     let lastActivity: Date
 }
 
-struct UserStats: Codable {
-    let coursesCompleted: Int
-    let totalLearningTime: TimeInterval
-    let certificatesEarned: Int
-    let socialConnections: Int
-    let postsCreated: Int
-    let commentsPosted: Int
-}
-
 struct Badge: Codable {
     let id: String
     let name: String
