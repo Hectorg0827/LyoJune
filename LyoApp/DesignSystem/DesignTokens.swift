@@ -111,6 +111,11 @@ public struct DesignTokens {
         public static let interactivePressed = Color("InteractivePressed")
         public static let interactiveDisabled = Color("InteractiveDisabled")
         
+        // Border and Outline Colors
+        public static let border = neutral300
+        public static let borderHover = neutral400
+        public static let borderFocus = primary
+        
         // Additional colors for compatibility
         public static let accent = primary
         public static let backgroundPrimary = background
@@ -134,6 +139,8 @@ public struct DesignTokens {
         public static let modal = xl
         public static let avatar = full
         public static let medium = md  // Alias for md
+        public static let large = lg   // Alias for lg
+        public static let small = xs   // Alias for xs
     }
     
     // MARK: - Corner Radius (alias for BorderRadius)
