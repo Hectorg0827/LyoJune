@@ -444,6 +444,9 @@ public enum CourseCategory: String, Codable, CaseIterable {
         case .other: return "ellipsis.circle.fill"
         }
     }
+    
+    // MARK: - CourseCategory Display Name
+    var name: String { rawValue.capitalized }
 }
 
 public enum CourseDifficulty: String, Codable, CaseIterable {
@@ -1726,6 +1729,62 @@ public struct LearningStats: Codable, Hashable {
     }
 }
 
+// MARK: - User Statistics
+public struct UserStats: Codable, Identifiable {
+    public let id: UUID
+    public let totalStudyTime: Double
+    public let coursesCompleted: Int
+    public let eventsAttended: Int
+    public let groupsJoined: Int
+    public let postsCreated: Int
+    public let currentStreak: Int
+    public let longestStreak: Int
+    public let totalPoints: Int
+    public let level: Int
+    public let rank: Int
+    public let achievementsCount: Int
+    public let userId: UUID
+    
+    public init(totalStudyTime: Double, coursesCompleted: Int, eventsAttended: Int, groupsJoined: Int, postsCreated: Int, currentStreak: Int, longestStreak: Int, totalPoints: Int, level: Int, rank: Int, achievementsCount: Int, userId: UUID) {
+        self.id = UUID()
+        self.totalStudyTime = totalStudyTime
+        self.coursesCompleted = coursesCompleted
+        self.eventsAttended = eventsAttended
+        self.groupsJoined = groupsJoined
+        self.postsCreated = postsCreated
+        self.currentStreak = currentStreak
+        self.longestStreak = longestStreak
+        self.totalPoints = totalPoints
+        self.level = level
+        self.rank = rank
+        self.achievementsCount = achievementsCount
+        self.userId = userId
+    }
+}
+
+// MARK: - Leaderboard Model
+public struct LeaderboardUser: Codable, Identifiable {
+    public let id: UUID
+    public let username: String
+    public let displayName: String
+    public let profilePicture: String
+    public let totalPoints: Int
+    public let level: Int
+    public let rank: Int
+    public let achievements: [Achievement]
+    
+    public init(id: UUID, username: String, displayName: String, profilePicture: String, totalPoints: Int, level: Int, rank: Int, achievements: [Achievement]) {
+        self.id = id
+        self.username = username
+        self.displayName = displayName
+        self.profilePicture = profilePicture
+        self.totalPoints = totalPoints
+        self.level = level
+        self.rank = rank
+        self.achievements = achievements
+    }
+}
+
 // MARK: - Extensions for Backend Integration
 
 extension Color {
@@ -2945,6 +3004,31 @@ public enum StoryType: String, Codable, CaseIterable {
         case .personal:
             return "Personal"
         }
+    }
+}
+
+// MARK: - Learning Type Definitions
+struct LearningPath: Identifiable, Codable {
+    let id: UUID
+    let title: String
+    let description: String
+    let courses: [Course] // Canonical Course type
+    let estimatedDuration: TimeInterval
+    let difficulty: String
+    let category: String
+    let progress: Double
+    let completedCourses: Int
+    
+    init(id: UUID = UUID(), title: String, description: String, courses: [Course] = [], estimatedDuration: TimeInterval = 0, difficulty: String = "beginner", category: String = "general", progress: Double = 0.0, completedCourses: Int = 0) {
+        self.id = id
+        self.title = title
+        self.description = description
+        self.courses = courses
+        self.estimatedDuration = estimatedDuration
+        self.difficulty = difficulty
+        self.category = category
+        self.progress = progress
+        self.completedCourses = completedCourses
     }
 }
 
