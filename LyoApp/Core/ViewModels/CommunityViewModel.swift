@@ -323,55 +323,45 @@ class CommunityViewModel: ObservableObject {
     }
     
     func leaveStudyGroup(_ group: StudyGroup) async {
-        do {
-            // Simulate API call for now
-            print("Leaving study group: \(group.name)")
-            
-            // Update group membership locally
-            if let index = studyGroups.firstIndex(where: { $0.id == group.id }) {
-                studyGroups[index].memberCount -= 1
-                studyGroups[index].isUserMember = false
-            }
-            
-            // Cache updated data - simplified for now
-            print("Cached updated study groups")
-            
-        } catch {
-            errorMessage = "Failed to leave study group: \(error.localizedDescription)"
+        // Simulate API call for now
+        print("Leaving study group: \(group.name)")
+        
+        // Update group membership locally
+        if let index = studyGroups.firstIndex(where: { $0.id == group.id }) {
+            studyGroups[index].memberCount -= 1
+            studyGroups[index].isUserMember = false
         }
+        
+        // Cache updated data - simplified for now
+        print("Cached updated study groups")
     }
     
-    func createStudyGroup(name: String, description: String, isPrivate: Bool, category: String) async {
-        do {
-            // Create mock study group for now
-            var newGroup = StudyGroup(
-                id: UUID(),
-                name: name,
-                description: description,
-                category: category,
-                memberCount: 1,
-                maxMembers: 20,
-                isPrivate: isPrivate,
-                createdBy: UUID(),
-                createdAt: Date(),
-                imageURL: nil,
-                tags: [],
-                membershipStatus: .member
-            )
-            newGroup.isUserMember = true
-            
-            // Add to beginning of list
-            studyGroups.insert(newGroup, at: 0)
-            
-            // Track analytics - simplified for now
-            print("Analytics: study_group_created - \(name)")
-            
-            // Cache updated data - simplified for now
-            print("Cached updated study groups")
-            
-        } catch {
-            errorMessage = "Failed to create study group: \(error.localizedDescription)"
-        }
+    func createStudyGroup(name: String, description: String, isPrivate: Bool, category: CourseCategory) async {
+        // Create mock study group for now
+        var newGroup = StudyGroup(
+            id: UUID(),
+            name: name,
+            description: description,
+            category: category,
+            memberCount: 1,
+            maxMembers: 20,
+            isPrivate: isPrivate,
+            createdBy: UUID(),
+            createdAt: Date(),
+            imageURL: nil,
+            tags: [],
+            membershipStatus: .member
+        )
+        newGroup.isUserMember = true
+        
+        // Add to beginning of list
+        studyGroups.insert(newGroup, at: 0)
+        
+        // Track analytics - simplified for now
+        print("Analytics: study_group_created - \(name)")
+        
+        // Cache updated data - simplified for now
+        print("Cached updated study groups")
     }
     
     func createEvent(
@@ -383,32 +373,27 @@ class CommunityViewModel: ObservableObject {
         maxAttendees: Int,
         category: EventCategory
     ) async {
-        do {
-            // Create mock event for now
-            let newEvent = CommunityEvent(
-                title: title,
-                description: description,
-                date: date,
-                location: location,
-                category: category,
-                attendees: 1,
-                maxAttendees: maxAttendees,
-                isJoined: true,
-                isUserAttending: true
-            )
-            
-            // Add to beginning of list
-            localEvents.insert(newEvent, at: 0)
-            
-            // Track analytics - simplified for now
-            print("Analytics: community_event_created - \(title)")
-            
-            // Cache updated data - simplified for now
-            print("Cached updated events")
-            
-        } catch {
-            errorMessage = "Failed to create event: \(error.localizedDescription)"
-        }
+        // Create mock event for now
+        let newEvent = CommunityEvent(
+            title: title,
+            description: description,
+            date: date,
+            location: location,
+            category: category,
+            attendees: 1,
+            maxAttendees: maxAttendees,
+            isJoined: true,
+            isUserAttending: true
+        )
+        
+        // Add to beginning of list
+        localEvents.insert(newEvent, at: 0)
+        
+        // Track analytics - simplified for now
+        print("Analytics: community_event_created - \(title)")
+        
+        // Cache updated data - simplified for now
+        print("Cached updated events")
     }
     
     func updateLeaderboardTimeframe(_ timeframe: String) async {
@@ -418,59 +403,42 @@ class CommunityViewModel: ObservableObject {
     
     // MARK: - Private Methods
     private func loadEvents() async {
-        do {
-            // Mock events for now
-            localEvents = []
-            print("Loaded community events")
-        } catch {
-            errorMessage = "Failed to load events: \(error.localizedDescription)"
-            loadCachedEvents()
-        }
+        // Mock events for now
+        localEvents = []
+        print("Loaded community events")
     }
     
     private func loadStudyGroups() async {
-        do {
-            // Mock study groups for now
-            studyGroups = []
-            print("Loaded study groups")
-        } catch {
-            errorMessage = "Failed to load study groups: \(error.localizedDescription)"
-            loadCachedStudyGroups()
-        }
+        // Mock study groups for now
+        studyGroups = []
+        print("Loaded study groups")
     }
     
     private func loadLeaderboard() async {
-        do {
-            // Mock leaderboard for now
-            leaderboard = []
-            print("Loaded leaderboard")
-        } catch {
-            errorMessage = "Failed to load leaderboard: \(error.localizedDescription)"
-            loadCachedLeaderboard()
-        }
+        // Mock leaderboard for now
+        leaderboard = []
+        print("Loaded leaderboard")
     }
     
     private func loadUserStats() async {
-        do {
-            // Mock user stats for now
-            userStats = UserStats(
-                totalStudyTime: 0,
-                coursesCompleted: 0,
-                eventsAttended: 0,
-                groupsJoined: 0,
-                postsCreated: 0,
-                currentStreak: 0,
-                longestStreak: 0,
-                totalPoints: 0,
-                level: 1,
-                rank: 1,
-                achievementsCount: 0
-            )
-            print("Loaded user stats")
-        } catch {
-            errorMessage = "Failed to load user stats: \(error.localizedDescription)"
-            loadCachedUserStats()
-        }
+        // Mock user stats for now using the canonical UserStats from AppModels
+        let mockUserId = UUID()
+        let mockStats: UserStats = .init(
+            totalStudyTime: 0.0,
+            coursesCompleted: 0,
+            eventsAttended: 0,
+            groupsJoined: 0,
+            postsCreated: 0,
+            currentStreak: 0,
+            longestStreak: 0,
+            totalPoints: 0,
+            level: 1,
+            rank: 1,
+            achievementsCount: 0,
+            userId: mockUserId
+        )
+        userStats = mockStats
+        print("Loaded user stats")
     }
     
     private func loadCachedEvents() {
@@ -506,32 +474,4 @@ extension DateFormatter {
         formatter.timeStyle = .short
         return formatter
     }()
-}
-
-// MARK: - User Stats Model
-public struct UserStats: Codable {
-    public let totalStudyTime: Double
-    public let coursesCompleted: Int
-    public let eventsAttended: Int
-    public let groupsJoined: Int
-    public let postsCreated: Int
-    public let currentStreak: Int
-    public let longestStreak: Int
-    public let totalPoints: Int
-    public let level: Int
-    public let rank: Int
-    public let achievementsCount: Int
-    public let userId: UUID = UUID()
-}
-
-// MARK: - Leaderboard Model
-public struct LeaderboardUser: Codable, Identifiable {
-    public let id: UUID
-    public let username: String
-    public let displayName: String
-    public let avatarURL: String?
-    public let totalPoints: Int
-    public let level: Int
-    public let rank: Int
-    public let streak: Int
 }
