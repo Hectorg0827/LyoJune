@@ -113,14 +113,18 @@ final class CoreDataManager: ObservableObject {
         }
         
         let stats = UserStats(
-            totalCourses: Int(cachedUser.totalCourses),
-            completedCourses: Int(cachedUser.completedCourses),
-            totalPoints: Int(cachedUser.totalPoints),
+            totalStudyTime: cachedUser.totalStudyTime,
+            coursesCompleted: Int(cachedUser.completedCourses),
+            eventsAttended: 0, // Not stored in cache, default to 0
+            groupsJoined: 0, // Not stored in cache, default to 0
+            postsCreated: 0, // Not stored in cache, default to 0
             currentStreak: Int(cachedUser.currentStreak),
             longestStreak: Int(cachedUser.longestStreak),
+            totalPoints: Int(cachedUser.totalPoints),
             level: Int(cachedUser.level),
-            badges: badges,
-            totalStudyTime: cachedUser.totalStudyTime
+            rank: 1, // Not stored in cache, default to 1
+            achievementsCount: badges.count,
+            userId: UUID() // Generate a default UUID for compatibility
         )
         
         let preferences = UserPreferences(
