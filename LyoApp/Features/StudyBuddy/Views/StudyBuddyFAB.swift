@@ -508,9 +508,7 @@ struct StudyBuddyFAB: View {
     private func startVoiceInput() {
         guard voiceManager.voiceEnabled else { return }
         proactiveManager.recordUserInteraction()
-        Task {
-            await voiceManager.startListening()
-        }
+        voiceManager.startListening()
         showingTranscript = true
     }
     
@@ -524,7 +522,6 @@ struct StudyBuddyFAB: View {
         conversationSession.addUserMessage(textInput)
         showingTranscript = true
         
-        let userInput = textInput
         textInput = ""
         
         // Process with AI
