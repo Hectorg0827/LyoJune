@@ -125,10 +125,7 @@ class FeedViewModel: ObservableObject {
         // Optimistic update
         if let index = posts.firstIndex(where: { $0.id == postId }) {
             let wasLiked = posts[index].isLiked
-            // Create a new post with updated properties since Post is immutable
-            var updatedPost = posts[index]
             // Note: Cannot mutate immutable properties, so we simulate the change
-            let newLikesCount = wasLiked ? posts[index].likes - 1 : posts[index].likes + 1
             
             if wasLiked {
                 // Mock unlike - method doesn't exist
