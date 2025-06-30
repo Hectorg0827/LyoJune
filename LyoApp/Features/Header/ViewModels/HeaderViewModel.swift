@@ -73,12 +73,12 @@ class HeaderViewModel: ObservableObject {
     
     private func handleWebSocketMessage(_ message: WebSocketMessage) {
         switch message.type {
-        case .newMessage:
+        case .chat:
             unreadMessagesCount += 1
             Task { await loadConversations() }
-        case .newStory:
+        case .notification:
             Task { await loadStories() }
-        case .storyUpdate:
+        case .userUpdate:
             if let storyId = message.data["storyId"] as? String {
                 Task { await updateStory(storyId: storyId) }
             }
@@ -271,7 +271,7 @@ class HeaderViewModel: ObservableObject {
         
         // Implement voice recognition
         Task {
-            await voiceManager.startListening()
+            voiceManager.startListening()
             
             // Wait for the transcript to be updated
             try await Task.sleep(for: .seconds(0.5))
@@ -298,17 +298,13 @@ class HeaderViewModel: ObservableObject {
         
         // Implement AI-powered search
         Task {
-            do {
-                // Mock AI search - searchService doesn't exist
-                let results: [SearchResult] = []
-                await MainActor.run {
-                    self.searchSuggestions = results.suggestions
-                    // Navigate to search results or update UI accordingly
-                    self.isSearchActive = true
-                    self.showSearch = true
-                }
-            } catch {
-                print("Search failed: \(error)")
+            // Mock AI search - searchService doesn't exist
+            let results: [SearchSuggestion] = [] // Empty array of SearchSuggestion objects
+            await MainActor.run {
+                self.searchSuggestions = results
+                // Navigate to search results or update UI accordingly
+                self.isSearchActive = true
+                self.showSearch = true
             }
         }
     }
@@ -317,90 +313,85 @@ class HeaderViewModel: ObservableObject {
     
     func markStoryAsWatched(_ storyId: UUID) {
         Task {
-            do {
-                // Mock story marking - storiesService doesn't exist
-                print("Marked story as watched: \(storyId)")
-                
-                // Update local state
-                if let index = stories.firstIndex(where: { $0.id == storyId }) {
-                    stories[index] = Story(
-                        id: stories[index].id,
-                        username: stories[index].username,
-                        avatarColors: stories[index].avatarColors,
-                        hasUnwatchedStory: false,
-                        storyType: stories[index].storyType,
-                        timestamp: stories[index].timestamp,
-                        previewImageURL: stories[index].previewImageURL
-                    )
-                }
-            } catch {
-                print("Failed to mark story as watched: \(error.localizedDescription)")
+            // Mock story marking - storiesService doesn't exist
+            print("Marked story as watched: \(storyId)")
+            
+            // Update local state
+            if let index = stories.firstIndex(where: { $0.id == storyId }) {
+                stories[index] = LearningStory(
+                    id: stories[index].id,
+                    userId: stories[index].userId,
+                    username: stories[index].username,
+                    userAvatar: stories[index].userAvatar,
+                    mediaURL: stories[index].mediaURL,
+                    mediaType: stories[index].mediaType,
+                    duration: stories[index].duration,
+                    caption: stories[index].caption,
+                    createdAt: stories[index].createdAt,
+                    viewsCount: stories[index].viewsCount,
+                    isViewed: true
+                )
             }
         }
     }
     
     func markConversationAsRead(_ conversationId: UUID) {
         Task {
-            do {
-                // Mock conversation marking - messagesService doesn't exist
-                print("Marked conversation as read: \(conversationId)")
-                
-                // Update local state
-                if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
-                    conversations[index] = Conversation(
-                        id: conversations[index].id,
-                        otherParticipant: conversations[index].otherParticipant,
-                        lastMessage: conversations[index].lastMessage,
-                        timestamp: conversations[index].timestamp,
-                        hasUnreadMessages: false,
-                        unreadCount: 0
-                    )
-                }
-            } catch {
-                print("Failed to mark conversation as read: \(error.localizedDescription)")
+            // Mock conversation marking - messagesService doesn't exist
+            print("Marked conversation as read: \(conversationId)")
+            
+            // Update local state
+            if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
+                conversations[index] = HeaderConversation(
+                    id: conversations[index].id,
+                    name: conversations[index].name,
+                    initials: conversations[index].initials,
+                    avatarColors: conversations[index].avatarColors,
+                    lastMessage: conversations[index].lastMessage,
+                    timestamp: conversations[index].timestamp,
+                    hasUnreadMessages: false,
+                    messageCount: conversations[index].messageCount,
+                    conversationType: conversations[index].conversationType,
+                    participants: conversations[index].participants
+                )
             }
         }
     }
     
     func sendMessage(_ message: String, to conversationId: UUID) {
         Task {
-            do {
-                // Mock message sending - messagesService doesn't exist
-                print("Sent message: \(message) to conversation: \(conversationId)")
-                let newMessage = ConversationMessage(
-                    id: UUID(),
-                    senderId: UUID(),
-                    content: message,
-                    timestamp: Date(),
-                    isRead: false
+            // Mock message sending - messagesService doesn't exist
+            print("Sent message: \(message) to conversation: \(conversationId)")
+            let newMessage = ConversationMessage(
+                id: UUID(),
+                role: .user,
+                content: message,
+                timestamp: Date()
+            )
+            
+            // Update local conversation
+            if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
+                conversations[index] = HeaderConversation(
+                    id: conversations[index].id,
+                    name: conversations[index].name,
+                    initials: conversations[index].initials,
+                    avatarColors: conversations[index].avatarColors,
+                    lastMessage: message,
+                    timestamp: newMessage.timestamp,
+                    hasUnreadMessages: false,
+                    messageCount: conversations[index].messageCount,
+                    conversationType: conversations[index].conversationType,
+                    participants: conversations[index].participants
                 )
-                
-                // Update local conversation
-                if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
-                    conversations[index] = Conversation(
-                        id: conversations[index].id,
-                        otherParticipant: conversations[index].otherParticipant,
-                        lastMessage: message,
-                        timestamp: newMessage.timestamp,
-                        hasUnreadMessages: false,
-                        unreadCount: 0
-                    )
-                }
-            } catch {
-                print("Failed to send message: \(error.localizedDescription)")
             }
         }
     }
     
     func performSearch(_ query: String) {
         Task {
-            do {
-                // Mock search save - searchService doesn't exist
-                print("Saved search: \(query)")
-                // Additional search logic can be added here
-            } catch {
-                print("Failed to save search: \(error.localizedDescription)")
-            }
+            // Mock search save - searchService doesn't exist
+            print("Saved search: \(query)")
+            // Additional search logic can be added here
         }
     }
     
@@ -452,35 +443,21 @@ class HeaderViewModel: ObservableObject {
         }
         
         Task {
-            do {
-                // Mock search suggestions - getSearchSuggestions method doesn't exist
-                let suggestions: [SearchSuggestion] = []
-                
-                // Add dynamic suggestion at the top
-                var allSuggestions = [
-                    SearchSuggestion(
-                        id: UUID(),
-                        text: searchText,
-                        type: .searchQuery,
-                        icon: "magnifyingglass"
-                    )
-                ]
-                allSuggestions.append(contentsOf: suggestions)
-                
-                self.searchSuggestions = allSuggestions
-            } catch {
-                // Generate suggestions based on search text
-                let dynamicSuggestion = SearchSuggestion(
-                    id: UUID(),
-                    text: searchText,
-                    type: .searchQuery,
-                    icon: "magnifyingglass"
+            // Mock search suggestions - getSearchSuggestions method doesn't exist
+            let suggestions: [SearchSuggestion] = []
+            
+            // Add dynamic suggestion at the top
+            var allSuggestions = [
+                SearchSuggestion(
+                    query: searchText,
+                    category: .general,
+                    popularity: 75,
+                    isPersonalized: true
                 )
-                
-                self.searchSuggestions = [dynamicSuggestion] + SearchSuggestion.sampleSuggestions.filter {
-                    $0.text.localizedCaseInsensitiveContains(searchText)
-                }.prefix(5)
-            }
+            ]
+            allSuggestions.append(contentsOf: suggestions)
+            
+            self.searchSuggestions = allSuggestions
         }
     }
     
