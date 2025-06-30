@@ -86,7 +86,7 @@ public struct JoinGroupRequest: Codable {
 public struct CreateStudyGroupRequest: Codable {
     let name: String
     let description: String
-    let category: String
+    let category: CourseCategory
     let isPrivate: Bool
     let maxMembers: Int?
 }
@@ -173,7 +173,7 @@ public struct StudyGroup: Codable, Identifiable {
     public let id: UUID
     let name: String
     let description: String
-    let category: String
+    let category: CourseCategory
     var memberCount: Int
     let maxMembers: Int
     let isPrivate: Bool
@@ -184,7 +184,7 @@ public struct StudyGroup: Codable, Identifiable {
     let membershipStatus: MembershipStatus?
     var isUserMember: Bool = false
     
-    public init(id: UUID = UUID(), name: String, description: String, category: String, memberCount: Int = 1, maxMembers: Int = 20, isPrivate: Bool = false, createdBy: UUID, createdAt: Date = Date(), imageURL: String? = nil, tags: [String] = [], membershipStatus: MembershipStatus? = nil, isUserMember: Bool = false) {
+    public init(id: UUID = UUID(), name: String, description: String, category: CourseCategory, memberCount: Int = 1, maxMembers: Int = 20, isPrivate: Bool = false, createdBy: UUID, createdAt: Date = Date(), imageURL: String? = nil, tags: [String] = [], membershipStatus: MembershipStatus? = nil, isUserMember: Bool = false) {
         self.id = id
         self.name = name
         self.description = description
@@ -498,8 +498,11 @@ public struct UserProgress: Codable {
     public let recentAchievements: [Achievement]
     public let completedCourses: Int
     public let totalHours: TimeInterval
+    public let currentStreak: Int
+    public let inProgressCourses: Int
+    public let totalLearningHours: Int
     
-    public init(totalCoursesEnrolled: Int, totalCoursesCompleted: Int, totalLessonsCompleted: Int, totalTimeSpent: TimeInterval, streakDays: Int, level: Int, xp: Int, recentAchievements: [Achievement] = [], completedCourses: Int = 0, totalHours: TimeInterval = 0) {
+    public init(totalCoursesEnrolled: Int, totalCoursesCompleted: Int, totalLessonsCompleted: Int, totalTimeSpent: TimeInterval, streakDays: Int, level: Int, xp: Int, recentAchievements: [Achievement] = [], completedCourses: Int = 0, totalHours: TimeInterval = 0, currentStreak: Int = 0, inProgressCourses: Int = 0, totalLearningHours: Int = 0) {
         self.totalCoursesEnrolled = totalCoursesEnrolled
         self.totalCoursesCompleted = totalCoursesCompleted
         self.totalLessonsCompleted = totalLessonsCompleted
@@ -510,6 +513,9 @@ public struct UserProgress: Codable {
         self.recentAchievements = recentAchievements
         self.completedCourses = completedCourses
         self.totalHours = totalHours
+        self.currentStreak = currentStreak
+        self.inProgressCourses = inProgressCourses
+        self.totalLearningHours = totalLearningHours
     }
 }
 
