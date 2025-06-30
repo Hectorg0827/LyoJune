@@ -1,65 +1,11 @@
 import SwiftUI
 import Combine
 
-// MARK: - Learning Type Definitions
-struct LearningPath: Identifiable, Codable {
-    let id: UUID
-    let title: String
-    let description: String
-    let courses: [String]
-    let estimatedDuration: TimeInterval
-    let difficulty: String
-    let category: String
-    let progress: Double
-    let completedCourses: Int
-    
-    init(id: UUID = UUID(), title: String, description: String, courses: [String] = [], estimatedDuration: TimeInterval = 0, difficulty: String = "beginner", category: String = "general", progress: Double = 0.0, completedCourses: Int = 0) {
-        self.id = id
-        self.title = title
-        self.description = description
-        self.courses = courses
-        self.estimatedDuration = estimatedDuration
-        self.difficulty = difficulty
-        self.category = category
-        self.progress = progress
-        self.completedCourses = completedCourses
-    }
-}
-
-struct ProgressUpdate: Codable {
-    let courseId: String
-    let lessonId: String?
-    let progress: Double
-    let timestamp: Date
-    
-    init(courseId: String, lessonId: String? = nil, progress: Double, timestamp: Date = Date()) {
-        self.courseId = courseId
-        self.lessonId = lessonId
-        self.progress = progress
-        self.timestamp = timestamp
-    }
-}
-
-struct CourseUpdate: Codable {
-    let courseId: String
-    let title: String?
-    let status: String?
-    let updatedAt: Date
-    
-    init(courseId: String, title: String? = nil, status: String? = nil, updatedAt: Date = Date()) {
-        self.courseId = courseId
-        self.title = title
-        self.status = status
-        self.updatedAt = updatedAt
-    }
-}
-
 // MARK: - LearnViewModel
 @MainActor
 final class LearnViewModel: ObservableObject {
     @Published var featuredCourses: [Course] = []
     @Published var userCourses: [UserCourse] = []
-    @Published var learningPaths: [LearningPath] = []
     @Published var userProgress: UserProgress?
     @Published var searchResults: [Course] = []
     @Published var isLoading = false
@@ -68,6 +14,7 @@ final class LearnViewModel: ObservableObject {
     @Published var searchQuery = ""
     @Published var selectedCategory: String?
     @Published var isOffline = false
+    @Published var learningPaths: [LearningPath] = []
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -113,12 +60,10 @@ final class LearnViewModel: ObservableObject {
         let courses: [Course] = []
         let userCoursesData: [UserCourse] = []
         let progress: UserProgress? = nil
-        let paths: [LearningPath] = []
         
         featuredCourses = courses
         userCourses = userCoursesData
         userProgress = progress
-        learningPaths = paths
         
         // Cache the new data
         await cacheLearningData()
@@ -170,7 +115,8 @@ final class LearnViewModel: ObservableObject {
         let progressUpdate = ProgressUpdate(
             courseId: courseId,
             lessonId: lessonId,
-            progress: 1.0
+            progress: 1.0,
+            timestamp: Date()
         )
         
         // Update local progress - simplified for now
@@ -320,3 +266,17 @@ final class LearnViewModel: ObservableObject {
 }
 
 // MARK: - Note: UserCourse is defined in CourseModels.swift and APIServices.swift
+
+struct ProgressUpdate: Codable {
+    let courseId: String
+    let lessonId: String?
+    let progress: Double
+    let timestamp: Date
+}
+
+struct CourseUpdate: Codable {
+    let courseId: String
+    let title: String?
+    let status: String?
+    let updatedAt: Date
+}
