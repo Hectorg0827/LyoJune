@@ -64,26 +64,12 @@ class ErrorManager: ObservableObject {
         
         // Could send to Crashlytics, Sentry, etc.
         Task {
-            do {
-                let event = AnalyticsEvent(
-                    eventName: "error_occurred",
-                    properties: [
-                        "error_type": error.type.rawValue,
-                        "context": error.context ?? "unknown",
-                        "severity": error.severity.rawValue
-                    ],
-                    timestamp: error.timestamp
-                )
-                
-                await AnalyticsAPIService.shared.trackEvent("error_occurred", parameters: [
-                    "error_type": error.type.rawValue,
-                    "error_message": error.userMessage,
-                    "severity": error.severity.rawValue,
-                    "context": error.context ?? "unknown"
-                ])
-            } catch {
-                print("Failed to log error to analytics: \(error)")
-            }
+            await AnalyticsAPIService.shared.trackEvent("error_occurred", parameters: [
+                "error_type": error.type.rawValue,
+                "error_message": error.userMessage,
+                "severity": error.severity.rawValue,
+                "context": error.context ?? "unknown"
+            ])
         }
     }
 }
@@ -397,7 +383,7 @@ struct ErrorHandling: ViewModifier {
                 return Alert(title: Text("Unknown Error"))
             }
         }
-        .onChange(of: errorManager.currentError) { error in
+        .onChange(of: errorManager.currentError) { _, error in
             if error?.severity == .critical {
                 showAlert = true
             }
