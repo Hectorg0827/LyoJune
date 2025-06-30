@@ -1,6 +1,8 @@
 import SwiftUI
 import MapKit
 
+// Explicitly using the StudyGroup from LearningModels
+
 struct CommunityView: View {
     @StateObject private var viewModel = CommunityViewModel()
     @State private var selectedTab = 0
