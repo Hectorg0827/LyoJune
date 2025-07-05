@@ -120,7 +120,7 @@ struct CategoryChip: View {
 }
 
 struct PostsFeedView: View {
-    let posts: [DiscoverPost]
+    let posts: [Post]
     let isLoading: Bool
     let onRefresh: () -> Void
     let onLoadMore: () -> Void
@@ -152,8 +152,8 @@ struct PostsFeedView: View {
     }
 }
 
-struct DiscoverPostCard: View {
-    let post: DiscoverPost
+struct PostCard: View {
+    let post: Post
     @State private var isLiked = false
     @State private var isBookmarked = false
     @State private var showingComments = false
@@ -167,7 +167,7 @@ struct DiscoverPostCard: View {
             PostContent(post: post)
             
             // Media if available
-            if post.hasMedia {
+            if post.imageURL != nil || post.videoURL != nil {
                 PostMediaView(post: post)
             }
             
@@ -191,7 +191,7 @@ struct DiscoverPostCard: View {
 }
 
 struct PostHeader: View {
-    let post: DiscoverPost
+    let post: Post
     @Binding var isBookmarked: Bool
     
     var body: some View {
@@ -200,16 +200,16 @@ struct PostHeader: View {
                 .fill(post.category.gradient)
                 .frame(width: 40, height: 40)
                 .overlay(
-                    Text(String(post.author.prefix(1)))
+                    Text(String(post.author.name.prefix(1)))
                         .foregroundColor(.white)
                         .fontWeight(.semibold)
                 )
             
             VStack(alignment: .leading, spacing: 2) {
-                Text(post.author)
+                Text(post.author.name)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
-                Text(post.timeAgo)
+                Text(post.formattedTimestamp)
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.7))
             }
@@ -231,7 +231,7 @@ struct PostHeader: View {
 }
 
 struct PostContent: View {
-    let post: DiscoverPost
+    let post: Post
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -277,7 +277,7 @@ struct PostTagsView: View {
 }
 
 struct PostMediaView: View {
-    let post: DiscoverPost
+    let post: Post
     
     var body: some View {
         Rectangle()
@@ -286,11 +286,11 @@ struct PostMediaView: View {
             .cornerRadius(12)
             .overlay(
                 VStack {
-                    Image(systemName: post.mediaType?.icon ?? "photo")
+                    Image(systemName: post.videoURL != nil ? "video.fill" : "photo.fill")
                         .font(.largeTitle)
                         .foregroundColor(.white.opacity(0.7))
                     
-                    Text(post.mediaType?.title ?? "Media")
+                    Text(post.videoURL != nil ? "Video" : "Image")
                         .font(.caption)
                         .foregroundColor(.white.opacity(0.6))
                 }
@@ -300,7 +300,7 @@ struct PostMediaView: View {
 }
 
 struct PostInteractionBar: View {
-    let post: DiscoverPost
+    let post: Post
     @Binding var isLiked: Bool
     @Binding var showingComments: Bool
     
