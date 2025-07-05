@@ -79,7 +79,7 @@ protocol SpotlightSearchable {
 }
 
 // MARK: - Searchable Content Models
-struct SpotlightCourse: SpotlightSearchable {
+struct CDSpotlightCourse: SpotlightSearchable {
     let id: String
     let title: String
     let subtitle: String?
@@ -115,7 +115,7 @@ struct SpotlightCourse: SpotlightSearchable {
     }
 }
 
-struct SpotlightLesson: SpotlightSearchable {
+struct CDSpotlightLesson: SpotlightSearchable {
     let id: String
     let courseId: String
     let title: String
@@ -148,7 +148,7 @@ struct SpotlightLesson: SpotlightSearchable {
     }
 }
 
-struct SpotlightAchievement: SpotlightSearchable {
+struct CDSpotlightAchievement: SpotlightSearchable {
     let id: String
     let title: String
     let subtitle: String?
@@ -425,9 +425,9 @@ class SpotlightManager: ObservableObject {
     
     // MARK: - Sample Data Creation (would be replaced with real data)
     
-    private func createSampleCourses() -> [SpotlightCourse] {
+    private func createSampleCourses() -> [CDSpotlightCourse] {
         return [
-            SpotlightCourse(
+            CDSpotlightCourse(
                 id: "swift-basics",
                 title: "Swift Programming Basics",
                 subtitle: "Learn Swift from scratch",
@@ -442,7 +442,7 @@ class SpotlightManager: ObservableObject {
                 isPublished: true,
                 progress: 0.3
             ),
-            SpotlightCourse(
+            CDSpotlightCourse(
                 id: "ui-design",
                 title: "Mobile UI Design",
                 subtitle: "Design beautiful mobile interfaces",
@@ -460,9 +460,9 @@ class SpotlightManager: ObservableObject {
         ]
     }
     
-    private func createSampleLessons() -> [SpotlightLesson] {
+    private func createSampleLessons() -> [CDSpotlightLesson] {
         return [
-            SpotlightLesson(
+            CDSpotlightLesson(
                 id: "swift-variables",
                 courseId: "swift-basics",
                 title: "Variables and Constants",
@@ -475,7 +475,7 @@ class SpotlightManager: ObservableObject {
                 isCompleted: true,
                 progress: 1.0
             ),
-            SpotlightLesson(
+            CDSpotlightLesson(
                 id: "swift-functions",
                 courseId: "swift-basics",
                 title: "Functions and Parameters",
@@ -491,9 +491,9 @@ class SpotlightManager: ObservableObject {
         ]
     }
     
-    private func createSampleAchievements() -> [SpotlightAchievement] {
+    private func createSampleAchievements() -> [CDSpotlightAchievement] {
         return [
-            SpotlightAchievement(
+            CDSpotlightAchievement(
                 id: "first-lesson",
                 title: "First Lesson Complete",
                 subtitle: "Completed your first lesson",
@@ -503,7 +503,7 @@ class SpotlightManager: ObservableObject {
                 earnedDate: Date().addingTimeInterval(-86400),
                 category: "Milestone"
             ),
-            SpotlightAchievement(
+            CDSpotlightAchievement(
                 id: "week-streak",
                 title: "Week Warrior",
                 subtitle: "7 day study streak",
