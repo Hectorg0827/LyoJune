@@ -66,9 +66,16 @@ class HeaderViewModel: ObservableObject {
     
     // MARK: - Setup Methods
     private func setupWebSocketListeners() {
-        // Mock WebSocket setup - messagesPublisher doesn't exist
-        // Would setup real-time message listening when WebSocketManager is implemented
-        print("Setting up WebSocket listeners")
+        // Set up real-time message listening
+        if let messagesPublisher = webSocketManager.messagesPublisher {
+            messagesPublisher
+                .sink { [weak self] message in
+                    self?.handleWebSocketMessage(message)
+                }
+                .store(in: &cancellables)
+        }
+        
+        print("WebSocket listeners set up successfully")
     }
     
     private func handleWebSocketMessage(_ message: WebSocketMessage) {
@@ -126,32 +133,78 @@ class HeaderViewModel: ObservableObject {
     }
     
     private func loadStories() async {
-        // Mock stories loading - getStories method doesn't exist
-        stories = []
-        print("Loaded stories from mock data")
+        do {
+            let storiesData = try await apiClient.getStories()
+            DispatchQueue.main.async {
+                self.stories = storiesData
+            }
+            print("Loaded \(storiesData.count) stories from API")
+        } catch {
+            print("Error loading stories: \(error)")
+            DispatchQueue.main.async {
+                self.stories = []
+            }
+        }
     }
     
     private func loadConversations() async {
-        // Mock conversations loading - getConversations method doesn't exist
-        conversations = []
-        print("Loaded conversations from mock data")
+        do {
+            let conversationsData = try await apiClient.getConversations()
+            DispatchQueue.main.async {
+                self.conversations = conversationsData
+                self.unreadMessagesCount = conversationsData.reduce(0) { $0 + $1.unreadCount }
+            }
+            print("Loaded \(conversationsData.count) conversations from API")
+        } catch {
+            print("Error loading conversations: \(error)")
+            DispatchQueue.main.async {
+                self.conversations = []
+            }
+        }
     }
     
     private func loadUserProfile() async {
-        // Mock user profile loading - getUserProfile method doesn't exist
-        userProfile = nil
-        print("Loaded user profile from mock data")
+        do {
+            let profile = try await apiClient.getUserProfile()
+            DispatchQueue.main.async {
+                self.userProfile = profile
+            }
+            print("Loaded user profile from API")
+        } catch {
+            print("Error loading user profile: \(error)")
+            DispatchQueue.main.async {
+                self.userProfile = nil
+            }
+        }
     }
     
     private func loadSearchSuggestions() async {
-        // Mock search suggestions loading - getSearchSuggestions method doesn't exist
-        searchSuggestions = []
-        print("Loaded search suggestions from mock data")
+        do {
+            let suggestions = try await apiClient.getSearchSuggestions()
+            DispatchQueue.main.async {
+                self.searchSuggestions = suggestions
+            }
+            print("Loaded \(suggestions.count) search suggestions from API")
+        } catch {
+            print("Error loading search suggestions: \(error)")
+            DispatchQueue.main.async {
+                self.searchSuggestions = []
+            }
+        }
     }
     
     private func updateStory(storyId: String) async {
-        // Mock story update - getStory method doesn't exist
-        print("Updated story: \(storyId)")
+        do {
+            let updatedStory = try await apiClient.getStory(storyId: storyId)
+            DispatchQueue.main.async {
+                if let index = self.stories.firstIndex(where: { $0.id.uuidString == storyId }) {
+                    self.stories[index] = updatedStory
+                }
+            }
+            print("Updated story: \(storyId)")
+        } catch {
+            print("Error updating story: \(error)")
+        }
     }
     
     // MARK: - Public Methods
@@ -298,13 +351,20 @@ class HeaderViewModel: ObservableObject {
         
         // Implement AI-powered search
         Task {
-            // Mock AI search - searchService doesn't exist
-            let results: [SearchSuggestion] = [] // Empty array of SearchSuggestion objects
-            await MainActor.run {
-                self.searchSuggestions = results
-                // Navigate to search results or update UI accordingly
-                self.isSearchActive = true
-                self.showSearch = true
+            do {
+                let results = try await apiClient.performAISearch(query: query)
+                await MainActor.run {
+                    self.searchSuggestions = results
+                    self.isSearchActive = true
+                    self.showSearch = true
+                }
+            } catch {
+                print("Error performing AI search: \(error)")
+                await MainActor.run {
+                    self.searchSuggestions = []
+                    self.isSearchActive = true
+                    self.showSearch = true
+                }
             }
         }
     }
@@ -313,85 +373,82 @@ class HeaderViewModel: ObservableObject {
     
     func markStoryAsWatched(_ storyId: UUID) {
         Task {
-            // Mock story marking - storiesService doesn't exist
-            print("Marked story as watched: \(storyId)")
-            
-            // Update local state
-            if let index = stories.firstIndex(where: { $0.id == storyId }) {
-                stories[index] = LearningStory(
-                    id: stories[index].id,
-                    userId: stories[index].userId,
-                    username: stories[index].username,
-                    userAvatar: stories[index].userAvatar,
-                    mediaURL: stories[index].mediaURL,
-                    mediaType: stories[index].mediaType,
-                    duration: stories[index].duration,
-                    caption: stories[index].caption,
-                    createdAt: stories[index].createdAt,
-                    viewsCount: stories[index].viewsCount,
-                    isViewed: true
-                )
+            do {
+                try await apiClient.markStoryAsWatched(storyId: storyId)
+                
+                // Update local state
+                DispatchQueue.main.async {
+                    if let index = self.stories.firstIndex(where: { $0.id == storyId }) {
+                        self.stories[index].isWatched = true
+                    }
+                }
+                
+                print("Marked story as watched: \(storyId)")
+                
+            } catch {
+                print("Error marking story as watched: \(error)")
             }
         }
     }
     
     func markConversationAsRead(_ conversationId: UUID) {
         Task {
-            // Mock conversation marking - messagesService doesn't exist
-            print("Marked conversation as read: \(conversationId)")
-            
-            // Update local state
-            if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
-                conversations[index] = HeaderConversation(
-                    id: conversations[index].id,
-                    name: conversations[index].name,
-                    initials: conversations[index].initials,
-                    avatarColors: conversations[index].avatarColors,
-                    lastMessage: conversations[index].lastMessage,
-                    timestamp: conversations[index].timestamp,
-                    hasUnreadMessages: false,
-                    messageCount: conversations[index].messageCount,
-                    conversationType: conversations[index].conversationType,
-                    participants: conversations[index].participants
-                )
+            do {
+                try await apiClient.markConversationAsRead(conversationId: conversationId)
+                
+                // Update local state
+                DispatchQueue.main.async {
+                    if let index = self.conversations.firstIndex(where: { $0.id == conversationId }) {
+                        self.conversations[index].hasUnreadMessages = false
+                        self.unreadMessagesCount = max(0, self.unreadMessagesCount - 1)
+                    }
+                }
+                
+                print("Marked conversation as read: \(conversationId)")
+                
+            } catch {
+                print("Error marking conversation as read: \(error)")
             }
         }
     }
     
     func sendMessage(_ message: String, to conversationId: UUID) {
         Task {
-            // Mock message sending - messagesService doesn't exist
-            print("Sent message: \(message) to conversation: \(conversationId)")
-            let newMessage = ConversationMessage(
-                id: UUID(),
-                role: .user,
-                content: message,
-                timestamp: Date()
-            )
-            
-            // Update local conversation
-            if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
-                conversations[index] = HeaderConversation(
-                    id: conversations[index].id,
-                    name: conversations[index].name,
-                    initials: conversations[index].initials,
-                    avatarColors: conversations[index].avatarColors,
-                    lastMessage: message,
-                    timestamp: newMessage.timestamp,
-                    hasUnreadMessages: false,
-                    messageCount: conversations[index].messageCount,
-                    conversationType: conversations[index].conversationType,
-                    participants: conversations[index].participants
+            do {
+                let newMessage = try await apiClient.sendMessage(
+                    message: message,
+                    to: conversationId
                 )
+                
+                // Update local conversation
+                DispatchQueue.main.async {
+                    if let index = self.conversations.firstIndex(where: { $0.id == conversationId }) {
+                        self.conversations[index].lastMessage = message
+                        self.conversations[index].timestamp = newMessage.timestamp
+                        self.conversations[index].hasUnreadMessages = false
+                    }
+                }
+                
+                print("Sent message: \(message) to conversation: \(conversationId)")
+                
+            } catch {
+                print("Error sending message: \(error)")
             }
         }
     }
     
     func performSearch(_ query: String) {
         Task {
-            // Mock search save - searchService doesn't exist
-            print("Saved search: \(query)")
-            // Additional search logic can be added here
+            do {
+                try await apiClient.saveSearch(query: query)
+                print("Saved search: \(query)")
+                
+                // Trigger search results update
+                await handleAIAssist(query)
+                
+            } catch {
+                print("Error saving search: \(error)")
+            }
         }
     }
     
@@ -443,21 +500,37 @@ class HeaderViewModel: ObservableObject {
         }
         
         Task {
-            // Mock search suggestions - getSearchSuggestions method doesn't exist
-            let suggestions: [SearchSuggestion] = []
-            
-            // Add dynamic suggestion at the top
-            var allSuggestions = [
-                SearchSuggestion(
-                    query: searchText,
-                    category: .general,
-                    popularity: 75,
-                    isPersonalized: true
-                )
-            ]
-            allSuggestions.append(contentsOf: suggestions)
-            
-            self.searchSuggestions = allSuggestions
+            do {
+                let suggestions = try await apiClient.getSearchSuggestions(for: searchText)
+                
+                // Add dynamic suggestion at the top
+                var allSuggestions = [
+                    SearchSuggestion(
+                        query: searchText,
+                        category: .general,
+                        popularity: 75,
+                        isPersonalized: true
+                    )
+                ]
+                allSuggestions.append(contentsOf: suggestions)
+                
+                DispatchQueue.main.async {
+                    self.searchSuggestions = allSuggestions
+                }
+                
+            } catch {
+                print("Error loading search suggestions: \(error)")
+                DispatchQueue.main.async {
+                    self.searchSuggestions = [
+                        SearchSuggestion(
+                            query: searchText,
+                            category: .general,
+                            popularity: 75,
+                            isPersonalized: true
+                        )
+                    ]
+                }
+            }
         }
     }
     
@@ -477,54 +550,6 @@ class HeaderViewModel: ObservableObject {
                 await self.loadStories()
                 await self.loadConversations()
             }
-        }
-        
-        // Simulate occasional new content for demo purposes
-        Timer.scheduledTimer(withTimeInterval: 120.0, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            
-            Task { @MainActor in
-                // Randomly add demo content occasionally
-                if Bool.random() && self.stories.count < 10 {
-                    self.simulateNewStory()
-                }
-                
-                if Bool.random() && self.conversations.count < 10 {
-                    self.simulateNewMessage()
-                }
-            }
-        }
-    }
-    
-    private func simulateNewMessage() {
-        let randomConversation = conversations.randomElement()
-        guard let conversation = randomConversation else { return }
-        
-        // Mark a random conversation as having new messages
-        if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
-            conversations[index].hasUnreadMessages = true
-        }
-    }
-    
-    private func simulateNewStory() {
-        let randomStory = stories.randomElement()
-        guard let story = randomStory else { return }
-        
-        // Mark a random story as having new content by updating local state
-        if let index = stories.firstIndex(where: { $0.id == story.id }) {
-            stories[index] = LearningStory(
-                id: story.id,
-                userId: story.userId,
-                username: story.username,
-                userAvatar: story.userAvatar,
-                mediaURL: story.mediaURL,
-                mediaType: story.mediaType,
-                duration: story.duration,
-                caption: story.caption,
-                createdAt: Date(),
-                viewsCount: story.viewsCount,
-                isViewed: false
-            )
         }
     }
     
