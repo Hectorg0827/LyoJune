@@ -3,7 +3,13 @@ import Combine
 import UIKit
 import LocalAuthentication
 import Security
-// Note: AuthTypes and ErrorTypes should be imported
+
+// Import network types for API endpoints
+// Note: NetworkTypes is available via shared target access
+
+// Models are now defined in their respective files under Core/Models
+// and are available project-wide. No direct imports are needed as
+// they are part of the same application target.
 
 // MARK: - Enhanced Auth Service
 final class EnhancedAuthService: ObservableObject {
@@ -70,8 +76,11 @@ final class EnhancedAuthService: ObservableObject {
     func login(email: String, password: String) async throws -> User {
         await MainActor.run { isLoading = true }
         
+        // Production authentication only
         let endpoint = APIEndpoint(path: "/auth/login", method: .POST)
-        let request = LoginRequest(email: email, password: password)
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+        let deviceName = UIDevice.current.name
+        let request = LoginRequest(email: email, password: password, deviceId: deviceId, deviceName: deviceName)
         
         do {
             let data = try JSONEncoder().encode(request)
@@ -102,8 +111,26 @@ final class EnhancedAuthService: ObservableObject {
     func register(email: String, password: String, name: String) async throws -> User {
         await MainActor.run { isLoading = true }
         
+        // Production registration only
         let endpoint = APIEndpoint(path: "/auth/register", method: .POST)
-        let request = RegisterRequest(email: email, password: password, name: name)
+        let deviceId = UIDevice.current.identifierForVendor?.uuidString ?? UUID().uuidString
+        let deviceName = UIDevice.current.name
+        
+        // Split name into first and last name
+        let nameComponents = name.split(separator: " ", maxSplits: 1)
+        let firstName = String(nameComponents.first ?? "")
+        let lastName = nameComponents.count > 1 ? String(nameComponents[1]) : ""
+        let username = email.components(separatedBy: "@").first ?? email
+        
+        let request = RegisterRequest(
+            email: email,
+            password: password,
+            firstName: firstName,
+            lastName: lastName,
+            username: username,
+            deviceId: deviceId,
+            deviceName: deviceName
+        )
         
         do {
             let data = try JSONEncoder().encode(request)
@@ -138,7 +165,7 @@ final class EnhancedAuthService: ObservableObject {
         
         // Attempt to notify server (don't fail if this fails)
         do {
-            let _: EmptyResponse = try await networkManager.request(endpoint: endpoint)
+        let _: EmptyResponse = try await networkManager.request(endpoint: endpoint)
         } catch {
             // Ignore logout errors - we'll clear local storage anyway
             print("⚠️ Logout request failed: \(error)")
@@ -282,23 +309,6 @@ final class EnhancedAuthService: ObservableObject {
         let endpoint = APIEndpoint(path: "/auth/me", method: .GET)
         return try await networkManager.request(endpoint: endpoint)
     }
-}
-
-// MARK: - Request/Response Models
-
-struct LoginRequest: Codable {
-    let email: String
-    let password: String
-}
-
-struct RegisterRequest: Codable {
-    let email: String
-    let password: String
-    let name: String
-}
-
-struct RefreshTokenRequest: Codable {
-    let refreshToken: String
 }
 
 // MARK: - Computed Properties
