@@ -2,6 +2,11 @@ import Foundation
 import AVFoundation
 import Speech
 import Combine
+import SwiftUI
+
+// Models are now defined in their respective files under Core/Models
+// and are available project-wide. No direct imports are needed as
+// they are part of the same application target.
 
 // MARK: - AI Service
 @MainActor
@@ -20,6 +25,8 @@ class AIService: ObservableObject {
     private var recognitionTask: SFSpeechRecognitionTask?
     private let audioEngine = AVAudioEngine()
     private var cancellables = Set<AnyCancellable>()
+    private let authService = EnhancedAuthService.shared
+    private let apiClient = NetworkManager.shared
     
     private init() {
         setupSpeechRecognition()
@@ -212,41 +219,29 @@ class AIService: ObservableObject {
     }
     
     private func callAIAPI(with text: String, context: [ConversationMessage]) async throws -> String {
-        // In a real implementation, this would call your AI backend
-        // For now, we'll simulate an AI response
+        // Call the real AI backend API
+        let userId = authService.currentUser?.id.uuidString // EnhancedAuthService has a currentUser property
         
-        try await Task.sleep(nanoseconds: 1_000_000_000) // Simulate network delay
+        let request = AIRequest(
+            message: text,
+            context: context,
+            userId: userId
+        )
         
-        // Generate contextual response based on input
-        return generateMockResponse(for: text, context: context)
-    }
-    
-    private func generateMockResponse(for input: String, context: [ConversationMessage]) -> String {
-        let lowercaseInput = input.lowercased()
-        
-        // Educational responses
-        if lowercaseInput.contains("explain") || lowercaseInput.contains("what is") {
-            return "I'd be happy to explain that concept! Let me break it down for you in simple terms with some examples."
+        do {
+            // Getting the raw response and manually extracting the data
+            let response: AIResponse = try await apiClient.post(
+                endpoint: Constants.API.Endpoints.ai,
+                body: request
+            )
+            
+            // Extract message from response
+            return response.message
+        } catch {
+            print("AI API call failed: \(error)")
+            // Fall back to a simple response rather than mock data
+            throw AIError.networkError
         }
-        
-        if lowercaseInput.contains("help") || lowercaseInput.contains("stuck") {
-            return "I understand you need help. Let me guide you through this step by step. What specific part would you like me to clarify?"
-        }
-        
-        if lowercaseInput.contains("progress") || lowercaseInput.contains("how am i doing") {
-            return "You're making great progress! Based on your recent activity, you're on track to complete your learning goals. Keep up the excellent work!"
-        }
-        
-        if lowercaseInput.contains("motivate") || lowercaseInput.contains("encourage") {
-            return "You're doing amazing! Remember, every expert was once a beginner. Your consistency and effort are building real skills that will serve you well."
-        }
-        
-        if lowercaseInput.contains("quiz") || lowercaseInput.contains("test") {
-            return "Let's test your knowledge! I can create a quick quiz based on what you've been learning. Are you ready for a challenge?"
-        }
-        
-        // General responses
-        return "That's a great question! I'm here to help you learn and grow. Could you tell me more about what you'd like to explore?"
     }
     
     private func createContextPrompt(courseId: String?, lessonId: String?, userProgress: UserProgress?) -> String {
@@ -267,69 +262,5 @@ class AIService: ObservableObject {
         context += " Provide helpful, encouraging, and educational responses."
         
         return context
-    }
-}
-
-// MARK: - Models
-struct ConversationMessage: Codable, Identifiable {
-    let id: UUID
-    let role: MessageRole
-    let content: String
-    let timestamp: Date
-    
-    enum MessageRole: String, Codable {
-        case user
-        case assistant
-        case system
-    }
-}
-
-// MARK: - AI Suggestion Models (moved from duplicate ProactiveAIManager)
-struct AISuggestion: Identifiable, Codable {
-    let id: UUID
-    let type: SuggestionType
-    let title: String
-    let content: String
-    let action: SuggestionAction
-    let timestamp: Date
-    
-    init(id: UUID, type: SuggestionType, title: String, content: String, action: SuggestionAction) {
-        self.id = id
-        self.type = type
-        self.title = title
-        self.content = content
-        self.action = action
-        self.timestamp = Date()
-    }
-}
-
-enum SuggestionType: String, Codable {
-    case tip
-    case encouragement
-    case help
-    case celebration
-    case reminder
-}
-
-enum SuggestionAction: String, Codable {
-    case startLearning
-    case continueStreak
-    case takeQuiz
-    case getHelp
-    case nextLesson
-    case reviewProgress
-}
-
-struct UserActivity: Codable {
-    let type: ActivityType
-    let duration: TimeInterval
-    let context: [String: String]
-    let timestamp: Date
-    
-    enum ActivityType: String, Codable {
-        case courseViewing
-        case struggling
-        case completed
-        case idle
     }
 }
