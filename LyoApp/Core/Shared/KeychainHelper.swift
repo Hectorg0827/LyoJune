@@ -186,8 +186,4 @@ extension KeychainHelper {
     public func delete(for key: String) -> Bool {
         return delete(forKey: key)
     }
-        public static let userID = "user_id"
-        public static let apiKey = "api_key"
-        public static let deviceID = "device_id"
-    }
 }
