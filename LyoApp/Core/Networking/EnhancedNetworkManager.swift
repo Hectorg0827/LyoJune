@@ -141,7 +141,8 @@ final class EnhancedNetworkManager: NSObject, ObservableObject {
         // Set default headers
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        request.setValue(Bundle.main.appVersion, forHTTPHeaderField: "X-App-Version")
+        let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        request.setValue(appVersion, forHTTPHeaderField: "X-App-Version")
         request.setValue("iOS", forHTTPHeaderField: "X-Platform")
         
         // Add authentication header if available
