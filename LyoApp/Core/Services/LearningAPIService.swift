@@ -1,6 +1,9 @@
 import Foundation
 import Combine
 
+// Use canonical types from AppModels.swift to avoid ambiguity
+public typealias CanonicalQuizQuestion = QuizQuestion
+
 // MARK: - Local Type Definitions for API Service
 // These avoid import conflicts and ambiguity issues
 
@@ -37,11 +40,11 @@ public enum LearningAPI {
         public let topicId: UUID
         public let title: String
         public let description: String
-        public let questions: [QuizQuestion]
+        public let questions: [CanonicalQuizQuestion]
         public let timeLimit: TimeInterval?
         public let passingScore: Double
         
-        public init(id: UUID, topicId: UUID, title: String, description: String, questions: [QuizQuestion], timeLimit: TimeInterval? = nil, passingScore: Double) {
+        public init(id: UUID, topicId: UUID, title: String, description: String, questions: [CanonicalQuizQuestion], timeLimit: TimeInterval? = nil, passingScore: Double) {
             self.id = id
             self.topicId = topicId
             self.title = title
@@ -52,9 +55,9 @@ public enum LearningAPI {
         }
     }
 
-    // Removed duplicate QuizQuestion - use the canonical one from AppModels.swift
+    // Removed duplicate CDQuizQuestion - use the canonical one from AppModels.swift
     
-    // Local UserCourse type for API responses
+    // Local CDUserCourse type for API responses
     public struct UserCourse: Codable, Identifiable {
         public let id: UUID
         public let courseId: UUID
@@ -167,7 +170,7 @@ class LearningAPIService {
         return try await networkManager.post(endpoint: "/courses/lessons/\(lessonId)/complete", body: request)
     }
 
-    func getUserProgress() async throws -> UserProgress {
+    func getCDUserProgress() async throws -> UserProgress {
         return try await networkManager.get(endpoint: "/analytics/progress")
     }
 
