@@ -28,7 +28,9 @@ public class MediaCacheManager: ObservableObject {
                 maxItemAge: TimeInterval = 7 * 24 * 60 * 60) { // 7 days default
         
         // Setup cache directory
-        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            fatalError("Could not find documents directory.")
+        }
         cacheDirectory = documentsDirectory.appendingPathComponent("MediaCache")
         metadataFile = cacheDirectory.appendingPathComponent("cache_metadata.plist")
         
