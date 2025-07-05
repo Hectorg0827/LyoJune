@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 public struct CourseProgress: Codable {
     public let completionPercentage: Double
@@ -48,7 +49,74 @@ public struct Instructor: Codable, Identifiable {
     }
 }
 
-public struct Course: Codable, Identifiable {
+public enum CourseCategory: String, CaseIterable, Codable {
+    case programming = "Programming"
+    case development = "Development"
+    case design = "Design" 
+    case business = "Business"
+    case marketing = "Marketing"
+    case science = "Science"
+    case math = "Mathematics"
+    case language = "Language"
+    case arts = "Art"
+    case health = "Health"
+    case other = "Other"
+    
+    var gradient: LinearGradient {
+        switch self {
+        case .programming:
+            return LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .development:
+            return LinearGradient(colors: [.green, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .design:
+            return LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .business:
+            return LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .marketing:
+            return LinearGradient(colors: [.purple, .pink], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .science:
+            return LinearGradient(colors: [.cyan, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .math:
+            return LinearGradient(colors: [.indigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .language:
+            return LinearGradient(colors: [.mint, .green], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .arts:
+            return LinearGradient(colors: [.yellow, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .health:
+            return LinearGradient(colors: [.red, .pink], startPoint: .topLeading, endPoint: .bottomTrailing)
+        case .other:
+            return LinearGradient(colors: [.gray, .secondary], startPoint: .topLeading, endPoint: .bottomTrailing)
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .programming: return "chevron.left.forwardslash.chevron.right"
+        case .development: return "hammer.fill"
+        case .design: return "paintbrush.fill"
+        case .business: return "briefcase.fill"
+        case .marketing: return "megaphone.fill"
+        case .science: return "flask.fill"
+        case .math: return "function"
+        case .language: return "globe"
+        case .arts: return "palette.fill"
+        case .health: return "heart.fill"
+        case .other: return "ellipsis.circle.fill"
+        }
+    }
+    
+    // MARK: - CourseCategory Display Name
+    var name: String { rawValue.capitalized }
+}
+
+public enum CourseDifficulty: String, CaseIterable, Codable {
+    case beginner = "Beginner"
+    case intermediate = "Intermediate" 
+    case advanced = "Advanced"
+    case expert = "Expert"
+}
+
+public struct Course: Identifiable, Codable {
     public let id: UUID
     public let title: String
     public let description: String
@@ -128,6 +196,7 @@ public struct Course: Codable, Identifiable {
 }
 
 // MARK: - Learning Course Models
+// Use the Course from this file specifically to avoid ambiguity
 public typealias LearningCourse = Course
 
 public struct UserCourse: Codable, Identifiable {
@@ -192,3 +261,30 @@ public struct Quiz: Codable, Identifiable {
 }
 
 // Removed duplicate QuizQuestion - use the canonical one from AppModels.swift
+
+public struct EnrollmentRequest: Codable {
+    public let courseId: String
+}
+
+public struct ProgressUpdateRequest: Codable {
+    public let courseId: String
+    public let lessonId: String
+    public let progress: Double
+    public let completedAt: Date?
+}
+
+public struct ProgressResponse: Codable {
+    public let success: Bool
+    public let totalProgress: Double
+}
+
+public struct CourseCompletionRequest: Codable {
+    public let courseId: String
+    public let completedAt: Date
+}
+
+public struct CompletionResponse: Codable {
+    public let success: Bool
+    public let certificateUrl: String?
+    public let points: Int
+}
