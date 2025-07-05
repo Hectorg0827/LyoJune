@@ -3,6 +3,9 @@ import Combine
 import Network
 import Security
 
+// KeychainHelper.swift should be available in scope
+// ConfigurationManager.swift should be available in scope
+
 // MARK: - WebSocket Manager
 final class WebSocketManager: NSObject, ObservableObject {
     static let shared = WebSocketManager()
@@ -143,6 +146,7 @@ final class WebSocketManager: NSObject, ObservableObject {
             let shouldReconnect = path.status == .satisfied
             let wasConnected = self?.isConnected ?? false
             
+            // Auto-reconnect if network is available
             if shouldReconnect && !wasConnected && self?.reconnectAttempts ?? 0 < self?.maxReconnectAttempts ?? 5 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     self?.attemptReconnect()
