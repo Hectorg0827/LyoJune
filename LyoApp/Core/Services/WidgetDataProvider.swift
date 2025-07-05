@@ -17,7 +17,7 @@ struct WidgetUserData: Codable {
     let nextLessonTitle: String?
     let nextLessonProgress: Double
     let lastStudyDate: Date?
-    let achievements: [WidgetAchievement]
+    let achievements: [CDWidgetAchievement]
     let todayStudyTime: TimeInterval
     let weeklyStudyTime: TimeInterval
     
@@ -29,7 +29,7 @@ struct WidgetUserData: Codable {
         nextLessonProgress: 0.3,
         lastStudyDate: Date().addingTimeInterval(-3600),
         achievements: [
-            WidgetAchievement(
+            CDWidgetAchievement(
                 id: "first-week",
                 title: "First Week",
                 imageName: "trophy.fill",
@@ -53,7 +53,7 @@ struct WidgetUserData: Codable {
     )
 }
 
-struct WidgetAchievement: Codable, Identifiable {
+struct CDWidgetAchievement: Codable, Identifiable {
     let id: String
     let title: String
     let imageName: String
@@ -69,7 +69,7 @@ struct WidgetAchievement: Codable, Identifiable {
     }
 }
 
-struct WidgetCourse: Codable, Identifiable {
+struct CDWidgetCourse: Codable, Identifiable {
     let id: String
     let title: String
     let progress: Double
@@ -91,10 +91,10 @@ struct WidgetCourse: Codable, Identifiable {
 struct LyoWidgetEntry: TimelineEntry {
     let date: Date
     let userData: WidgetUserData
-    let relevantCourses: [WidgetCourse]
+    let relevantCourses: [CDWidgetCourse]
     let isPlaceholder: Bool
     
-    init(date: Date, userData: WidgetUserData, relevantCourses: [WidgetCourse] = [], isPlaceholder: Bool = false) {
+    init(date: Date, userData: WidgetUserData, relevantCourses: [CDWidgetCourse] = [], isPlaceholder: Bool = false) {
         self.date = date
         self.userData = userData
         self.relevantCourses = relevantCourses
@@ -105,7 +105,7 @@ struct LyoWidgetEntry: TimelineEntry {
         date: Date(),
         userData: .placeholder,
         relevantCourses: [
-            WidgetCourse(
+            CDWidgetCourse(
                 id: "swift-basics",
                 title: "Swift Basics",
                 progress: 0.3,
@@ -125,7 +125,7 @@ class WidgetDataProvider: ObservableObject {
     
     // MARK: - Shared Instance
     static let shared = WidgetDataProvider(
-        coreDataManager: EnhancedCoreDataManager.shared
+        coreDataManager: DataManager.shared
     )
     
     // MARK: - Published Properties
@@ -133,13 +133,13 @@ class WidgetDataProvider: ObservableObject {
     @Published var lastUpdated: Date?
     
     // MARK: - Private Properties
-    private let coreDataManager: EnhancedCoreDataManager
+    private let coreDataManager: DataManager
     private let userDefaults: UserDefaults
     private let widgetDataKey = "widget_user_data"
     private let updateInterval: TimeInterval = 15 * 60 // 15 minutes
     
     // MARK: - Initialization
-    init(coreDataManager: EnhancedCoreDataManager) {
+    init(coreDataManager: DataManager) {
         self.coreDataManager = coreDataManager
         
         // Use App Group UserDefaults for widget data sharing
@@ -239,7 +239,7 @@ class WidgetDataProvider: ObservableObject {
             nextLessonProgress: nextLesson?.progress ?? 0.0,
             lastStudyDate: await coreDataManager.getLastStudyDate(),
             achievements: achievements.map { achievement in
-                WidgetAchievement(
+                CDWidgetAchievement(
                     id: achievement.id,
                     title: achievement.title,
                     imageName: achievement.imageName,
@@ -252,7 +252,7 @@ class WidgetDataProvider: ObservableObject {
         )
     }
     
-    private func getRelevantCourses(for family: WidgetFamily) async -> [WidgetCourse] {
+    private func getRelevantCourses(for family: WidgetFamily) async -> [CDWidgetCourse] {
         let maxCourses: Int = {
             switch family {
             case .systemSmall: return 1
@@ -266,7 +266,7 @@ class WidgetDataProvider: ObservableObject {
         let activeCourses = await coreDataManager.getActiveCourses(limit: maxCourses)
         
         return activeCourses.map { course in
-            WidgetCourse(
+            CDWidgetCourse(
                 id: course.id,
                 title: course.title,
                 progress: course.progress,
@@ -405,8 +405,8 @@ extension Notification.Name {
     static let widgetViewAchievements = Notification.Name("widgetViewAchievements")
 }
 
-// MARK: - Enhanced Core Data Manager Extensions for Widget
-extension EnhancedCoreDataManager {
+// MARK: - Data Manager Extensions for Widget
+extension DataManager {
     
     func getCurrentStreak() async -> Int {
         // Implementation for getting current streak
