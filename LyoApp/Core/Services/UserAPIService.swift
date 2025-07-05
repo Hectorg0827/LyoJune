@@ -2,12 +2,10 @@
 import Foundation
 
 @MainActor
-class UserAPIService: BaseAPIService {
-    static let shared = UserAPIService()
+class CDUserAPIService: BaseAPIService {
+    static let shared = CDUserAPIService()
     
-    private override init(apiClient: APIClientProtocol = {
-        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
-    }()) {
+    private override init(apiClient: APIClientProtocol = APIClient.shared) {
         super.init(apiClient: apiClient)
     }
 
@@ -15,13 +13,13 @@ class UserAPIService: BaseAPIService {
         super.init(apiClient: apiClient)
     }
 
-    func fetchUserProfile(_ userId: String? = nil) async throws -> UserProfile {
+    func fetchCDUserProfile(_ userId: String? = nil) async throws -> CDUserProfile {
         let path = userId != nil ? "/profile/\(userId!)" : "/profile"
         let endpoint = Endpoint(path: path)
         return try await apiClient.request(endpoint)
     }
 
-    func updateUserProfile(_ profile: UpdateUserProfileRequest) async throws -> UserProfile {
+    func updateCDUserProfile(_ profile: UpdateCDUserProfileRequest) async throws -> CDUserProfile {
         let endpoint = Endpoint(path: "/profile", method: .put, body: profile)
         return try await apiClient.request(endpoint)
     }
@@ -32,12 +30,12 @@ class UserAPIService: BaseAPIService {
         return response.url
     }
 
-    func followUser(_ userId: String) async throws {
-        let endpoint = Endpoint(path: "/profile/follow", method: .post, body: FollowUserRequest(userId: userId))
+    func followCDUser(_ userId: String) async throws {
+        let endpoint = Endpoint(path: "/profile/follow", method: .post, body: FollowCDUserRequest(userId: userId))
         let _: EmptyResponse = try await apiClient.request(endpoint)
     }
 
-    func unfollowUser(_ userId: String) async throws {
+    func unfollowCDUser(_ userId: String) async throws {
         let endpoint = Endpoint(path: "/profile/follow/\(userId)", method: .delete)
         let _: EmptyResponse = try await apiClient.request(endpoint)
     }
