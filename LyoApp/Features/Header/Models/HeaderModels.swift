@@ -323,7 +323,7 @@ struct HeaderUserProfile: Identifiable, Codable {
     let stats: UserStats
     let preferences: UserPreferences
     let achievements: [Achievement]
-    let courses: [UserCourse]
+    let courses: [CDUserCourse]
     
     var colorGradient: [Color] {
         avatarColors.compactMap { hex in
@@ -371,7 +371,7 @@ struct HeaderUserProfile: Identifiable, Codable {
         }
     }
     
-    struct UserCourse: Identifiable, Codable {
+    struct CDUserCourse: Identifiable, Codable {
         let id: UUID
         let courseId: String
         let title: String
@@ -422,7 +422,7 @@ struct HeaderUserProfile: Identifiable, Codable {
         ),
         achievements: [],
         courses: [
-            UserCourse(
+            CDUserCourse(
                 id: UUID(),
                 courseId: "swift-101",
                 title: "Swift Programming Fundamentals",
@@ -432,7 +432,7 @@ struct HeaderUserProfile: Identifiable, Codable {
                 lastAccessedDate: Date().addingTimeInterval(-3600),
                 completionDate: nil
             ),
-            UserCourse(
+            CDUserCourse(
                 id: UUID(),
                 courseId: "math-calc",
                 title: "Calculus I",
