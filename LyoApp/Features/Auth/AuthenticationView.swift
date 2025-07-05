@@ -6,7 +6,7 @@ import SwiftUI
 // Modern, accessible, and delightful authentication experience
 
 struct AuthenticationView: View {
-    @StateObject private var authService = EnhancedAuthService.shared
+    @EnvironmentObject var authService: EnhancedAuthService
     @State private var email = ""
     @State private var password = ""
     @State private var firstName = ""
@@ -119,7 +119,7 @@ struct AuthenticationView: View {
     
     @ViewBuilder
     private var logoSection: some View {
-        VStack(spacing: DesignTokens.Spacing.lg) {
+        VStack(spacing: DesignTokens.Spacing.md) { // Reduced spacing
             // Enhanced logo with modern design
             ZStack {
                 Circle()
@@ -133,7 +133,7 @@ struct AuthenticationView: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 120, height: 120)
+                    .frame(width: 100, height: 100) // Reduced size
                     .overlay(
                         Circle()
                             .stroke(
@@ -149,7 +149,7 @@ struct AuthenticationView: View {
                     )
                 
                 Text("L")
-                    .font(DesignTokens.Typography.displayLarge)
+                    .font(DesignTokens.Typography.displayMedium) // Reduced font size
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .scaleEffect(1.2)
@@ -161,14 +161,14 @@ struct AuthenticationView: View {
                 y: 10
             )
             
-            VStack(spacing: DesignTokens.Spacing.sm) {
+            VStack(spacing: DesignTokens.Spacing.xs) { // Reduced spacing
                 Text("Welcome to LyoApp")
-                    .font(DesignTokens.Typography.displayMedium)
+                    .font(DesignTokens.Typography.headlineSmall) // Reduced font size
                     .fontWeight(.bold)
                     .foregroundColor(DesignTokens.Colors.textPrimary)
                 
                 Text(isSignUp ? "Create your learning journey" : "Continue your learning journey")
-                    .font(DesignTokens.Typography.bodyLarge)
+                    .font(DesignTokens.Typography.bodyMedium) // Reduced font size
                     .foregroundColor(DesignTokens.Colors.textSecondary)
                     .multilineTextAlignment(.center)
             }
@@ -192,8 +192,6 @@ struct AuthenticationView: View {
                         ModernTextField(
                             title: "First Name",
                             text: $firstName,
-                            style: .filled,
-                            size: .medium,
                             placeholder: "First Name"
                         )
                         .focused($focusedField, equals: .firstName)
@@ -201,8 +199,6 @@ struct AuthenticationView: View {
                         ModernTextField(
                             title: "Last Name",
                             text: $lastName,
-                            style: .filled,
-                            size: .medium,
                             placeholder: "Last Name"
                         )
                         .focused($focusedField, equals: .lastName)
@@ -211,8 +207,6 @@ struct AuthenticationView: View {
                     ModernTextField(
                         title: "Username",
                         text: $username,
-                        style: .filled,
-                        size: .medium,
                         placeholder: "Username"
                     )
                     .focused($focusedField, equals: .username)
@@ -221,8 +215,6 @@ struct AuthenticationView: View {
                 ModernTextField(
                     title: "Email",
                     text: $email,
-                    style: .filled,
-                    size: .medium,
                     placeholder: "Email"
                 )
                 .focused($focusedField, equals: .email)
@@ -230,10 +222,8 @@ struct AuthenticationView: View {
                 ModernTextField(
                     title: "Password",
                     text: $password,
-                    style: .filled,
-                    size: .medium,
-                    isSecure: !showingPassword,
-                    placeholder: "Password"
+                    placeholder: "Password",
+                    isSecure: !showingPassword
                 )
                 .focused($focusedField, equals: .password)
                 
@@ -275,9 +265,7 @@ struct AuthenticationView: View {
             ModernButton(
                 title: isSignUp ? "Create Account" : "Sign In",
                 style: .primary,
-                size: .large,
-                isLoading: authService.isLoading,
-                isEnabled: isFormValid
+                size: .large
             ) {
                 handleAuthentication()
             }
@@ -285,7 +273,7 @@ struct AuthenticationView: View {
             if !isSignUp {
                 ModernButton(
                     title: "Forgot Password?",
-                    style: .tertiary,
+                    style: .secondary,
                     size: .medium
                 ) {
                     handleForgotPassword()
@@ -308,40 +296,49 @@ struct AuthenticationView: View {
                     .fill(DesignTokens.Colors.neutral300.opacity(0.3))
                     .frame(height: 1)
                 
-                Text("OR")
+                Text("OR CONTINUE WITH")
                     .font(DesignTokens.Typography.caption)
+                    .fontWeight(.medium)
                     .foregroundColor(DesignTokens.Colors.textSecondary)
-                    .padding(.horizontal, DesignTokens.Spacing.md)
                 
                 Rectangle()
                     .fill(DesignTokens.Colors.neutral300.opacity(0.3))
                     .frame(height: 1)
             }
             
-            HStack(spacing: DesignTokens.Spacing.md) {
-                ModernButton(
-                    title: "Apple",
-                    style: .secondary,
-                    size: .medium
-                ) {
-                    handleAppleSignIn()
-                }
-                
-                ModernButton(
-                    title: "Google",
-                    style: .secondary,
-                    size: .medium
-                ) {
-                    handleGoogleSignIn()
-                }
+            HStack(spacing: DesignTokens.Spacing.lg) {
+                socialLoginButton(provider: .apple)
+                socialLoginButton(provider: .google)
+                socialLoginButton(provider: .meta)
             }
         }
-        .opacity(isAnimating ? 1.0 : 0.3)
-        .offset(y: isAnimating ? 0 : 40)
+        .opacity(isAnimating ? 1.0 : 0.5)
+        .offset(y: isAnimating ? 0 : 30)
         .animation(
-            .spring(response: 0.5, dampingFraction: 0.8).delay(0.8),
+            .spring(response: 0.5, dampingFraction: 0.8).delay(0.7),
             value: isAnimating
         )
+    }
+
+    @ViewBuilder
+    private func socialLoginButton(provider: SocialProvider) -> some View {
+        Button(action: {
+            handleSocialSignIn(provider: provider)
+        }) {
+            HStack {
+                Image(systemName: provider.iconName)
+                    .font(.title2)
+                    .imageScale(.large)
+                    .foregroundColor(provider.color)
+            }
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(DesignTokens.Colors.surfaceVariant)
+            .cornerRadius(DesignTokens.CornerRadius.md)
+            .overlay(
+                RoundedRectangle(cornerRadius: DesignTokens.CornerRadius.md)
+                    .stroke(DesignTokens.Colors.border, lineWidth: 1)
+            )
+        }
     }
     
     @ViewBuilder
@@ -378,7 +375,7 @@ struct AuthenticationView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: DesignTokens.Spacing.lg) {
-                ProgressView()
+                ProgressView(value: authService.isLoading ? 0.5 : 0.0, total: 1.0)
                     .scaleEffect(1.5)
                 
                 Text(isSignUp ? "Creating your account..." : "Signing you in...")
@@ -412,13 +409,11 @@ struct AuthenticationView: View {
         }
     }
     
-    // MARK: - Private Methods
+    // MARK: - Logic Handlers
     
     private func startInitialAnimation() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation {
-                isAnimating = true
-            }
+        withAnimation {
+            isAnimating = true
         }
     }
     
@@ -447,31 +442,39 @@ struct AuthenticationView: View {
         }
     }
     
-    private func handleForgotPassword() {
-        guard !email.isEmpty, isValidEmail(email) else {
-            // Show alert for valid email requirement
-            return
-        }
-        
-        HapticManager.shared.lightImpact()
-        
+    private func handleSocialSignIn(provider: SocialProvider) {
         Task {
             do {
-                try await authService.resetPassword(email: email)
+                // TODO: Implement actual social authentication with provider SDKs
+                // This would involve integrating with Apple Sign In, Google Sign In, etc.
+                switch provider {
+                case .apple:
+                    // Implement Apple Sign In
+                    break
+                case .google:
+                    // Implement Google Sign In
+                    break
+                case .facebook:
+                    // Implement Facebook Sign In
+                    break
+                }
             } catch {
-                print("Password reset error: \(error)")
+                print("Social login failed: \(error)")
             }
         }
     }
-    
-    private func handleAppleSignIn() {
-        HapticManager.shared.lightImpact()
-        // Implement Apple Sign In
+
+    private func handleForgotPassword() {
+        // Placeholder for forgot password logic
+        print("Forgot password tapped")
     }
     
-    private func handleGoogleSignIn() {
+    private func toggleAuthMode() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 1.0)) {
+            isSignUp.toggle()
+            clearFields()
+        }
         HapticManager.shared.lightImpact()
-        // Implement Google Sign In
     }
     
     private func clearFields() {
@@ -529,4 +532,25 @@ struct ModernCheckbox: View {
 #Preview {
     AuthenticationView()
         .preferredColorScheme(.dark)
+}
+
+// MARK: - Social Provider Enum
+enum SocialProvider: String {
+    case apple, google, meta
+
+    var iconName: String {
+        switch self {
+        case .apple: return "applelogo"
+        case .google: return "g.circle.fill" // Placeholder, as there is no official Google logo in SF Symbols
+        case .meta: return "f.circle.fill" // Placeholder, using Facebook logo
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .apple: return DesignTokens.Colors.textPrimary
+        case .google: return .red
+        case .meta: return .blue
+        }
+    }
 }
