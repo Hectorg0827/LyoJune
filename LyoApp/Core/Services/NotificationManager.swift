@@ -32,7 +32,7 @@ enum NotificationType: String, CaseIterable {
         case .studyReminder: return "Study Reminders"
         case .streakReminder: return "Streak Reminders"
         case .newCourse: return "New Courses"
-        case .achievementUnlocked: return "Achievements"
+        case .achievementUnlocked: return "CDAchievements"
         case .friendActivity: return "Friend Activity"
         case .courseUpdate: return "Course Updates"
         case .liveClass: return "Live Classes"
@@ -85,7 +85,7 @@ enum NotificationAction: String, CaseIterable {
     case snooze = "SNOOZE"
     case dismiss = "DISMISS"
     case reply = "REPLY"
-    case viewAchievement = "VIEW_ACHIEVEMENT"
+    case viewCDAchievement = "VIEW_ACHIEVEMENT"
     case joinClass = "JOIN_CLASS"
     case viewAssignment = "VIEW_ASSIGNMENT"
     
@@ -97,7 +97,7 @@ enum NotificationAction: String, CaseIterable {
         case .snooze: return "Snooze 15m"
         case .dismiss: return "Dismiss"
         case .reply: return "Reply"
-        case .viewAchievement: return "View Achievement"
+        case .viewCDAchievement: return "View CDAchievement"
         case .joinClass: return "Join Class"
         case .viewAssignment: return "View Assignment"
         }
@@ -109,7 +109,7 @@ enum NotificationAction: String, CaseIterable {
     
     var isForeground: Bool {
         switch self {
-        case .startStudying, .viewCourse, .viewAchievement, .joinClass, .viewAssignment:
+        case .startStudying, .viewCourse, .viewCDAchievement, .joinClass, .viewAssignment:
             return true
         default:
             return false
@@ -303,7 +303,7 @@ class NotificationManager: NSObject, ObservableObject {
         case .newCourse:
             return [.viewCourse, .dismiss]
         case .achievementUnlocked:
-            return [.viewAchievement, .dismiss]
+            return [.viewCDAchievement, .dismiss]
         case .friendActivity:
             return [.viewCourse, .dismiss]
         case .courseUpdate:
@@ -494,7 +494,7 @@ class NotificationManager: NSObject, ObservableObject {
     }
     
     /// Show achievement notification
-    func showAchievementUnlocked(title: String, description: String, badgeImageURL: URL? = nil) async {
+    func showCDAchievementUnlocked(title: String, description: String, badgeImageURL: URL? = nil) async {
         var attachments: [NotificationAttachment] = []
         
         if let imageURL = badgeImageURL {
@@ -506,7 +506,7 @@ class NotificationManager: NSObject, ObservableObject {
         
         let content = NotificationContent(
             type: .achievementUnlocked,
-            title: "Achievement Unlocked! 🏆",
+            title: "CDAchievement Unlocked! 🏆",
             body: "\(title) - \(description)",
             attachments: attachments,
             userInfo: ["achievement_title": title, "achievement_description": description]
