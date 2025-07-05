@@ -164,15 +164,15 @@ extension ConfigurationManager {
     
     // MARK: - API Configuration
     var apiBaseURL: String {
-        return string(for: .backendBaseURL) ?? "https://api.lyo.app/v1"
+        return string(for: .backendBaseURL) ?? "https://lyobackendjune.herokuapp.com/api/v1"
     }
     
     var backendBaseURL: String {
-        return string(for: .backendBaseURL) ?? "https://api.lyo.app/v1"
+        return string(for: .backendBaseURL) ?? "https://lyobackendjune.herokuapp.com/api/v1"
     }
     
     var backendWebSocketURL: String {
-        return string(for: .backendWebSocketURL) ?? "wss://api.lyo.app/v1/ws"
+        return string(for: .backendWebSocketURL) ?? "wss://lyobackendjune.herokuapp.com/ws"
     }
     
     var webSocketURL: String {
@@ -213,7 +213,7 @@ extension ConfigurationManager {
     }
     
     var shouldUseMockBackend: Bool {
-        return bool(for: .mockBackend)
+        return false // Force production mode - no mock backend
     }
     
     var logLevel: LogLevel {
