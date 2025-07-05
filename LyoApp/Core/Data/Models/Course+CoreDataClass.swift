@@ -1,5 +1,5 @@
 //
-//  Course+CoreDataClass.swift
+//  CDCourse+CoreDataClass.swift
 //  LyoApp
 //
 //  Created by LyoApp Development Team on 12/25/24.
@@ -11,8 +11,8 @@ import CoreData
 import CloudKit
 import SwiftUI
 
-@objc(Course)
-public class Course: NSManagedObject {
+@objc(CDCourse)
+public class CDCourse: NSManagedObject {
     
     // MARK: - Enums
     
@@ -108,7 +108,7 @@ public class Course: NSManagedObject {
     
     // MARK: - Computed Properties
     
-    /// Course category as enum
+    /// CDCourse category as enum
     var categoryEnum: Category {
         get { Category(rawValue: category ?? "") ?? .technology }
         set { category = newValue.rawValue }
@@ -120,7 +120,7 @@ public class Course: NSManagedObject {
         set { difficulty = newValue.rawValue }
     }
     
-    /// Course status as enum
+    /// CDCourse status as enum
     var statusEnum: Status {
         get { Status(rawValue: status ?? "") ?? .draft }
         set { status = newValue.rawValue }
@@ -137,7 +137,7 @@ public class Course: NSManagedObject {
         return lessonSet.reduce(0) { $0 + $1.duration }
     }
     
-    /// Course completion rate (0.0 to 1.0)
+    /// CDCourse completion rate (0.0 to 1.0)
     var averageCompletionRate: Double {
         guard let enrollments = enrolledUsers as? Set<User>,
               !enrollments.isEmpty else { return 0.0 }
@@ -158,7 +158,7 @@ public class Course: NSManagedObject {
     var averageRating: Double {
         guard let reviews = courseReviews, !reviews.isEmpty else { return 0.0 }
         
-        let totalRating = reviews.compactMap { ($0 as? CourseReview)?.rating }
+        let totalRating = reviews.compactMap { ($0 as? CDCDCourseReview)?.rating }
             .reduce(0.0, +)
         
         return totalRating / Double(reviews.count)
@@ -181,7 +181,7 @@ public class Course: NSManagedObject {
         return statusEnum == .featured
     }
     
-    /// Course thumbnail URL
+    /// CDCourse thumbnail URL
     var thumbnailURL: URL? {
         guard let urlString = imageURL else { return nil }
         return URL(string: urlString)
@@ -266,7 +266,7 @@ public class Course: NSManagedObject {
     
     /// Check if user meets prerequisites
     func userMeetsPrerequisites(_ user: User) -> Bool {
-        guard let prerequisiteSet = prerequisites as? Set<Course> else { return true }
+        guard let prerequisiteSet = prerequisites as? Set<CDCourse> else { return true }
         
         for prerequisite in prerequisiteSet {
             guard let progress = user.progress(for: prerequisite),
@@ -278,8 +278,8 @@ public class Course: NSManagedObject {
     }
     
     /// Get list of unmet prerequisites for user
-    func unmetPrerequisites(for user: User) -> [Course] {
-        guard let prerequisiteSet = prerequisites as? Set<Course> else { return [] }
+    func unmetPrerequisites(for user: User) -> [CDCourse] {
+        guard let prerequisiteSet = prerequisites as? Set<CDCourse> else { return [] }
         
         return prerequisiteSet.filter { prerequisite in
             guard let progress = user.progress(for: prerequisite) else { return true }
@@ -294,7 +294,7 @@ public class Course: NSManagedObject {
         guard userMeetsPrerequisites(user) else { return false }
         
         addToEnrolledUsers(user)
-        user.addToEnrolledCourses(self)
+        user.addToEnrolledCDCourses(self)
         
         // Create initial progress record
         if user.progress(for: self) == nil {
@@ -308,7 +308,7 @@ public class Course: NSManagedObject {
     /// Unenroll user from course
     func unenrollUser(_ user: User) {
         removeFromEnrolledUsers(user)
-        user.removeFromEnrolledCourses(self)
+        user.removeFromEnrolledCDCourses(self)
         updateModificationDate()
     }
     
@@ -406,25 +406,25 @@ public class Course: NSManagedObject {
     
     // MARK: - Data Validation
     
-    func validateCourseData() throws {
+    func validateCDCourseData() throws {
         guard let title = title, !title.trimmingCharacters(in: .whitespaces).isEmpty else {
-            throw CourseValidationError.emptyTitle
+            throw CDCourseValidationError.emptyTitle
         }
         
         guard title.count <= 100 else {
-            throw CourseValidationError.titleTooLong
+            throw CDCourseValidationError.titleTooLong
         }
         
         guard let description = courseDescription, !description.trimmingCharacters(in: .whitespaces).isEmpty else {
-            throw CourseValidationError.emptyDescription
+            throw CDCourseValidationError.emptyDescription
         }
         
         guard estimatedDuration > 0 else {
-            throw CourseValidationError.invalidDuration
+            throw CDCourseValidationError.invalidDuration
         }
         
         guard price >= 0 else {
-            throw CourseValidationError.invalidPrice
+            throw CDCourseValidationError.invalidPrice
         }
     }
     
@@ -456,9 +456,9 @@ public class Course: NSManagedObject {
         }
         
         do {
-            try validateCourseData()
+            try validateCDCourseData()
         } catch {
-            print("Course validation failed: \(error)")
+            print("CDCourse validation failed: \(error)")
         }
     }
     
@@ -471,7 +471,7 @@ public class Course: NSManagedObject {
 
 // MARK: - Custom Errors
 
-enum CourseValidationError: Error, LocalizedError {
+enum CDCourseValidationError: Error, LocalizedError {
     case emptyTitle
     case titleTooLong
     case emptyDescription
@@ -481,24 +481,24 @@ enum CourseValidationError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emptyTitle:
-            return "Course title cannot be empty."
+            return "CDCourse title cannot be empty."
         case .titleTooLong:
-            return "Course title cannot exceed 100 characters."
+            return "CDCourse title cannot exceed 100 characters."
         case .emptyDescription:
-            return "Course description cannot be empty."
+            return "CDCourse description cannot be empty."
         case .invalidDuration:
-            return "Course duration must be greater than 0."
+            return "CDCourse duration must be greater than 0."
         case .invalidPrice:
-            return "Course price cannot be negative."
+            return "CDCourse price cannot be negative."
         }
     }
 }
 
 // MARK: - Core Data Generated Properties
 
-extension Course {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Course> {
-        return NSFetchRequest<Course>(entityName: "Course")
+extension CDCourse {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDCourse> {
+        return NSFetchRequest<CDCourse>(entityName: "CDCourse")
     }
     
     // Basic Properties
@@ -546,7 +546,7 @@ extension Course {
     @NSManaged public var cloudKitSyncDate: Date?
     
     // Relationships
-    @NSManaged public var instructor: User?
+    @NSManaged public var instructor: CDUser?
     @NSManaged public var lessons: NSSet?
     @NSManaged public var enrolledUsers: NSSet?
     @NSManaged public var prerequisites: NSSet?
@@ -557,12 +557,12 @@ extension Course {
 
 // MARK: - Relationship Helpers
 
-extension Course {
+extension CDCourse {
     @objc(addLessonsObject:)
-    @NSManaged public func addToLessons(_ value: Lesson)
+    @NSManaged public func addToLessons(_ value: CDLesson)
     
     @objc(removeLessonsObject:)
-    @NSManaged public func removeFromLessons(_ value: Lesson)
+    @NSManaged public func removeFromLessons(_ value: CDLesson)
     
     @objc(addLessons:)
     @NSManaged public func addToLessons(_ values: NSSet)
@@ -571,10 +571,10 @@ extension Course {
     @NSManaged public func removeFromLessons(_ values: NSSet)
     
     @objc(addEnrolledUsersObject:)
-    @NSManaged public func addToEnrolledUsers(_ value: User)
+    @NSManaged public func addToEnrolledUsers(_ value: CDUser)
     
     @objc(removeEnrolledUsersObject:)
-    @NSManaged public func removeFromEnrolledUsers(_ value: User)
+    @NSManaged public func removeFromEnrolledUsers(_ value: CDUser)
     
     @objc(addEnrolledUsers:)
     @NSManaged public func addToEnrolledUsers(_ values: NSSet)
@@ -583,10 +583,10 @@ extension Course {
     @NSManaged public func removeFromEnrolledUsers(_ values: NSSet)
     
     @objc(addPrerequisitesObject:)
-    @NSManaged public func addToPrerequisites(_ value: Course)
+    @NSManaged public func addToPrerequisites(_ value: CDCourse)
     
     @objc(removePrerequisitesObject:)
-    @NSManaged public func removeFromPrerequisites(_ value: Course)
+    @NSManaged public func removeFromPrerequisites(_ value: CDCourse)
     
     @objc(addPrerequisites:)
     @NSManaged public func addToPrerequisites(_ values: NSSet)
@@ -595,17 +595,17 @@ extension Course {
     @NSManaged public func removeFromPrerequisites(_ values: NSSet)
 }
 
-// MARK: - CourseReview Supporting Class
+// MARK: - CDCDCourseReview Supporting Class
 
-@objc(CourseReview)
-public class CourseReview: NSManagedObject {
+@objc(CDCourseReview)
+public class CDCourseReview: NSManagedObject {
     @NSManaged public var id: UUID?
     @NSManaged public var rating: Double
     @NSManaged public var comment: String?
     @NSManaged public var createdAt: Date?
     @NSManaged public var isVerified: Bool
-    @NSManaged public var course: Course?
-    @NSManaged public var reviewer: User?
+    @NSManaged public var course: CDCourse?
+    @NSManaged public var reviewer: CDUser?
     
     public override func awakeFromInsert() {
         super.awakeFromInsert()
