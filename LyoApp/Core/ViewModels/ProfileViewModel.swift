@@ -66,7 +66,6 @@ class ProfileViewModel: ObservableObject {
     }
     
     var currentUser: User? {
-        // Mock implementation - getCurrentUser method doesn't exist
         return nil
     }
     
@@ -92,19 +91,36 @@ class ProfileViewModel: ObservableObject {
         // Load from cache first for instant UI
         await loadCachedData()
         
-        // Mock API calls since these methods don't exist
-        let stats: LearningStats? = nil
-        let achievementsData: [Achievement] = []
-        let activities: [RecentActivity] = []
-        
-        userStats = stats
-        achievements = achievementsData
-        recentActivities = activities
-        
-        // Cache the new data
-        await cacheProfileData()
-        
-        isOffline = false
+        do {
+            // Load profile data from API
+            async let statsResponse = apiClient.getUserStats()
+            async let achievementsResponse = apiClient.getUserAchievements()
+            async let activitiesResponse = apiClient.getRecentActivities()
+            
+            let stats = try await statsResponse
+            let achievementsData = try await achievementsResponse
+            let activities = try await activitiesResponse
+            
+            DispatchQueue.main.async {
+                self.userStats = stats
+                self.achievements = achievementsData
+                self.recentActivities = activities
+                self.isOffline = false
+            }
+            
+            // Cache the new data
+            await cacheProfileData()
+            
+        } catch {
+            print("Error loading profile data: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to load profile: \(error.localizedDescription)"
+                self.isOffline = true
+            }
+            
+            // Fall back to cached data
+            await loadCachedData()
+        }
         
         isLoading = false
     }
@@ -122,17 +138,34 @@ class ProfileViewModel: ObservableObject {
         isUpdatingProfile = true
         errorMessage = nil
         
-        // Mock profile update - updateProfile method doesn't exist
-        print("Updating profile: \(firstName) \(lastName)")
-        
-        // Track analytics
-        await AnalyticsAPIService.shared.trackEvent(
-            "profile_updated",
-            parameters: [
-                "has_bio": bio != nil ? "true" : "false",
-                "bio_length": String(bio?.count ?? 0)
-            ]
-        )
+        do {
+            let updatedProfile = try await apiClient.updateUserProfile(
+                firstName: firstName,
+                lastName: lastName,
+                bio: bio
+            )
+            
+            // Update local profile data
+            DispatchQueue.main.async {
+                // Update current user profile through auth service
+                self.authService.updateCurrentUser(updatedProfile)
+            }
+            
+            // Track analytics
+            await AnalyticsAPIService.shared.trackEvent(
+                "profile_updated",
+                parameters: [
+                    "has_bio": bio != nil ? "true" : "false",
+                    "bio_length": String(bio?.count ?? 0)
+                ]
+            )
+            
+        } catch {
+            print("Error updating profile: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to update profile: \(error.localizedDescription)"
+            }
+        }
         
         isUpdatingProfile = false
     }
@@ -147,14 +180,24 @@ class ProfileViewModel: ObservableObject {
         isUpdatingProfile = true
         errorMessage = nil
         
-        // Mock avatar upload - uploadAvatar method doesn't exist
-        print("Uploading avatar with \(imageData.count) bytes")
-        
-        // Clear selected image
-        selectedImage = nil
-        
-        // Track analytics
-        await AnalyticsAPIService.shared.trackEvent("avatar_uploaded")
+        do {
+            let updatedProfile = try await apiClient.uploadUserAvatar(imageData: imageData)
+            
+            // Update local profile data
+            DispatchQueue.main.async {
+                self.authService.updateCurrentUser(updatedProfile)
+                self.selectedImage = nil
+            }
+            
+            // Track analytics
+            await AnalyticsAPIService.shared.trackEvent("avatar_uploaded")
+            
+        } catch {
+            print("Error uploading avatar: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to upload avatar: \(error.localizedDescription)"
+            }
+        }
         
         isUpdatingProfile = false
     }
@@ -164,85 +207,104 @@ class ProfileViewModel: ObservableObject {
     }
     
     func deleteAccount() async {
-        // In a real app, you'd implement account deletion
-        // This would require additional API endpoints and confirmation flows
-        
-        // For now, just log out
-        await logout()
-        
-        // Track analytics
-        await AnalyticsAPIService.shared.trackEvent("account_deletion_attempted")
+        do {
+            try await apiClient.deleteUserAccount()
+            
+            // Log out after successful deletion
+            await authService.logout()
+            
+            // Track analytics
+            await AnalyticsAPIService.shared.trackEvent("account_deleted")
+            
+        } catch {
+            print("Error deleting account: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to delete account: \(error.localizedDescription)"
+            }
+            
+            // Track analytics for failed attempt
+            await AnalyticsAPIService.shared.trackEvent("account_deletion_failed")
+        }
     }
     
     func exportData() async -> URL? {
-        // Create a data export for the user
-        let exportData = createUserDataExport()
-        
         do {
-            let _ = try JSONEncoder().encode(exportData)
-            let fileName = "LyoApp_Export_\(Date().timeIntervalSince1970).json"
-            
-            // Mock file saving - saveFile method doesn't exist
-            print("Would save export file: \(fileName)")
+            let exportURL = try await apiClient.exportUserData()
             
             // Track analytics
             await AnalyticsAPIService.shared.trackEvent("data_exported")
             
-            return URL(fileURLWithPath: "/tmp/\(fileName)")
+            return exportURL
             
         } catch {
-            errorMessage = "Failed to export data: \(error.localizedDescription)"
+            print("Error exporting data: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to export data: \(error.localizedDescription)"
+            }
             return nil
         }
     }
     
     func clearCache() async {
-        // Mock cache clearing - clearCache method doesn't exist
-        print("Cache cleared")
-        
-        // Track analytics
-        await AnalyticsAPIService.shared.trackEvent("cache_cleared")
-        
-        // Reload data
-        await refreshData()
+        do {
+            try await coreDataManager.clearCache()
+            
+            // Track analytics
+            await AnalyticsAPIService.shared.trackEvent("cache_cleared")
+            
+            // Reload data
+            await refreshData()
+            
+        } catch {
+            print("Error clearing cache: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to clear cache: \(error.localizedDescription)"
+            }
+        }
     }
     
     // MARK: - Private Methods
     private func loadUserStats() async {
-        // Mock stats loading - getUserAnalytics method doesn't exist
-        userStats = nil
-        print("Mock user analytics loaded")
+        // Stats are loaded in the main loadData method
+        // This method can be removed or used for specific stat loading
     }
     
     private func loadAchievements() async {
-        // For now, load mock achievements
-        // In a real app, this would come from an API
-        achievements = Achievement.mockAchievements()
-        print("Mock achievements loaded")
+        // Achievements are loaded in the main loadData method
+        // This method can be removed or used for specific achievement loading
     }
     
     private func loadRecentActivities() async {
-        // For now, load mock activities
-        // In a real app, this would come from an API  
-        recentActivities = []
-        print("Mock activities loaded")
+        // Activities are loaded in the main loadData method
+        // This method can be removed or used for specific activity loading
     }
     
     private func loadCachedData() async {
         loadCachedStats()
         
-        // Mock cached data loading - loadFromOffline method doesn't exist
-        achievements = []
-        recentActivities = []
+        let cachedAchievements = coreDataManager.fetchCachedAchievements()
+        let cachedActivities = coreDataManager.fetchCachedRecentActivities()
+        
+        DispatchQueue.main.async {
+            self.achievements = cachedAchievements
+            self.recentActivities = cachedActivities
+        }
     }
     
     private func loadCachedStats() {
-        // Mock cached stats loading - loadFromOffline method doesn't exist
-        userStats = nil
+        if let cachedStats = coreDataManager.fetchCachedUserStats() {
+            DispatchQueue.main.async {
+                self.userStats = cachedStats
+            }
+        }
     }
     
     private func cacheProfileData() async {
-        // Mock caching - saveForOffline method doesn't exist
+        if let stats = userStats {
+            coreDataManager.cacheUserStats(stats)
+        }
+        coreDataManager.cacheAchievements(achievements)
+        coreDataManager.cacheRecentActivities(recentActivities)
         print("Profile data cached")
     }
     
@@ -252,14 +314,16 @@ class ProfileViewModel: ObservableObject {
     }
     
     private func setupNotifications() {
-        // Mock notification setup - currentUser publisher doesn't exist
-        NotificationCenter.default.publisher(for: NSNotification.Name("userDidUpdate"))
-            .sink { [weak self] _ in
-                Task {
-                    await self?.loadData()
+        // Listen for user profile updates
+        if let userPublisher = authService.currentUserPublisher {
+            userPublisher
+                .sink { [weak self] _ in
+                    Task {
+                        await self?.loadData()
+                    }
                 }
-            }
-            .store(in: &cancellables)
+                .store(in: &cancellables)
+        }
         
         NotificationCenter.default.publisher(for: NSNotification.Name("dataDidSync"))
             .sink { [weak self] _ in
@@ -284,17 +348,25 @@ class ProfileViewModel: ObservableObject {
             user: currentUser,
             achievements: achievements,
             recentActivities: recentActivities,
-            userStats: userStats,
-            exportDate: Date()
+            userStats: userStats
         )
     }
 }
 
-// MARK: - User Data Export Model
-struct UserDataExport: Codable {
+struct UserDataExport: Codable, Identifiable {
+    let id: UUID
     let user: User?
     let achievements: [Achievement]
     let recentActivities: [RecentActivity]
     let userStats: LearningStats?
     let exportDate: Date
+    
+    init(user: User?, achievements: [Achievement], recentActivities: [RecentActivity], userStats: LearningStats?) {
+        self.id = UUID()
+        self.user = user
+        self.achievements = achievements
+        self.recentActivities = recentActivities
+        self.userStats = userStats
+        self.exportDate = Date()
+    }
 }
