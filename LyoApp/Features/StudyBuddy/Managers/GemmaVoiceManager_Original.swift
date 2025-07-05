@@ -142,7 +142,7 @@ class GemmaVoiceManager: NSObject, ObservableObject {
         courseId: String? = nil,
         lessonId: String? = nil,
         currentTopic: String? = nil,
-        userProgress: UserProgress? = nil,
+        userProgress: CDUserProgress? = nil,
         difficulty: String? = nil
     ) {
         currentContext = LearningContext(
