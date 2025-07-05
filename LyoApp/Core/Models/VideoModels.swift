@@ -17,7 +17,7 @@ public struct EducationalVideo: Identifiable, Codable {
     let createdAt: Date
     let updatedAt: Date
     
-    enum DifficultyLevel: String, Codable, CaseIterable {
+    public enum DifficultyLevel: String, Codable, CaseIterable {
         case beginner = "Beginner"
         case intermediate = "Intermediate"
         case advanced = "Advanced"
@@ -81,7 +81,7 @@ public struct EducationalVideo: Identifiable, Codable {
     }
 }
 
-enum VideoCategory: String, Codable, CaseIterable {
+public enum VideoCategory: String, Codable, CaseIterable {
     case mathematics = "Mathematics"
     case science = "Science"
     case programming = "Programming"
@@ -191,57 +191,64 @@ enum VideoCategory: String, Codable, CaseIterable {
     }
 }
 
-// MARK: - Video API Models
-public typealias Video = EducationalVideo
-
-public struct VideoTranscript: Codable, Identifiable {
-    public let id: UUID
-    public let videoId: String
-    public let segments: [TranscriptSegment]
-    public let language: String
-    public let accuracy: Double
-    
-    public init(id: UUID = UUID(), videoId: String, segments: [TranscriptSegment], language: String = "en", accuracy: Double = 0.95) {
-        self.id = id
-        self.videoId = videoId
-        self.segments = segments
-        self.language = language
-        self.accuracy = accuracy
-    }
-}
-
-public struct TranscriptSegment: Codable, Identifiable {
-    public let id: UUID
-    public let startTime: TimeInterval
-    public let endTime: TimeInterval
-    public let text: String
-    public let confidence: Double
-    
-    public init(id: UUID = UUID(), startTime: TimeInterval, endTime: TimeInterval, text: String, confidence: Double = 0.95) {
-        self.id = id
-        self.startTime = startTime
-        self.endTime = endTime
-        self.text = text
-        self.confidence = confidence
-    }
-}
-
-public struct VideoNote: Codable, Identifiable {
-    public let id: UUID
-    public let videoId: String
-    public let userId: String
-    public let content: String
-    public let timestamp: TimeInterval
+public struct Video: Identifiable, Codable {
+    public let id: String
+    public let title: String
+    public let description: String?
+    public let author: String
+    public let category: VideoCategory
+    public let duration: Int
+    public let likes: Int
+    public let comments: Int
+    public let shares: Int
+    public let views: Int
+    public let tags: [String]
+    public let difficulty: EducationalVideo.DifficultyLevel
+    public let videoURL: String
+    public let thumbnailURL: String?
+    public let transcriptAvailable: Bool
     public let createdAt: Date
     public let updatedAt: Date
+}
+
+public struct VideoTranscript: Codable, Identifiable {
+    public let id: String
+    public let videoId: String
+    public let language: String
+    public var segments: [TranscriptSegment]
     
-    public init(id: UUID = UUID(), videoId: String, userId: String, content: String, timestamp: TimeInterval, createdAt: Date = Date(), updatedAt: Date = Date()) {
-        self.id = id
-        self.videoId = videoId
-        self.userId = userId
-        self.content = content
-        self.timestamp = timestamp
-        self.createdAt = createdAt
-        self.updatedAt = updatedAt
+    public struct TranscriptSegment: Codable {
+        public let startTime: Double
+        public let endTime: Double
+        public let text: String
     }
+}
+
+public struct VideoNote: Identifiable, Codable {
+    public let id: String
+    public let videoId: String
+    public let content: String
+    public let timestamp: Double
+    public let createdAt: Date
+    public let updatedAt: Date
+}
+
+public struct WatchProgressResponse: Codable {
+    public let videoId: String
+    public let userId: String
+    public let progress: Double
+    public let currentTime: Double
+    public let watchedAt: Date
+}
+
+public struct UpdateWatchProgressRequest: Codable {
+    public let videoId: String
+    public let progress: Double
+    public let currentTime: Double
+    public let watchedAt: Date
+}
+
+public struct CreateVideoNoteRequest: Codable {
+    public let content: String
+    public let timestamp: Double
 }
