@@ -1,6 +1,9 @@
 import Foundation
 import Combine
 
+// Use canonical Achievement from AppModels.swift
+typealias CanonicalAchievement = Achievement
+
 // MARK: - Local Type Definitions for Gamification API
 public enum GamificationAPI {
     public struct UserXP: Codable {
@@ -17,7 +20,7 @@ public enum GamificationAPI {
         public let newLevel: Int?
     }
     
-    // Achievement is now defined in AppModels.swift
+    // CDAchievement is now defined in AppModels.swift
     
     public struct StreakInfo: Codable {
         public let currentStreak: Int
@@ -128,17 +131,17 @@ class GamificationAPIService {
         return try await networkManager.post(endpoint: "/analytics/xp/award", body: request)
     }
 
-    // MARK: - Achievements
-    func getUserAchievements() async throws -> [Achievement] {
+    // MARK: - CDAchievements
+    func getUserCDAchievements() async throws -> [CanonicalAchievement] {
         return try await networkManager.get(endpoint: "/gamification/achievements/user")
     }
 
-    func unlockAchievement(_ achievementId: String) async throws -> Achievement {
-        let request = UnlockAchievementRequest(achievementId: achievementId)
+    func unlockCDAchievement(_ achievementId: String) async throws -> CanonicalAchievement {
+        let request = UnlockCDAchievementRequest(achievementId: achievementId)
         return try await networkManager.post(endpoint: "/gamification/achievements/\(achievementId)/unlock", body: request)
     }
 
-    func getAvailableAchievements() async throws -> [Achievement] {
+    func getAvailableCDAchievements() async throws -> [CanonicalAchievement] {
         return try await networkManager.get(endpoint: "/gamification/achievements/available")
     }
 
@@ -194,7 +197,7 @@ private struct AwardXPRequest: Codable {
     let categoryId: String?
 }
 
-private struct UnlockAchievementRequest: Codable {
+private struct UnlockCDAchievementRequest: Codable {
     let achievementId: String
 }
 
