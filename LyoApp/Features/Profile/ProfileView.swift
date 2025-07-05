@@ -92,161 +92,173 @@ struct ProfileView: View {
     private var enhancedProfileHeader: some View {
         VStack(spacing: DesignTokens.Spacing.lg) {
             // Profile image with modern design
-            ZStack {
-                // Background glow effect
-                Circle()
-                    .fill(userThemeColor.opacity(0.3))
-                    .frame(width: 140, height: 140)
-                    .blur(radius: 20)
-                    .scaleEffect(profileImageScale)
-                    .animation(
-                        DesignTokens.Animations.pulse,
-                        value: profileImageScale
-                    )
-                
-                // Profile image
-                AsyncImage(url: URL(string: authService.currentUser?.profileImageURL ?? "")) { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                } placeholder: {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    userThemeColor,
-                                    userThemeColor.opacity(0.7)
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .overlay(
-                            Image(systemName: "person.fill")
-                                .font(.system(size: 40, weight: .medium))
-                                .foregroundColor(.white.opacity(0.8))
-                        )
-                }
-                .frame(width: 120, height: 120)
-                .clipShape(Circle())
-                .overlay(
-                    Circle()
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    userThemeColor,
-                                    DesignTokens.Colors.accent
-                                ]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 4
-                        )
-                )
-                .shadow(
-                    color: userThemeColor.opacity(0.3),
-                    radius: 15,
-                    x: 0,
-                    y: 8
-                )
-                .scaleEffect(isAnimating ? 1.0 : 0.8)
-                .animation(
-                    DesignTokens.Animations.spring.delay(0.2),
-                    value: isAnimating
-                )
-                
-                // Edit button
-                Button(action: {
-                    showingEditProfile = true
-                    HapticManager.shared.lightImpact()
-                }) {
-                    Image(systemName: "camera.fill")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(width: 32, height: 32)
-                        .background(
-                            Circle()
-                                .fill(DesignTokens.Colors.primary)
-                        )
-                        .shadow(
-                            color: DesignTokens.Colors.primary.opacity(0.3),
-                            radius: 8,
-                            x: 0,
-                            y: 4
-                        )
-                }
-                .offset(x: 40, y: 40)
-                .scaleEffect(isAnimating ? 1.0 : 0.5)
-                .animation(
-                    DesignTokens.Animations.springBouncy.delay(0.4),
-                    value: isAnimating
-                )
-            }
+            profileImageSection
             
             // User info
-            VStack(spacing: DesignTokens.Spacing.sm) {
-                Text(authService.currentUser?.displayName ?? "Unknown User")
-                    .font(DesignTokens.Typography.headlineLarge)
-                    .fontWeight(.bold)
-                    .foregroundColor(DesignTokens.Colors.textPrimary)
-                    .opacity(isAnimating ? 1.0 : 0.3)
-                    .animation(
-                        DesignTokens.Animations.easeInOut.delay(0.6),
-                        value: isAnimating
-                    )
-                
-                if let username = authService.currentUser?.username {
-                    Text("@\(username)")
-                        .font(DesignTokens.Typography.bodyLarge)
-                        .foregroundColor(DesignTokens.Colors.textSecondary)
-                        .opacity(isAnimating ? 1.0 : 0.3)
-                        .animation(
-                            DesignTokens.Animations.easeInOut.delay(0.7),
-                            value: isAnimating
-                        )
-                }
-                
-                if let bio = authService.currentUser?.bio {
-                    Text(bio)
-                        .font(DesignTokens.Typography.bodyMedium)
-                        .foregroundColor(DesignTokens.Colors.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, DesignTokens.Spacing.lg)
-                        .opacity(isAnimating ? 1.0 : 0.3)
-                        .animation(
-                            DesignTokens.Animations.easeInOut.delay(0.8),
-                            value: isAnimating
-                        )
-                }
-            }
+            userInfoSection
             
             // Action buttons
-            HStack(spacing: DesignTokens.Spacing.md) {
-                ModernButton(
-                    title: "Edit Profile",
-                    style: .primary,
-                    size: .medium
-                ) {
-                    showingEditProfile = true
-                }
-                
-                ModernButton(
-                    title: "Share",
-                    style: .secondary,
-                    size: .medium,
-                    action: {
-                        shareProfile()
-                    }
+            actionButtonsSection
+        }
+        .padding(.horizontal, DesignTokens.Spacing.lg)
+    }
+    
+    private var profileImageSection: some View {
+        ZStack {
+            // Background glow effect
+            Circle()
+                .fill(userThemeColor.opacity(0.3))
+                .frame(width: 140, height: 140)
+                .blur(radius: 20)
+                .scaleEffect(profileImageScale)
+                .animation(
+                    DesignTokens.Animations.pulse,
+                    value: profileImageScale
                 )
+            
+            // Profile image
+            AsyncImage(url: URL(string: authService.currentUser?.profileImageURL ?? "")) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } placeholder: {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                userThemeColor,
+                                userThemeColor.opacity(0.7)
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 40, weight: .medium))
+                            .foregroundColor(.white.opacity(0.8))
+                    )
             }
-            .opacity(isAnimating ? 1.0 : 0.3)
-            .offset(y: isAnimating ? 0 : 20)
+            .frame(width: 120, height: 120)
+            .clipShape(Circle())
+            .overlay(
+                Circle()
+                    .stroke(
+                        LinearGradient(
+                            gradient: Gradient(colors: [
+                                userThemeColor,
+                                DesignTokens.Colors.accent
+                            ]),
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 4
+                    )
+            )
+            .shadow(
+                color: userThemeColor.opacity(0.3),
+                radius: 15,
+                x: 0,
+                y: 8
+            )
+            .scaleEffect(isAnimating ? 1.0 : 0.8)
             .animation(
-                DesignTokens.Animations.spring.delay(1.0),
+                DesignTokens.Animations.spring.delay(0.2),
+                value: isAnimating
+            )
+            
+            // Edit button
+            Button(action: {
+                showingEditProfile = true
+                HapticManager.shared.lightImpact()
+            }) {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(width: 32, height: 32)
+                    .background(
+                        Circle()
+                            .fill(DesignTokens.Colors.primary)
+                    )
+                    .shadow(
+                        color: DesignTokens.Colors.primary.opacity(0.3),
+                        radius: 8,
+                        x: 0,
+                        y: 4
+                    )
+            }
+            .offset(x: 40, y: 40)
+            .scaleEffect(isAnimating ? 1.0 : 0.5)
+            .animation(
+                DesignTokens.Animations.springBouncy.delay(0.4),
                 value: isAnimating
             )
         }
-        .padding(.horizontal, DesignTokens.Spacing.lg)
+    }
+    
+    private var userInfoSection: some View {
+        VStack(spacing: DesignTokens.Spacing.sm) {
+            Text(authService.currentUser?.displayName ?? "Unknown User")
+                .font(DesignTokens.Typography.headlineLarge)
+                .fontWeight(.bold)
+                .foregroundColor(DesignTokens.Colors.textPrimary)
+                .opacity(isAnimating ? 1.0 : 0.3)
+                .animation(
+                    DesignTokens.Animations.easeInOut.delay(0.6),
+                    value: isAnimating
+                )
+            
+            if let username = authService.currentUser?.username {
+                Text("@\(username)")
+                    .font(DesignTokens.Typography.bodyLarge)
+                    .foregroundColor(DesignTokens.Colors.textSecondary)
+                    .opacity(isAnimating ? 1.0 : 0.3)
+                    .animation(
+                        DesignTokens.Animations.easeInOut.delay(0.7),
+                        value: isAnimating
+                    )
+            }
+            
+            if let bio = authService.currentUser?.bio {
+                Text(bio)
+                    .font(DesignTokens.Typography.bodyMedium)
+                    .foregroundColor(DesignTokens.Colors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, DesignTokens.Spacing.lg)
+                    .opacity(isAnimating ? 1.0 : 0.3)
+                    .animation(
+                        DesignTokens.Animations.easeInOut.delay(0.8),
+                        value: isAnimating
+                    )
+            }
+        }
+    }
+    
+    private var actionButtonsSection: some View {
+        HStack(spacing: DesignTokens.Spacing.md) {
+            ModernButton(
+                title: "Edit Profile",
+                style: .primary,
+                size: .medium
+            ) {
+                showingEditProfile = true
+            }
+            
+            ModernButton(
+                title: "Share",
+                style: .secondary,
+                size: .medium,
+                action: {
+                    shareProfile()
+                }
+            )
+        }
+        .opacity(isAnimating ? 1.0 : 0.3)
+        .offset(y: isAnimating ? 0 : 20)
+        .animation(
+            DesignTokens.Animations.spring.delay(1.0),
+            value: isAnimating
+        )
     }
     
     @ViewBuilder
@@ -616,70 +628,12 @@ struct ProfileView: View {
 struct ProfileHeader: View {
     let user: User?
     @Binding var showingEditProfile: Bool
-    
+
     var body: some View {
         VStack(spacing: 16) {
-            // Profile image
-            Circle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(colors: [.blue, .purple]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .overlay(
-                    Group {
-                        if let user = user {
-                            Text(String(user.fullName.prefix(1)))
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                        } else {
-                            Image(systemName: "person")
-                                .font(.largeTitle)
-                                .foregroundColor(.white)
-                        }
-                    }
-                )
-                .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
-            
-            // User info
-            VStack(spacing: 8) {
-                Text(user?.fullName ?? "User")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.white)
-                
-                Text(user?.email ?? "user@example.com")
-                    .font(.body)
-                    .foregroundColor(.white.opacity(0.8))
-                
-                if let createdAt = user?.createdAt {
-                    Text("Joined \(createdAt)")
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.6))
-                }
-            }
-            
-            // Edit profile button
-            Button(action: {
-                showingEditProfile = true
-            }) {
-                Text("Edit Profile")
-                    .fontWeight(.semibold)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 10)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Material.ultraThin)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.white.opacity(0.3), lineWidth: 1)
-                            )
-                    )
-                    .foregroundColor(.white)
-            }
+            profileImage
+            userInfo
+            editProfileButton
         }
         .padding()
         .background(
@@ -691,11 +645,68 @@ struct ProfileHeader: View {
                 )
         )
     }
-    
-    private var dateFormatter: DateFormatter {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        return formatter
+
+    private var profileImage: some View {
+        Circle()
+            .fill(
+                LinearGradient(
+                    gradient: Gradient(colors: [.blue, .purple]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .overlay(
+                Group {
+                    if let user = user {
+                        Text(String(user.displayName.prefix(1)))
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    } else {
+                        Image(systemName: "person")
+                            .font(.largeTitle)
+                            .foregroundColor(.white)
+                    }
+                }
+            )
+            .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 5)
+    }
+
+    private var userInfo: some View {
+        VStack(spacing: 8) {
+            Text(user?.displayName ?? "User")
+                .font(.title2)
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+            Text(user?.email ?? "user@example.com")
+                .font(.body)
+                .foregroundColor(.white.opacity(0.8))
+            if let createdAt = user?.createdAt {
+                Text("Joined \(createdAt)")
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.6))
+            }
+        }
+    }
+
+    private var editProfileButton: some View {
+        Button(action: {
+            showingEditProfile = true
+        }) {
+            Text("Edit Profile")
+                .fontWeight(.semibold)
+                .padding(.horizontal, 24)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Material.ultraThin)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.white.opacity(0.3), lineWidth: 1)
+                        )
+                )
+                .foregroundColor(.white)
+        }
     }
 }
 
@@ -1150,5 +1161,5 @@ private func timeAgoString(from date: Date) -> String {
     let formatter = RelativeDateTimeFormatter()
     formatter.dateTimeStyle = .named
     formatter.unitsStyle = .full
-    return formatter.string(from: date, relativeTo: Date())
+    return formatter.localizedString(for: date, relativeTo: Date())
 }
