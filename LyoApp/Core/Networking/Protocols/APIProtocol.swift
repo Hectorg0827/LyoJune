@@ -113,10 +113,14 @@ public class BaseAPIClient: APIClientProtocol {
     // MARK: - Helper Methods
     
     protected func buildURLRequest(for endpoint: APIEndpoint) throws -> URLRequest {
-        let baseURL = URL(string: baseURL)!
+        guard let baseURL = URL(string: baseURL) else {
+            throw NetworkError.invalidURL
+        }
         let url = baseURL.appendingPathComponent(endpoint.path)
         
-        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw NetworkError.invalidURL
+        }
         
         // Add query parameters
         if !endpoint.queryParameters.isEmpty {
@@ -150,7 +154,9 @@ public class BaseAPIClient: APIClientProtocol {
     
     protected func buildMultipartRequest(for endpoint: APIEndpoint, fileData: Data, fileName: String, mimeType: String) throws -> URLRequest {
         let boundary = "Boundary-\(UUID().uuidString)"
-        let baseURL = URL(string: baseURL)!
+        guard let baseURL = URL(string: baseURL) else {
+            throw NetworkError.invalidURL
+        }
         let url = baseURL.appendingPathComponent(endpoint.path)
         
         var request = URLRequest(url: url)
@@ -164,11 +170,15 @@ public class BaseAPIClient: APIClientProtocol {
         
         // Create multipart body
         var body = Data()
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        guard let data1 = "--\(boundary)\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data1)
+        guard let data2 = "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data2)
+        guard let data3 = "Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data3)
         body.append(fileData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        guard let data4 = "\r\n--\(boundary)--\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data4)
         
         request.httpBody = body
         
