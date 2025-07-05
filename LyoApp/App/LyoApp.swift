@@ -9,6 +9,8 @@ struct LyoApp: App {
         WindowGroup {
             ContentView()
                 .environmentObject(serviceFactory)
+                .environmentObject(serviceFactory.authService)
+                .environmentObject(serviceFactory.networkManager)
                 .environmentObject(appState)
                 .withEnhancedServices()
                 .preferredColorScheme(.dark)
@@ -32,8 +34,10 @@ struct LyoApp: App {
         Task {
             // Check authentication status
             let isAuthenticated = serviceFactory.authService.isAuthenticated
+            
             if isAuthenticated {
-                await serviceFactory.coreDataManager.startBackgroundSync()
+                // Start background sync and WebSocket connections
+                await serviceFactory.coreDataManager.startSync()
                 serviceFactory.webSocketManager.connect()
             }
             
@@ -48,11 +52,13 @@ struct LyoApp: App {
     private func handleAppBecameActive() {
         // Refresh data and reconnect real-time services when app becomes active
         Task {
+            let isAuthenticated = serviceFactory.authService.isAuthenticated
+            
+            // Always perform network operations for production app
             await serviceFactory.networkManager.checkConnectivity()
             
-            let isAuthenticated = serviceFactory.authService.isAuthenticated
             if isAuthenticated {
-                await serviceFactory.coreDataManager.syncPendingChanges()
+                await serviceFactory.coreDataManager.startSync()
                 serviceFactory.webSocketManager.reconnectIfNeeded()
             }
         }
