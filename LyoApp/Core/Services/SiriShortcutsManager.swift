@@ -19,7 +19,7 @@ enum LyoAppIntent: String, CaseIterable {
     case openCourse = "OpenCourse"
     case markLessonComplete = "MarkLessonComplete"
     case setStudyReminder = "SetStudyReminder"
-    case viewAchievements = "ViewAchievements"
+    case viewCDAchievements = "ViewCDAchievements"
     
     var title: String {
         switch self {
@@ -30,7 +30,7 @@ enum LyoAppIntent: String, CaseIterable {
         case .openCourse: return "Open Course"
         case .markLessonComplete: return "Mark Lesson Complete"
         case .setStudyReminder: return "Set Study Reminder"
-        case .viewAchievements: return "View Achievements"
+        case .viewCDAchievements: return "View CDAchievements"
         }
     }
     
@@ -43,7 +43,7 @@ enum LyoAppIntent: String, CaseIterable {
         case .openCourse: return "Access a specific course"
         case .markLessonComplete: return "Mark current lesson as completed"
         case .setStudyReminder: return "Set a reminder to study"
-        case .viewAchievements: return "See your earned achievements"
+        case .viewCDAchievements: return "See your earned achievements"
         }
     }
     
@@ -56,7 +56,7 @@ enum LyoAppIntent: String, CaseIterable {
         case .openCourse: return "Open my course"
         case .markLessonComplete: return "Mark lesson as complete"
         case .setStudyReminder: return "Remind me to study"
-        case .viewAchievements: return "Show my achievements"
+        case .viewCDAchievements: return "Show my achievements"
         }
     }
     
@@ -69,7 +69,7 @@ enum LyoAppIntent: String, CaseIterable {
         case .openCourse: return "book.fill"
         case .markLessonComplete: return "checkmark.circle.fill"
         case .setStudyReminder: return "bell.fill"
-        case .viewAchievements: return "trophy.fill"
+        case .viewCDAchievements: return "trophy.fill"
         }
     }
 }
@@ -148,7 +148,7 @@ class SiriShortcutsManager: NSObject, ObservableObject {
                     return ["complete", "finish", "done", "mark"]
                 case .setStudyReminder:
                     return ["reminder", "notification", "alert", "schedule"]
-                case .viewAchievements:
+                case .viewCDAchievements:
                     return ["achievements", "badges", "awards", "trophies"]
                 }
             }()
@@ -279,8 +279,8 @@ class SiriShortcutsManager: NSObject, ObservableObject {
             return await handleMarkLessonComplete(userInfo: userInfo)
         case .setStudyReminder:
             return await handleSetStudyReminder(userInfo: userInfo)
-        case .viewAchievements:
-            return await handleViewAchievements(userInfo: userInfo)
+        case .viewCDAchievements:
+            return await handleViewCDAchievements(userInfo: userInfo)
         }
     }
     
@@ -402,15 +402,15 @@ class SiriShortcutsManager: NSObject, ObservableObject {
         )
     }
     
-    private func handleViewAchievements(userInfo: [String: Any]) async -> ShortcutResult {
+    private func handleViewCDAchievements(userInfo: [String: Any]) async -> ShortcutResult {
         NotificationCenter.default.post(
-            name: .siriViewAchievements,
+            name: .siriViewCDAchievements,
             object: nil,
             userInfo: userInfo
         )
         
         return .success(
-            title: "Your Achievements",
+            title: "Your CDAchievements",
             message: "Check out all your earned badges and trophies!",
             userInfo: userInfo
         )
@@ -483,5 +483,5 @@ extension Notification.Name {
     static let siriOpenCourse = Notification.Name("siriOpenCourse")
     static let siriMarkLessonComplete = Notification.Name("siriMarkLessonComplete")
     static let siriSetStudyReminder = Notification.Name("siriSetStudyReminder")
-    static let siriViewAchievements = Notification.Name("siriViewAchievements")
+    static let siriViewCDAchievements = Notification.Name("siriViewCDAchievements")
 }
