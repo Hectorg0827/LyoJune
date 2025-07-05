@@ -64,7 +64,9 @@ public class APIClient: APIClientProtocol, ObservableObject {
     
     private func setupNetworkMonitoring() {
         networkMonitor.pathUpdateHandler = { [weak self] path in
-            self?.isConnected = path.status == .satisfied
+            Task { @MainActor [weak self] in
+                self?.isConnected = path.status == .satisfied
+            }
         }
         let queue = DispatchQueue(label: "NetworkMonitor")
         networkMonitor.start(queue: queue)
