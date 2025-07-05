@@ -147,8 +147,8 @@ public enum APIError: Error, LocalizedError {
     case networkError(NetworkError)
     case authError(AuthError)
     case invalidResponse
-    case decodingError(Error)
-    case encodingError(Error)
+    case apiDecodingError(Error)
+    case apiEncodingError(Error)
     case serverError(Int, String?)
     case clientError(Int, String?)
     case rateLimitExceeded
@@ -159,10 +159,7 @@ public enum APIError: Error, LocalizedError {
     // Simple cases for backward compatibility
     case invalidURL
     case noInternetConnection
-    case networkError
     case unauthorized
-    case decodingError
-    case encodingError
     
     public init(_ networkError: NetworkError) {
         self = .networkError(networkError)
@@ -180,9 +177,9 @@ public enum APIError: Error, LocalizedError {
             return authError.localizedDescription
         case .invalidResponse:
             return "Invalid response from server"
-        case .decodingError(let error):
+        case .apiDecodingError(let error):
             return "Failed to decode response: \(error.localizedDescription)"
-        case .encodingError(let error):
+        case .apiEncodingError(let error):
             return "Failed to encode request: \(error.localizedDescription)"
         case .serverError(let code, let message):
             return message ?? "Server error (\(code))"
@@ -200,14 +197,8 @@ public enum APIError: Error, LocalizedError {
             return "Invalid URL"
         case .noInternetConnection:
             return "No internet connection"
-        case .networkError:
-            return "Network error occurred"
         case .unauthorized:
             return "Unauthorized access"
-        case .decodingError:
-            return "Failed to decode response"
-        case .encodingError:
-            return "Failed to encode request"
         }
     }
     
@@ -223,6 +214,7 @@ public enum APIError: Error, LocalizedError {
             return false
         }
     }
+}
 
 // MARK: - WebSocket Error
 public enum WebSocketError: Error, LocalizedError {
