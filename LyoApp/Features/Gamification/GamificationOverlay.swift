@@ -10,9 +10,9 @@ struct GamificationOverlay: View {
     
     var body: some View {
         ZStack {
-            // Achievement Popup
-            if showingAchievement, let notification = currentNotification {
-                AchievementPopup(notification: notification) {
+            // CDAchievement Popup
+            if showingCDAchievement, let notification = currentNotification {
+                CDAchievementPopup(notification: notification) {
                     dismissNotification()
                 }
                 .transition(.scale.combined(with: .opacity))
@@ -37,12 +37,12 @@ struct GamificationOverlay: View {
                 .zIndex(1000)
             }
         }
-        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showingAchievement)
+        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showingCDAchievement)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showingLevelUp)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: showingStreakBonus)
         .onReceive(NotificationCenter.default.publisher(for: .achievementUnlocked)) { notification in
-            if let achievement = notification.object as? Achievement {
-                showAchievementNotification(achievement)
+            if let achievement = notification.object as? CDAchievement {
+                showCDAchievementNotification(achievement)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .levelUp)) { notification in
@@ -57,9 +57,9 @@ struct GamificationOverlay: View {
         }
     }
     
-    private func showAchievementNotification(_ achievement: Achievement) {
+    private func showAchievementNotification(_ achievement: CDAchievement) {
         currentNotification = .achievement(achievement)
-        showingAchievement = true
+        showingCDAchievement = true
         
         // Auto-dismiss after 5 seconds
         DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
@@ -88,7 +88,7 @@ struct GamificationOverlay: View {
     }
     
     private func dismissNotification() {
-        showingAchievement = false
+        showingCDAchievement = false
         showingLevelUp = false
         showingStreakBonus = false
         
@@ -98,7 +98,7 @@ struct GamificationOverlay: View {
     }
 }
 
-// MARK: - Achievement Popup
+// MARK: - CDAchievement Popup
 struct AchievementPopup: View {
     let notification: GamificationNotification
     let onDismiss: () -> Void
@@ -108,7 +108,7 @@ struct AchievementPopup: View {
     var body: some View {
         if case .achievement(let achievement) = notification {
             VStack(spacing: 16) {
-                // Achievement Icon with Particle Effect
+                // CDAchievement Icon with Particle Effect
                 ZStack {
                     Circle()
                         .fill(
@@ -123,7 +123,7 @@ struct AchievementPopup: View {
                             ParticleView(system: particleSystem)
                         }
                     
-                    AsyncImage(url: URL(string: achievement.iconURL)) { image in
+                    AsyncImage(url: URL(string: achievement.iconURL ?? "")) { image in
                         image
                             .resizable()
                             .aspectRatio(contentMode: .fit)
@@ -136,7 +136,7 @@ struct AchievementPopup: View {
                 }
                 
                 VStack(spacing: 8) {
-                    Text("🎉 Achievement Unlocked!")
+                    Text("🎉 CDAchievement Unlocked!")
                         .font(.headline)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
