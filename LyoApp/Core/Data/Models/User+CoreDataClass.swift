@@ -1,5 +1,5 @@
 //
-//  User+CoreDataClass.swift
+//  CDUser+CoreDataClass.swift
 //  LyoApp
 //
 //  Created by LyoApp Development Team on 12/25/24.
@@ -11,12 +11,12 @@ import CoreData
 import CloudKit
 import CryptoKit
 
-@objc(User)
-public class User: NSManagedObject {
+@objc(CDUser)
+public class CDUser: NSManagedObject {
     
     // MARK: - Constants
     private enum Keys {
-        static let encryptionKey = "UserDataEncryption"
+        static let encryptionKey = "CDUserDataEncryption"
         static let profilePrefix = "profile_"
     }
     
@@ -25,10 +25,10 @@ public class User: NSManagedObject {
     /// Full display name combining first and last name
     var fullName: String {
         let components = [firstName, lastName].compactMap { $0?.trimmingCharacters(in: .whitespaces) }
-        return components.isEmpty ? username ?? "Unknown User" : components.joined(separator: " ")
+        return components.isEmpty ? username ?? "Unknown CDUser" : components.joined(separator: " ")
     }
     
-    /// User's display initials for profile pictures
+    /// CDUser's display initials for profile pictures
     var initials: String {
         let components = fullName.components(separatedBy: .whitespaces)
         let initials = components.compactMap { $0.first }.prefix(2)
@@ -44,18 +44,18 @@ public class User: NSManagedObject {
                profileImageData != nil
     }
     
-    /// User's total learning time across all courses
+    /// CDUser's total learning time across all courses
     var totalLearningTime: TimeInterval {
         guard let progressSet = progress as? Set<Progress> else { return 0 }
         return progressSet.reduce(0) { $0 + $1.timeSpent }
     }
     
-    /// User's total achievements count
+    /// CDUser's total achievements count
     var totalAchievements: Int {
         return achievements?.count ?? 0
     }
     
-    /// User's current learning streak
+    /// CDUser's current learning streak
     var currentStreak: Int {
         guard let progressArray = progress?.allObjects as? [Progress] else { return 0 }
         
@@ -131,7 +131,7 @@ public class User: NSManagedObject {
         }
     }
     
-    // MARK: - User Preferences Management
+    // MARK: - CDUser Preferences Management
     
     /// Update user learning preferences
     func updateLearningPreferences(_ preferences: LearningPreferences) {
@@ -202,17 +202,17 @@ public class User: NSManagedObject {
     // MARK: - Data Validation
     
     /// Validate user data before saving
-    func validateUserData() throws {
+    func validateCDUserData() throws {
         if let email = email, !isValidEmail(email) {
-            throw UserValidationError.invalidEmail
+            throw CDUserValidationError.invalidEmail
         }
         
         if let username = username, username.count < 3 {
-            throw UserValidationError.usernameTooShort
+            throw CDUserValidationError.usernameTooShort
         }
         
         if let phone = phoneNumber, !isValidPhoneNumber(phone) {
-            throw UserValidationError.invalidPhoneNumber
+            throw CDUserValidationError.invalidPhoneNumber
         }
     }
     
@@ -247,9 +247,9 @@ public class User: NSManagedObject {
         
         // Validate data before saving
         do {
-            try validateUserData()
+            try validateCDUserData()
         } catch {
-            print("User validation failed: \(error)")
+            print("CDUser validation failed: \(error)")
         }
     }
     
@@ -324,7 +324,7 @@ struct NotificationPreferences: Codable {
 
 // MARK: - Custom Errors
 
-enum UserValidationError: Error, LocalizedError {
+enum CDUserValidationError: Error, LocalizedError {
     case invalidEmail
     case usernameTooShort
     case invalidPhoneNumber
@@ -334,7 +334,7 @@ enum UserValidationError: Error, LocalizedError {
         case .invalidEmail:
             return "Please enter a valid email address."
         case .usernameTooShort:
-            return "Username must be at least 3 characters long."
+            return "CDUsername must be at least 3 characters long."
         case .invalidPhoneNumber:
             return "Please enter a valid phone number."
         }
@@ -343,9 +343,9 @@ enum UserValidationError: Error, LocalizedError {
 
 // MARK: - Core Data Generated Properties Extension
 
-extension User {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<User> {
-        return NSFetchRequest<User>(entityName: "User")
+extension CDUser {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDUser> {
+        return NSFetchRequest<CDUser>(entityName: "CDUser")
     }
     
     // Basic Properties
@@ -400,12 +400,12 @@ extension User {
 
 // MARK: - Relationship Helpers
 
-extension User {
+extension CDUser {
     @objc(addProgressObject:)
-    @NSManaged public func addToProgress(_ value: Progress)
+    @NSManaged public func addToProgress(_ value: CDProgress)
     
     @objc(removeProgressObject:)
-    @NSManaged public func removeFromProgress(_ value: Progress)
+    @NSManaged public func removeFromProgress(_ value: CDProgress)
     
     @objc(addProgress:)
     @NSManaged public func addToProgress(_ values: NSSet)
@@ -414,10 +414,10 @@ extension User {
     @NSManaged public func removeFromProgress(_ values: NSSet)
     
     @objc(addAchievementsObject:)
-    @NSManaged public func addToAchievements(_ value: Achievement)
+    @NSManaged public func addToAchievements(_ value: CDAchievement)
     
     @objc(removeAchievementsObject:)
-    @NSManaged public func removeFromAchievements(_ value: Achievement)
+    @NSManaged public func removeFromAchievements(_ value: CDAchievement)
     
     @objc(addAchievements:)
     @NSManaged public func addToAchievements(_ values: NSSet)
@@ -426,10 +426,10 @@ extension User {
     @NSManaged public func removeFromAchievements(_ values: NSSet)
     
     @objc(addEnrolledCoursesObject:)
-    @NSManaged public func addToEnrolledCourses(_ value: Course)
+    @NSManaged public func addToEnrolledCourses(_ value: CDCourse)
     
     @objc(removeEnrolledCoursesObject:)
-    @NSManaged public func removeFromEnrolledCourses(_ value: Course)
+    @NSManaged public func removeFromEnrolledCourses(_ value: CDCourse)
     
     @objc(addEnrolledCourses:)
     @NSManaged public func addToEnrolledCourses(_ values: NSSet)
