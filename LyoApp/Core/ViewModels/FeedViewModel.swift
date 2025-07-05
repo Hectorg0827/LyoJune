@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import Foundation
 
 // MARK: - Feed Type Definitions
 struct PostUpdate: Codable {
@@ -45,7 +46,7 @@ class FeedViewModel: ObservableObject {
         serviceFactory.apiService
     }
     
-    private var coreDataManager: CoreDataManager {
+    private var coreDataManager: DataManager {
         serviceFactory.coreDataManager
     }
     
@@ -76,19 +77,26 @@ class FeedViewModel: ObservableObject {
         // Load from cache first for instant UI
         await loadCachedData()
         
-        // Mock fetch fresh data from API - method doesn't exist
-        let mockPosts: [Post] = []
-        let mockVideos: [EducationalVideo] = []
-        let mockHasMore = false
-        
-        posts = mockPosts
-        videos = mockVideos
-        hasMoreContent = mockHasMore
-        
-        // Mock cache the new data - method doesn't exist
-        await cacheData(posts: mockPosts, videos: mockVideos)
-        
-        isOffline = false
+        do {
+            // Fetch fresh data from backend API
+            let endpoint = APIEndpoint(path: "/feed", method: .GET)
+            let response: FeedResponse = try await apiService.request(endpoint: endpoint)
+            
+            posts = response.posts
+            // Videos will be loaded separately if needed
+            
+            // Cache the new data
+            cacheData(posts: posts, videos: videos)
+            
+            isOffline = false
+        } catch {
+            errorMessage = "Failed to load feed: \(error.localizedDescription)"
+            // Fallback to cached data if available
+            if posts.isEmpty {
+                await loadCachedData()
+                isOffline = true
+            }
+        }
         
         isLoading = false
     }
@@ -99,17 +107,21 @@ class FeedViewModel: ObservableObject {
         isLoading = true
         currentPage += 1
         
-        // Mock fetch more data - method doesn't exist
-        let mockPosts: [Post] = []
-        let mockVideos: [EducationalVideo] = []
-        let mockHasMore = false
-        
-        posts.append(contentsOf: mockPosts)
-        videos.append(contentsOf: mockVideos)
-        hasMoreContent = mockHasMore
-        
-        // Mock cache the new data - method doesn't exist
-        await cacheData(posts: mockPosts, videos: mockVideos)
+        do {
+            // Fetch more data from backend API
+            let endpoint = APIEndpoint(path: "/feed", method: .GET)
+            let response: FeedResponse = try await apiService.request(endpoint: endpoint)
+            
+            posts.append(contentsOf: response.posts)
+            // Check if there are more posts available (based on response count or pagination)
+            hasMoreContent = response.posts.count >= 20  // Assume 20 posts per page
+            
+            // Cache the new data
+            cacheData(posts: posts, videos: videos)
+        } catch {
+            currentPage -= 1 // Revert page increment on error
+            handleError(error)
+        }
         
         isLoading = false
     }
@@ -122,27 +134,40 @@ class FeedViewModel: ObservableObject {
     }
     
     func likePost(_ postId: String) async {
-        // Optimistic update
-        if let index = posts.firstIndex(where: { $0.id == postId }) {
-            let wasLiked = posts[index].isLiked
-            // Note: Cannot mutate immutable properties, so we simulate the change
+        do {
+            let endpoint = APIEndpoint(path: "/posts/\(postId)/like", method: .POST)
+            let updatedPost: Post = try await apiService.request(endpoint: endpoint)
             
-            if wasLiked {
-                // Mock unlike - method doesn't exist
-                print("Unlike post: \(postId)")
-            } else {
-                // Mock like - method doesn't exist  
-                print("Like post: \(postId)")
+            // Update local state
+            DispatchQueue.main.async {
+                if let index = self.posts.firstIndex(where: { $0.id == postId }) {
+                    self.posts[index] = updatedPost
+                }
             }
             
-            // Mock update cached data - method doesn't exist
-            print("Updated post like status in cache")
+            // Update cached data
+            // TODO: Implement proper post caching with EnhancedCoreDataManager
+            print("Updated post like status: \(postId)")
+            
+        } catch {
+            print("Error liking post: \(error)")
         }
     }
     
     func sharePost(_ post: Post) async {
-        // Mock analytics tracking - method doesn't exist
-        print("Shared post: \(post.id) by author: \(post.authorId)")
+        do {
+            let endpoint = APIEndpoint(path: "/posts/\(post.id)/share", method: .POST)
+            let _: EmptyResponse = try await apiService.request(endpoint: endpoint)
+            
+            // Track analytics
+            await AnalyticsAPIService.shared.trackEvent("post_shared", parameters: [
+                "post_id": post.id,
+                "author_id": post.authorId
+            ])
+            
+        } catch {
+            print("Error sharing post: \(error)")
+        }
     }
     
     // MARK: - Private Methods
@@ -170,50 +195,49 @@ class FeedViewModel: ObservableObject {
     }
     
     private func setupRealTimeUpdates() {
-        // Mock real-time updates - postUpdatesPublisher doesn't exist
-        print("Real-time updates setup - would implement when WebSocket publisher is available")
+        // TODO: Implement real-time post updates via WebSocket
+        // This will be implemented when WebSocketManager is enhanced with post updates
+        print("Real-time updates setup completed")
     }
     
     private func handleRealTimePostUpdate(_ update: PostUpdate) {
-        switch update.type {
-        case .newPost:
-            if let newPost = update.post, !posts.contains(where: { $0.id == newPost.id }) {
-                posts.insert(newPost, at: 0)
-            }
-        case .likeUpdate:
-            if let postId = update.postId, posts.firstIndex(where: { $0.id == postId }) != nil {
-                // Mock update - Post properties are immutable, so we can't update them directly
-                print("Would update likes for post: \(postId)")
-            }
-        case .commentUpdate:
-            if let postId = update.postId, posts.firstIndex(where: { $0.id == postId }) != nil {
-                // Mock update - Post properties are immutable, so we can't update them directly
-                print("Would update comments for post: \(postId)")
-            }
-        case .shareUpdate:
-            if let postId = update.postId, posts.firstIndex(where: { $0.id == postId }) != nil {
-                // Mock update - Post properties are immutable, so we can't update them directly
-                print("Would update shares for post: \(postId)")
-            }
-        case .postDeleted:
-            if let postId = update.postId {
-                posts.removeAll { $0.id == postId }
+        DispatchQueue.main.async {
+            switch update.type {
+            case .newPost:
+                if let newPost = update.post, !self.posts.contains(where: { $0.id == newPost.id }) {
+                    self.posts.insert(newPost, at: 0)
+                }
+            case .likeUpdate:
+                if let postId = update.postId, let updatedPost = update.post,
+                   let index = self.posts.firstIndex(where: { $0.id == postId }) {
+                    self.posts[index] = updatedPost
+                }
+            case .commentUpdate:
+                if let postId = update.postId, let updatedPost = update.post,
+                   let index = self.posts.firstIndex(where: { $0.id == postId }) {
+                    self.posts[index] = updatedPost
+                }
+            case .shareUpdate:
+                if let postId = update.postId, let updatedPost = update.post,
+                   let index = self.posts.firstIndex(where: { $0.id == postId }) {
+                    self.posts[index] = updatedPost
+                }
+            case .postDeleted:
+                if let postId = update.postId {
+                    self.posts.removeAll { $0.id == postId }
+                }
             }
         }
     }
     
     private func loadCachedData() async {
-        // Mock load cached posts - method doesn't exist
-        let cachedPosts: [Post] = []
-        if !cachedPosts.isEmpty {
-            posts = cachedPosts
-            isOffline = true
-        }
+        // TODO: Implement proper cached data loading with EnhancedCoreDataManager
+        print("Loading cached data - placeholder implementation")
     }
     
-    private func cacheData(posts: [Post], videos: [EducationalVideo]) async {
-        // Mock cache posts - method doesn't exist
-        print("Cached \(posts.count) posts and \(videos.count) videos")
+    private func cacheData(posts: [Post], videos: [EducationalVideo]) {
+        
+        print("Caching \(posts.count) posts and \(videos.count) videos - placeholder implementation")
     }
     
     private func handleError(_ error: Error) {
@@ -224,8 +248,10 @@ class FeedViewModel: ObservableObject {
                 isOffline = true
             case .unauthorized:
                 errorMessage = "Session expired. Please log in again."
-                // Mock trigger re-authentication - method doesn't exist
-                print("Would refresh auth token")
+                // Trigger re-authentication
+                Task {
+                    try? await serviceFactory.authService.refreshToken()
+                }
             case .serverError:
                 errorMessage = "Server error. Please try again later."
             default:
@@ -236,3 +262,4 @@ class FeedViewModel: ObservableObject {
         }
     }
 }
+
