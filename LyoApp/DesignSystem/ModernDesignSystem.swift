@@ -27,37 +27,37 @@ public struct ModernDesignSystem {
     // MARK: - Enhanced Color System
     public struct Colors {
         // Primary palette with accessibility support
-        public static let primary = Color(hex: "#007AFF")
-        public static let primaryLight = Color(hex: "#4DA6FF")
-        public static let primaryDark = Color(hex: "#0056CC")
+        public static let primary = Color(hex: "#007AFF") ?? Color.blue
+        public static let primaryLight = Color(hex: "#4DA6FF") ?? Color.blue
+        public static let primaryDark = Color(hex: "#0056CC") ?? Color.blue
         
         // Secondary palette
-        public static let secondary = Color(hex: "#5856D6")
-        public static let secondaryLight = Color(hex: "#8B89E3")
-        public static let secondaryDark = Color(hex: "#3634A3")
+        public static let secondary = Color(hex: "#5856D6") ?? Color.purple
+        public static let secondaryLight = Color(hex: "#8B89E3") ?? Color.purple
+        public static let secondaryDark = Color(hex: "#3634A3") ?? Color.purple
         
         // Accent colors
-        public static let accent = Color(hex: "#00D4AA")
-        public static let accentLight = Color(hex: "#4DFFE6")
-        public static let accentDark = Color(hex: "#00A085")
+        public static let accent = Color(hex: "#00D4AA") ?? Color.green
+        public static let accentLight = Color(hex: "#4DFFE6") ?? Color.green
+        public static let accentDark = Color(hex: "#00A085") ?? Color.green
         
         // Semantic colors
-        public static let success = Color(hex: "#34C759")
-        public static let warning = Color(hex: "#FF9500")
-        public static let error = Color(hex: "#FF3B30")
-        public static let info = Color(hex: "#007AFF")
+        public static let success = Color(hex: "#34C759") ?? Color.green
+        public static let warning = Color(hex: "#FF9500") ?? Color.orange
+        public static let error = Color(hex: "#FF3B30") ?? Color.red
+        public static let info = Color(hex: "#007AFF") ?? Color.blue
         
         // Neutral palette
-        public static let neutral50 = Color(hex: "#F9FAFB")
-        public static let neutral100 = Color(hex: "#F3F4F6")
-        public static let neutral200 = Color(hex: "#E5E7EB")
-        public static let neutral300 = Color(hex: "#D1D5DB")
-        public static let neutral400 = Color(hex: "#9CA3AF")
-        public static let neutral500 = Color(hex: "#6B7280")
-        public static let neutral600 = Color(hex: "#4B5563")
-        public static let neutral700 = Color(hex: "#374151")
-        public static let neutral800 = Color(hex: "#1F2937")
-        public static let neutral900 = Color(hex: "#111827")
+        public static let neutral50 = Color(hex: "#F9FAFB") ?? Color.gray
+        public static let neutral100 = Color(hex: "#F3F4F6") ?? Color.gray
+        public static let neutral200 = Color(hex: "#E5E7EB") ?? Color.gray
+        public static let neutral300 = Color(hex: "#D1D5DB") ?? Color.gray
+        public static let neutral400 = Color(hex: "#9CA3AF") ?? Color.gray
+        public static let neutral500 = Color(hex: "#6B7280") ?? Color.gray
+        public static let neutral600 = Color(hex: "#4B5563") ?? Color.gray
+        public static let neutral700 = Color(hex: "#374151") ?? Color.gray
+        public static let neutral800 = Color(hex: "#1F2937") ?? Color.gray
+        public static let neutral900 = Color(hex: "#111827") ?? Color.gray
         
         // Glass effect colors
         public static let glassLight = Color.white.opacity(0.1)
@@ -69,7 +69,7 @@ public struct ModernDesignSystem {
         public static let backgroundPrimary = LinearGradient(
             gradient: Gradient(colors: [
                 Color.black,
-                Color(hex: "#1a1a2e"),
+                Color(hex: "#1a1a2e") ?? Color.black,
                 Color.black
             ]),
             startPoint: .topLeading,
@@ -78,7 +78,7 @@ public struct ModernDesignSystem {
         
         public static let backgroundSecondary = LinearGradient(
             gradient: Gradient(colors: [
-                Color(hex: "#1a1a2e"),
+                Color(hex: "#1a1a2e") ?? Color.black,
                 Color.black.opacity(0.9)
             ]),
             startPoint: .topLeading,
