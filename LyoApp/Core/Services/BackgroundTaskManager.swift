@@ -115,7 +115,7 @@ class BackgroundTaskManager: ObservableObject {
     private let maxResultsToKeep = 50
     
     // MARK: - Dependencies
-    private let coreDataManager: EnhancedCoreDataManager
+    private let coreDataManager: DataManager
     private let networkManager: EnhancedNetworkManager
     private let notificationManager: NotificationManager
     private let spotlightManager: SpotlightManager
@@ -128,7 +128,7 @@ class BackgroundTaskManager: ObservableObject {
     
     // MARK: - Initialization
     init(
-        coreDataManager: EnhancedCoreDataManager,
+        coreDataManager: DataManager,
         networkManager: EnhancedNetworkManager,
         notificationManager: NotificationManager,
         spotlightManager: SpotlightManager
@@ -353,7 +353,7 @@ class BackgroundTaskManager: ObservableObject {
         let progressSynced = await coreDataManager.syncUserProgress()
         
         // Sync course updates
-        let courseUpdates = await coreDataManager.syncCourseUpdates()
+        let courseUpdates = await coreDataManager.syncCDCourseUpdates()
         
         // Update Spotlight index
         await spotlightManager.indexAllContent()
@@ -408,7 +408,7 @@ class BackgroundTaskManager: ObservableObject {
         itemsProcessed += streakReminders
         
         // Prepare course completion notifications
-        let completionNotifications = await prepareCourseCompletionNotifications()
+        let completionNotifications = await prepareCDCourseCompletionNotifications()
         itemsProcessed += completionNotifications
         
         return itemsProcessed
@@ -511,11 +511,11 @@ class BackgroundTaskManager: ObservableObject {
         return 0
     }
     
-    private func prepareCourseCompletionNotifications() async -> Int {
+    private func prepareCDCourseCompletionNotifications() async -> Int {
         // Check for courses near completion
-        let nearCompletionCourses = await coreDataManager.getCoursesNearCompletion()
+        let nearCompletionCDCourses = await coreDataManager.getCDCoursesNearCompletion()
         
-        for course in nearCompletionCourses {
+        for course in nearCompletionCDCourses {
             // Schedule encouragement notification
             let content = NotificationContent(
                 type: .courseUpdate,
@@ -530,7 +530,7 @@ class BackgroundTaskManager: ObservableObject {
             )
         }
         
-        return nearCompletionCourses.count
+        return nearCompletionCDCourses.count
     }
     
     // MARK: - Settings
@@ -552,22 +552,22 @@ class BackgroundTaskManager: ObservableObject {
 // MARK: - Extensions for Data Types
 extension BackgroundTaskManager {
     
-    struct Course {
+    struct CDCourse {
         let id: String
         let title: String
         let progress: Double
     }
 }
 
-// MARK: - EnhancedCoreDataManager Extension
-extension EnhancedCoreDataManager {
+// MARK: - DataManager Extension
+extension DataManager {
     
     func syncUserProgress() async -> Int {
         // Implementation for syncing user progress
         return 0
     }
     
-    func syncCourseUpdates() async -> Int {
+    func syncCDCourseUpdates() async -> Int {
         // Implementation for syncing course updates
         return 0
     }
@@ -599,7 +599,7 @@ extension EnhancedCoreDataManager {
         return 0
     }
     
-    func getCoursesNearCompletion() async -> [BackgroundTaskManager.Course] {
+    func getCDCoursesNearCompletion() async -> [BackgroundTaskManager.CDCourse] {
         // Implementation for getting courses near completion
         return []
     }
