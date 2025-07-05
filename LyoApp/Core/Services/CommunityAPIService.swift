@@ -6,9 +6,7 @@ import Combine
 class CommunityAPIService: BaseAPIService {
     static let shared = CommunityAPIService()
     
-    private override init(apiClient: APIClientProtocol = {
-        return ConfigurationManager.shared.shouldUseMockBackend ? MockAPIClient.shared : APIClient.shared
-    }()) {
+    private override init(apiClient: APIClientProtocol = APIClient.shared) {
         super.init(apiClient: apiClient)
     }
     
