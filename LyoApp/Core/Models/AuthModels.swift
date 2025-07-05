@@ -1,4 +1,3 @@
-
 // AuthModels.swift
 // LyoApp - Advanced Authentication Models for Backend Integration
 // Phase 4: Backend Integration & API Development
@@ -544,3 +543,7 @@ public struct AuthEndpoints {
     public static let sessions = "/api/v1/auth/sessions"
     public static let securitySettings = "/api/v1/auth/security"
 }
+
+// MARK: - Simplified Authentication Models for Compatibility
+
+
