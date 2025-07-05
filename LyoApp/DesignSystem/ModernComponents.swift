@@ -1,285 +1,17 @@
 import SwiftUI
 import Foundation
 
-// Import models to use CourseInstructor, UserCourseProgress, etc.
+// Import models to use CDInstructor, CDUserProgress, etc.
 // Note: These imports provide access to canonical types from Core/Models
 
-// Use course from CourseModels to avoid conflicts
+// Use course from CDCourseModels to avoid conflicts
 
 // MARK: - Modern Enhanced Components
 // Phase 2: Integrated modern components with animations, haptics, and loading states
 
-// MARK: - Modern Button
-public struct ModernButton: View {
-    public enum Style {
-        case primary
-        case secondary
-        case tertiary
-        case outline
-    }
-    
-    public enum Size {
-        case small
-        case medium
-        case large
-    }
-    
-    let title: String
-    let style: Style
-    let size: Size
-    let isLoading: Bool
-    let isEnabled: Bool
-    let action: () -> Void
-    
-    @State private var isPressed = false
-    
-    public init(
-        title: String,
-        style: Style = .primary,
-        size: Size = .medium,
-        isLoading: Bool = false,
-        isEnabled: Bool = true,
-        action: @escaping () -> Void
-    ) {
-        self.title = title
-        self.style = style
-        self.size = size
-        self.isLoading = isLoading
-        self.isEnabled = isEnabled
-        self.action = action
-    }
-    
-    public var body: some View {
-        Button(action: {
-            if !isLoading && isEnabled {
-                action()
-            }
-        }) {
-            HStack(spacing: DesignTokens.Spacing.sm) {
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                        .foregroundColor(textColor)
-                } else {
-                    Text(title)
-                        .font(buttonFont)
-                        .fontWeight(.medium)
-                }
-            }
-            .foregroundColor(textColor)
-            .padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
-            .background(backgroundView)
-            .cornerRadius(DesignTokens.BorderRadius.button)
-            .scaleEffect(isPressed ? 0.98 : 1.0)
-            .opacity(isEnabled ? 1.0 : 0.6)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .disabled(!isEnabled || isLoading)
-        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
-            withAnimation(.easeInOut(duration: 0.1)) {
-                isPressed = pressing
-            }
-        }, perform: {})
-    }
-    
-    private var backgroundView: some View {
-        Group {
-            switch style {
-            case .primary:
-                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.button)
-                    .fill(DesignTokens.Colors.primary)
-            case .secondary:
-                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.button)
-                    .fill(DesignTokens.Colors.secondary)
-            case .tertiary:
-                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.button)
-                    .fill(DesignTokens.Colors.surface)
-            case .outline:
-                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.button)
-                    .stroke(DesignTokens.Colors.primary, lineWidth: 1)
-            }
-        }
-    }
-    
-    private var textColor: Color {
-        switch style {
-        case .primary, .secondary:
-            return DesignTokens.Colors.onPrimary
-        case .tertiary, .outline:
-            return DesignTokens.Colors.textPrimary
-        }
-    }
-    
-    private var buttonFont: Font {
-        switch size {
-        case .small:
-            return DesignTokens.Typography.labelSmall
-        case .medium:
-            return DesignTokens.Typography.bodyMedium
-        case .large:
-            return DesignTokens.Typography.bodyLarge
-        }
-    }
-    
-    private var horizontalPadding: CGFloat {
-        switch size {
-        case .small:
-            return DesignTokens.Spacing.sm
-        case .medium:
-            return DesignTokens.Spacing.md
-        case .large:
-            return DesignTokens.Spacing.lg
-        }
-    }
-    
-    private var verticalPadding: CGFloat {
-        switch size {
-        case .small:
-            return DesignTokens.Spacing.xs
-        case .medium:
-            return DesignTokens.Spacing.sm
-        case .large:
-            return DesignTokens.Spacing.md
-        }
-    }
-}
 
-// MARK: - Modern Text Field
-public struct ModernTextField: View {
-    public enum Style {
-        case filled
-        case outline
-    }
-    
-    public enum Size {
-        case small
-        case medium
-        case large
-    }
-    
-    let title: String
-    @Binding var text: String
-    let style: Style
-    let size: Size
-    let isSecure: Bool
-    let placeholder: String
-    
-    @State private var isFocused = false
-    @FocusState private var textFieldFocused: Bool
-    
-    public init(
-        title: String,
-        text: Binding<String>,
-        style: Style = .filled,
-        size: Size = .medium,
-        isSecure: Bool = false,
-        placeholder: String = ""
-    ) {
-        self.title = title
-        self._text = text
-        self.style = style
-        self.size = size
-        self.isSecure = isSecure
-        self.placeholder = placeholder
-    }
-    
-    public var body: some View {
-        VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-            if !title.isEmpty {
-                Text(title)
-                    .font(DesignTokens.Typography.labelMedium)
-                    .foregroundColor(DesignTokens.Colors.textSecondary)
-            }
-            
-            Group {
-                if isSecure {
-                    SecureField(placeholder, text: $text)
-                        .focused($textFieldFocused)
-                } else {
-                    TextField(placeholder, text: $text)
-                        .focused($textFieldFocused)
-                }
-            }
-            .font(textFont)
-            .foregroundColor(DesignTokens.Colors.textPrimary)
-            .padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
-            .background(backgroundView)
-            .cornerRadius(DesignTokens.BorderRadius.sm)
-            .overlay(
-                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.sm)
-                    .stroke(borderColor, lineWidth: borderWidth)
-            )
-        }
-        .onTapGesture {
-            textFieldFocused = true
-        }
-        .onChange(of: textFieldFocused) { _, focused in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isFocused = focused
-            }
-        }
-    }
-    
-    private var backgroundView: some View {
-        Group {
-            switch style {
-            case .filled:
-                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.sm)
-                    .fill(DesignTokens.Colors.surface)
-            case .outline:
-                RoundedRectangle(cornerRadius: DesignTokens.BorderRadius.sm)
-                    .fill(Color.clear)
-            }
-        }
-    }
-    
-    private var borderColor: Color {
-        if isFocused {
-            return DesignTokens.Colors.primary
-        } else {
-            return style == .outline ? DesignTokens.Colors.neutral300 : Color.clear
-        }
-    }
-    
-    private var borderWidth: CGFloat {
-        isFocused ? 2 : 1
-    }
-    
-    private var textFont: Font {
-        switch size {
-        case .small:
-            return DesignTokens.Typography.bodySmall
-        case .medium:
-            return DesignTokens.Typography.bodyMedium
-        case .large:
-            return DesignTokens.Typography.bodyLarge
-        }
-    }
-    
-    private var horizontalPadding: CGFloat {
-        switch size {
-        case .small:
-            return DesignTokens.Spacing.sm
-        case .medium:
-            return DesignTokens.Spacing.md
-        case .large:
-            return DesignTokens.Spacing.lg
-        }
-    }
-    
-    private var verticalPadding: CGFloat {
-        switch size {
-        case .small:
-            return DesignTokens.Spacing.xs
-        case .medium:
-            return DesignTokens.Spacing.sm
-        case .large:
-            return DesignTokens.Spacing.md
-        }
-    }
-}
+
+
 
 // MARK: - Enhanced Floating Action Button
 struct EnhancedFloatingActionButton: View {
@@ -399,7 +131,7 @@ struct ModernInteractiveCard<Content: View>: View {
     }
 }
 
-// MARK: - Enhanced Learning Course Card
+// MARK: - Enhanced Learning CDCourse Card
 struct EnhancedCourseCard: View {
     let course: Course
     let isLoading: Bool
@@ -412,7 +144,7 @@ struct EnhancedCourseCard: View {
             // Loaded content
             ModernInteractiveCard(onTap: onTap) {
                 VStack(alignment: .leading, spacing: DesignTokens.Spacing.sm) {
-                    // Course image with progressive loading
+                    // CDCourse image with progressive loading
                     GeometryReader { geometry in
                         AsyncImage(url: URL(string: course.thumbnail?.url ?? "https://via.placeholder.com/300x200")) { image in
                             image
@@ -436,23 +168,23 @@ struct EnhancedCourseCard: View {
                     .cornerRadius(DesignTokens.BorderRadius.md)
                     
                     VStack(alignment: .leading, spacing: DesignTokens.Spacing.xs) {
-                        // Course title
+                        // CDCourse title
                         Text(course.title)
                             .font(DesignTokens.Typography.titleMedium)
                             .foregroundColor(DesignTokens.Colors.textPrimary)
                             .lineLimit(2)
                             .smoothAppear(delay: 0.1)
                         
-                        // Course description
+                        // CDCourse description
                         Text(course.description)
                             .font(DesignTokens.Typography.bodySmall)
                             .foregroundColor(DesignTokens.Colors.textSecondary)
                             .lineLimit(3)
                             .smoothAppear(delay: 0.2)
                         
-                        // Course metadata
+                        // CDCourse metadata
                         HStack {
-                            // Instructor info
+                            // CDInstructor info
                             HStack(spacing: DesignTokens.Spacing.xs) {
                                 AsyncImage(url: course.instructor.avatarURL) { image in
                                     image
@@ -480,7 +212,7 @@ struct EnhancedCourseCard: View {
                         .smoothAppear(delay: 0.3)
                         
                         // Progress bar (if enrolled) - Temporarily commented out due to type conflicts
-                        // TODO: Fix Course type to include userProgress property
+                        // TODO: Fix CDCourse type to include userProgress property
                         /*
                         if let progress = course.userProgress {
                             ProgressBar(
@@ -555,7 +287,7 @@ struct ProgressBar: View {
     }
 }
 
-// MARK: - Enhanced Feed Post Card
+// MARK: - Enhanced Feed CDPost Card
 struct EnhancedFeedPost: View {
     let post: Post
     let isLoading: Bool
@@ -598,7 +330,7 @@ struct EnhancedFeedPost: View {
                     }
                     .smoothAppear(delay: 0.1)
                     
-                    // Post content
+                    // CDPost content
                     Text(post.content)
                         .font(DesignTokens.Typography.bodyMedium)
                         .foregroundColor(DesignTokens.Colors.textPrimary)
@@ -682,7 +414,7 @@ struct EnhancedFeedPost: View {
             }
         } loadingContent: {
             // Loading skeleton
-            SkeletonLayouts.feedPost
+                        SkeletonLayouts.feedPost
         }
     }
 }
@@ -815,6 +547,7 @@ struct ModernComponents_Previews: PreviewProvider {
                 // Sample course card - Create a mock course with required parameters
                 EnhancedCourseCard(
                     course: Course(
+                        id: UUID(),
                         title: "Sample Course",
                         description: "Sample Description",
                         instructor: Instructor(
@@ -831,11 +564,12 @@ struct ModernComponents_Previews: PreviewProvider {
                         ),
                         category: .programming,
                         difficulty: .beginner,
-                        duration: 3600
+                        duration: 3600,
+                        lessons: []
                     ),
                     isLoading: false
                 ) {
-                    print("Course tapped")
+                    print("CDCourse tapped")
                 }
                 
                 Spacer()
@@ -860,10 +594,33 @@ private func formatDuration(_ duration: TimeInterval) -> String {
 }
 
 // MARK: - Sample Extensions
-extension LearningCourse {
-    static let sampleCourse = LearningCourse(
+extension Course {
+    static let sampleCourse = Course(
         id: UUID(),
         title: "SwiftUI Fundamentals",
-        description: "Learn the basics of SwiftUI development with hands-on examples and real-world projects."
+        description: "Learn the basics of SwiftUI development with hands-on examples and real-world projects.",
+        instructor: Instructor(id: UUID(), name: "John Doe", bio: "Experienced instructor", avatarURL: nil, expertise: [], rating: 5.0, totalStudents: 1000, totalCourses: 5, isVerified: true, socialLinks: [:]),
+        category: .programming,
+        difficulty: .beginner,
+        duration: 3600,
+        lessons: [],
+        thumbnail: nil,
+        previewVideo: nil,
+        tags: ["SwiftUI", "iOS", "Programming"],
+        language: "en",
+        price: CoursePrice(),
+        rating: CourseRating(),
+        isPublished: true,
+        publishedAt: Date(),
+        createdAt: Date(),
+        updatedAt: Date(),
+        serverID: nil,
+        syncStatus: .synced,
+        lastSyncedAt: Date(),
+        version: 1,
+        etag: nil,
+        downloadStatus: .notDownloaded,
+        downloadProgress: 0.0,
+        downloadSize: nil
     )
 }
