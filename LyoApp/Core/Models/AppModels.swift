@@ -24,30 +24,30 @@ public enum SyncStatus: String, Codable, CaseIterable {
 
 // MARK: - Network Models
 public struct NetworkInfo: Codable {
+    public enum ConnectionType: String, Codable, CaseIterable {
+        case wifi = "wifi"
+        case cellular = "cellular"
+        case ethernet = "ethernet"
+        case none = "none"
+    }
+    
+    public enum Speed: String, Codable, CaseIterable {
+        case low = "low"
+        case medium = "medium"
+        case high = "high"
+    }
+    
     public let isConnected: Bool
     public let connectionType: ConnectionType
-    public let bandwidth: Bandwidth?
+    public let speed: Speed?
     public let lastChecked: Date
     
-    public init(isConnected: Bool, connectionType: ConnectionType, bandwidth: Bandwidth? = nil, lastChecked: Date = Date()) {
+    public init(isConnected: Bool, connectionType: ConnectionType, speed: Speed? = nil, lastChecked: Date = Date()) {
         self.isConnected = isConnected
         self.connectionType = connectionType
-        self.bandwidth = bandwidth
+        self.speed = speed
         self.lastChecked = lastChecked
     }
-}
-
-public enum ConnectionType: String, Codable, CaseIterable {
-    case wifi = "wifi"
-    case cellular = "cellular"
-    case ethernet = "ethernet"
-    case none = "none"
-}
-
-public enum Bandwidth: String, Codable, CaseIterable {
-    case low = "low"
-    case medium = "medium"
-    case high = "high"
 }
 
 // MARK: - Enhanced User Models with Backend Support
@@ -389,65 +389,7 @@ public struct LoginResponse: Codable {
 }
 
 // MARK: - Course Support Types
-public enum CourseCategory: String, Codable, CaseIterable {
-    case programming = "programming"
-    case development = "development"
-    case design = "design"
-    case business = "business"
-    case marketing = "marketing"
-    case science = "science"
-    case math = "math"
-    case language = "language"
-    case arts = "arts"
-    case health = "health"
-    case other = "other"
-    
-    var gradient: LinearGradient {
-        switch self {
-        case .programming:
-            return LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .development:
-            return LinearGradient(colors: [.green, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .design:
-            return LinearGradient(colors: [.pink, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .business:
-            return LinearGradient(colors: [.orange, .red], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .marketing:
-            return LinearGradient(colors: [.purple, .pink], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .science:
-            return LinearGradient(colors: [.cyan, .blue], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .math:
-            return LinearGradient(colors: [.indigo, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .language:
-            return LinearGradient(colors: [.mint, .green], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .arts:
-            return LinearGradient(colors: [.yellow, .orange], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .health:
-            return LinearGradient(colors: [.red, .pink], startPoint: .topLeading, endPoint: .bottomTrailing)
-        case .other:
-            return LinearGradient(colors: [.gray, .secondary], startPoint: .topLeading, endPoint: .bottomTrailing)
-        }
-    }
-    
-    var icon: String {
-        switch self {
-        case .programming: return "chevron.left.forwardslash.chevron.right"
-        case .development: return "hammer.fill"
-        case .design: return "paintbrush.fill"
-        case .business: return "briefcase.fill"
-        case .marketing: return "megaphone.fill"
-        case .science: return "flask.fill"
-        case .math: return "function"
-        case .language: return "globe"
-        case .arts: return "palette.fill"
-        case .health: return "heart.fill"
-        case .other: return "ellipsis.circle.fill"
-        }
-    }
-    
-    // MARK: - CourseCategory Display Name
-    var name: String { rawValue.capitalized }
-}
+// CourseCategory is defined in CourseModels.swift
 
 public enum CourseDifficulty: String, Codable, CaseIterable {
     case beginner = "beginner"
@@ -1532,6 +1474,7 @@ public struct AnalyticsEvent: Codable {
     }
 }
 
+// MARK: - Instructor
 public struct Instructor: Identifiable, Codable, Hashable {
     public let id: UUID
     public let name: String
@@ -1782,6 +1725,91 @@ public struct LeaderboardUser: Codable, Identifiable {
         self.level = level
         self.rank = rank
         self.achievements = achievements
+    }
+}
+
+// MARK: - Real-time Update Models
+public struct ContentUpdate: Codable {
+    public let type: UpdateType
+    public let content: Content
+    public let timestamp: Date
+    
+    public enum UpdateType: String, Codable {
+        case newPost = "newPost"
+        case updatedPost = "updatedPost"
+        case deletedPost = "deletedPost"
+        case newVideo = "newVideo"
+        case updatedVideo = "updatedVideo"
+        case deletedVideo = "deletedVideo"
+    }
+    
+    public enum Content: Codable {
+        case post(Post)
+        case video(Video)
+        case id(String)
+        
+        private enum CodingKeys: String, CodingKey {
+            case type, data
+        }
+        
+        public init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let type = try container.decode(String.self, forKey: .type)
+            
+            switch type {
+            case "post":
+                self = .post(try container.decode(Post.self, forKey: .data))
+            case "video":
+                self = .video(try container.decode(Video.self, forKey: .data))
+            case "id":
+                self = .id(try container.decode(String.self, forKey: .data))
+            default:
+                throw DecodingError.dataCorruptedError(
+                    forKey: .type,
+                    in: container,
+                    debugDescription: "Invalid content type"
+                )
+            }
+        }
+        
+        public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            
+            switch self {
+            case .post(let post):
+                try container.encode("post", forKey: .type)
+                try container.encode(post, forKey: .data)
+            case .video(let video):
+                try container.encode("video", forKey: .type)
+                try container.encode(video, forKey: .data)
+            case .id(let id):
+                try container.encode("id", forKey: .type)
+                try container.encode(id, forKey: .data)
+            }
+        }
+    }
+}
+
+public struct TrendingUpdate: Codable {
+    public let category: String
+    public let items: [TrendingItem]
+    public let timestamp: Date
+    
+    public struct TrendingItem: Codable, Identifiable {
+        public let id: String
+        public let type: ItemType
+        public let title: String
+        public let score: Double
+        public let momentum: Double
+        public let tags: [String]
+        public let metadata: [String: String]?
+        
+        public enum ItemType: String, Codable {
+            case post = "post"
+            case video = "video"
+            case topic = "topic"
+            case user = "user"
+        }
     }
 }
 
@@ -3029,6 +3057,56 @@ struct LearningPath: Identifiable, Codable {
         self.category = category
         self.progress = progress
         self.completedCourses = completedCourses
+    }
+}
+
+// MARK: - App Settings Model
+public struct AppSettings: Codable {
+    public var id: UUID
+    public var userId: UUID
+    public var language: String
+    public var notificationsEnabled: Bool
+    public var darkModeEnabled: Bool
+    public var biometricAuthEnabled: Bool
+    public var pushNotificationsEnabled: Bool
+    public var emailNotificationsEnabled: Bool
+    public var createdAt: Date
+    public var updatedAt: Date
+    public var lastUpdated: Date
+}
+
+// MARK: - Analytics Request/Response Models
+public struct AnalyticsEventRequest: Codable {
+    public let event: String
+    public let parameters: [String: String] // Simplified to avoid AnyCodable complexity
+    public let timestamp: Date
+    public let sessionId: String
+}
+
+public struct UserAnalytics: Codable {
+    public let userId: String
+    public let events: [AnalyticsEvent]
+}
+
+public struct EngagementMetrics: Codable {
+    public let likes: Int
+    public let comments: Int
+    public let shares: Int
+}
+
+public struct PaginationInfo: Codable {
+    public let page: Int
+    public let totalPages: Int
+    public let totalItems: Int
+    public let hasNext: Bool
+    public let hasPrevious: Bool
+    
+    public init(page: Int, totalPages: Int, totalItems: Int, hasNext: Bool, hasPrevious: Bool) {
+        self.page = page
+        self.totalPages = totalPages
+        self.totalItems = totalItems
+        self.hasNext = hasNext
+        self.hasPrevious = hasPrevious
     }
 }
 
