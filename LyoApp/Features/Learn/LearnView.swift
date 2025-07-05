@@ -1,7 +1,7 @@
 import SwiftUI
 
 // MARK: - Learn Type Definitions
-// Note: Course type is defined in AppModels.swift and used throughout this file
+// Note: CDCourse type is defined in AppModels.swift and used throughout this file
 struct LearningGoal: Identifiable, Codable {
     let id: UUID
     let title: String
@@ -51,7 +51,7 @@ struct LearnView: View {
                         CoursesView(courses: viewModel.featuredCourses)
                             .tag(0)
                         
-                        LearningPathsView(paths: viewModel.learningPaths)
+                        ModernLearningPathsView(paths: viewModel.learningPaths, searchText: "")
                             .tag(1)
                         
                         if let userProgress = viewModel.userProgress {
@@ -87,7 +87,7 @@ struct LearnView: View {
 
 struct LearnTabSelector: View {
     @Binding var selectedTab: Int
-    private let tabs = ["Courses", "Paths", "Progress"]
+    private let tabs = ["CDCourses", "Paths", "Progress"]
     
     var body: some View {
         HStack(spacing: 0) {
@@ -105,11 +105,11 @@ struct LearnTabSelector: View {
                         
                         Rectangle()
                             .fill(selectedTab == index ? Color.blue : Color.clear)
-                            .frame(blockSize: 3)
+                            .frame(height: 3)
                             .cornerRadius(1.5)
                     }
                 }
-                .frame(maxInlineSize: .infinity)
+                .frame(maxWidth: .infinity)
             }
         }
         .padding(.horizontal)
@@ -175,52 +175,80 @@ struct CourseCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Course image/icon
-            if style == .featured {
-                FeaturedCourseHeader(course: course)
-            } else {
-                ListCourseHeader(course: course)
-            }
+            courseImageSection
             
             // Course info
-            VStack(alignment: .leading, spacing: 8) {
-                Text(course.title)
-                    .font(style == .featured ? .headline : .body)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .lineLimit(2)
-                
-                Text(course.instructor.name)
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
-                
-                HStack {
-                    Text(course.duration)
-                        .font(.caption)
-                        .foregroundColor(.white.opacity(0.6))
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 4) {
-                        Image(systemName: "star.fill")
-                            .foregroundColor(.yellow)
-                            .font(.caption)
-                        Text(String(format: "%.1f", course.rating))
-                            .font(.caption)
-                            .foregroundColor(.yellow)
-                    }
-                }
-            }
-            .padding(style == .featured ? 12 : 8)
+            courseInfoSection
         }
-        .frame(inlineSize: style == .featured ? 200 : nil)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Material.ultraThin)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
-                )
-        )
+        .padding(style == .featured ? 12 : 8)
+        .frame(width: style == .featured ? 200 : nil)
+        .background(courseCardBackground)
+    }
+    
+    @ViewBuilder
+    private var courseImageSection: some View {
+        if style == .featured {
+            FeaturedCourseHeader(course: course)
+        } else {
+            AsyncImage(url: URL(string: course.thumbnail?.url ?? "")) { image in
+                image.resizable()
+            } placeholder: {
+                Rectangle().fill(Color.gray)
+            }
+            .aspectRatio(16/9, contentMode: .fit)
+            .cornerRadius(8)
+        }
+    }
+    
+    @ViewBuilder
+    private var courseInfoSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(course.title)
+                .font(style == .featured ? .headline : .body)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .lineLimit(2)
+            
+            Text(course.instructor.name)
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.7))
+            
+            courseMetadataRow
+        }
+    }
+    
+    @ViewBuilder
+    private var courseMetadataRow: some View {
+        HStack {
+            Text("\(Int(course.duration / 60))m")
+                .font(.caption)
+                .foregroundColor(.white.opacity(0.6))
+            
+            Spacer()
+            
+            courseRatingView
+        }
+    }
+    
+    @ViewBuilder
+    private var courseRatingView: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "star.fill")
+                .foregroundColor(.yellow)
+                .font(.caption)
+            Text(String(format: "%.1f", course.rating.average))
+                .font(.caption)
+                .foregroundColor(.yellow)
+        }
+    }
+    
+    private var courseCardBackground: some View {
+        RoundedRectangle(cornerRadius: 16)
+            .fill(Material.ultraThin)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.white.opacity(0.1), lineWidth: 1)
+            )
     }
 }
 
@@ -252,7 +280,7 @@ struct ListCourseHeader: View {
         HStack {
             Circle()
                 .fill(course.category.gradient)
-                .frame(inlineSize: 50, blockSize: 50)
+                .frame(width: 50, height: 50)
                 .overlay(
                     Image(systemName: course.category.icon)
                         .font(.title2)
@@ -315,7 +343,7 @@ struct LearningPathCard: View {
                 .progressViewStyle(LinearProgressViewStyle(tint: .blue))
             
             HStack {
-                Text(path.estimatedDuration)
+                Text("\(Int(path.estimatedDuration / 3600))h")
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.6))
                 
@@ -332,7 +360,7 @@ struct LearningPathCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
         )
     }
@@ -348,10 +376,7 @@ struct LearningProgressView: View {
                 StatsOverviewCard(progress: progress)
                 
                 // Recent achievements
-                RecentAchievementsCard(achievements: progress.recentAchievements)
-                
-                // Learning goals
-                LearningGoalsCard(goals: progress.learningGoals)
+                AchievementsSection(achievements: progress.recentAchievements)
             }
             .padding()
         }
@@ -375,7 +400,7 @@ struct StatsOverviewCard: View {
                 StatItem(title: "Total Hours", value: "\(Int(progress.totalHours))", icon: "clock")
                 StatItem(title: "Courses", value: "\(progress.completedCourses)", icon: "book")
                 StatItem(title: "Current Streak", value: "\(progress.currentStreak)", icon: "flame")
-                StatItem(title: "Avg Score", value: "\(Int(progress.averageScore))%", icon: "star")
+                StatItem(title: "Level", value: "\(progress.level)", icon: "star")
             }
         }
         .padding()
@@ -384,7 +409,7 @@ struct StatsOverviewCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
         )
     }
@@ -410,7 +435,7 @@ struct StatItem: View {
                 .font(.caption)
                 .foregroundColor(.white.opacity(0.7))
         }
-        .frame(maxInlineSize: .infinity)
+        .frame(maxWidth: .infinity)
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
@@ -433,7 +458,7 @@ struct RecentAchievementsCard: View {
                 HStack {
                     Circle()
                         .fill(Color.yellow.gradient)
-                        .frame(inlineSize: 40, blockSize: 40)
+                        .frame(width: 40, height: 40)
                         .overlay(
                             Image(systemName: "trophy.fill")
                                 .foregroundColor(.white)
@@ -458,7 +483,7 @@ struct RecentAchievementsCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
         )
     }
@@ -499,7 +524,7 @@ struct LearningGoalsCard: View {
                 .fill(Material.ultraThin)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color.white.opacity(0.1), inlineSize: 1)
+                        .stroke(Color.white.opacity(0.1), lineWidth: 1)
                 )
         )
     }
