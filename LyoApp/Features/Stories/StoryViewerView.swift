@@ -100,7 +100,7 @@ struct StoryViewerView: View {
                                         .foregroundColor(.white)
                                 )
                         case .text:
-                            Text("Story content would appear here")
+                            Text("CDStory content would appear here")
                                 .font(.system(size: 18))
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
