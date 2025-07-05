@@ -138,7 +138,7 @@ class CommunityViewModel: ObservableObject {
     @Published var userStats: UserStats?
     @Published var isLoading = false
     @Published var errorMessage: String?
-    @Published var currentUserRank: LeaderboardUser?
+    @Published var currentCDUserRank: LeaderboardUser?
     @Published var selectedTimeframe = "week"
     @Published var isOffline = false
     @Published var lastSyncTime: Date?
@@ -146,8 +146,9 @@ class CommunityViewModel: ObservableObject {
     
     private var cancellables = Set<AnyCancellable>()
     private let apiService: EnhancedNetworkManager
-    private let coreDataManager: BasicCoreDataManager
+    private let coreDataManager: DataManager
     private let webSocketManager: WebSocketManager
+    private let analyticsManager = AnalyticsAPIService.shared
     
     // MARK: - Initialization
     init(serviceFactory: EnhancedServiceFactory = .shared) {
@@ -188,7 +189,7 @@ class CommunityViewModel: ObservableObject {
     }
     
     private func setupNotifications() {
-        NotificationCenter.default.publisher(for: .networkStatusChanged)
+        NotificationCenter.default.publisher(for: Constants.NotificationNames.networkStatusChanged)
             .sink { [weak self] notification in
                 if let isConnected = notification.object as? Bool {
                     self?.isOffline = !isConnected
@@ -219,14 +220,14 @@ class CommunityViewModel: ObservableObject {
     }
     
     private func loadCachedData() {
-        // Load cached community data - using empty data for now
-        self.localEvents = []
-        self.studyGroups = []
-        self.leaderboard = []
+        // Load cached community data from CoreData
+        loadCachedEvents()
+        loadCachedStudyGroups()
+        loadCachedLeaderboard()
         self.lastSyncTime = Date()
         
-        // Load mock learning locations for now
-        learningLocations = []
+        // Load learning locations from CoreData
+        learningLocations = [] // TODO: Implement fetchCachedLearningLocations in DataManager
     }
     
     // MARK: - Public Methods
@@ -272,96 +273,183 @@ class CommunityViewModel: ObservableObject {
         guard !isOffline else { return }
         
         do {
-            // Simulate sync for now
-            lastSyncTime = Date()
-            print("Community data synced")
+            // Sync community data with backend
+            try await apiService.syncCommunityData()
             
+            DispatchQueue.main.async {
+                self.lastSyncTime = Date()
+            }
+            
+            print("Community data synced successfully")
             NotificationCenter.default.post(name: .dataSynced, object: "community")
+            
+        } catch {
+            print("Failed to sync community data: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Sync failed: \(error.localizedDescription)"
+            }
         }
     }
     
     func joinEvent(_ event: CommunityEvent) async {
-        // Simulate API call for now
-        print("Joining event: \(event.title)")
-        
-        // Update event attendance locally
-        if let index = localEvents.firstIndex(where: { $0.id == event.id }) {
-            localEvents[index].attendees += 1
-            localEvents[index].isUserAttending = true
+        do {
+            try await apiService.joinCommunityEvent(eventId: event.id)
+            
+            // Update event attendance locally
+            DispatchQueue.main.async {
+                if let index = self.localEvents.firstIndex(where: { $0.id == event.id }) {
+                    self.localEvents[index].attendees += 1
+                    self.localEvents[index].isUserAttending = true
+                }
+            }
+            
+            // Track analytics
+            Task { 
+                await analyticsManager.trackEvent("event_joined", parameters: [
+                    "event_id": event.id.uuidString,
+                    "event_title": event.title,
+                    "event_category": event.category.rawValue
+                ])
+            }
+            
+            // Cache updated data
+            coreDataManager.cacheCommunityEvents(localEvents)
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to join event: \(error.localizedDescription)"
+            }
+            print("Error joining event: \(error)")
         }
-        
-        // Track analytics - simplified for now
-        print("Analytics: event_joined - \(event.title)")
-        
-        // Cache updated data - simplified for now
-        print("Cached updated events")
     }
     
     func leaveEvent(_ event: CommunityEvent) async {
-        // Implementation would depend on API - for now, optimistic update
-        if let index = localEvents.firstIndex(where: { $0.id == event.id }) {
-            localEvents[index].attendees -= 1
-            localEvents[index].isUserAttending = false
+        do {
+            try await apiService.leaveCommunityEvent(eventId: event.id)
+            
+            // Update event attendance locally
+            DispatchQueue.main.async {
+                if let index = self.localEvents.firstIndex(where: { $0.id == event.id }) {
+                    self.localEvents[index].attendees -= 1
+                    self.localEvents[index].isUserAttending = false
+                }
+            }
+            
+            // Track analytics
+            Task { 
+                await analyticsManager.trackEvent("event_left", parameters: [
+                    "event_id": event.id.uuidString,
+                    "event_title": event.title
+                ])
+            }
+            
+            // Cache updated data
+            coreDataManager.cacheCommunityEvents(localEvents)
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to leave event: \(error.localizedDescription)"
+            }
+            print("Error leaving event: \(error)")
         }
     }
     
     func joinStudyGroup(_ group: StudyGroup) async {
-        // Simulate API call for now
-        print("Joining study group: \(group.name)")
-        
-        // Update group membership locally
-        if let index = studyGroups.firstIndex(where: { $0.id == group.id }) {
-            studyGroups[index].memberCount += 1
-            studyGroups[index].isUserMember = true
+        do {
+            try await apiService.joinStudyGroup(groupId: group.id)
+            
+            // Update group membership locally
+            DispatchQueue.main.async {
+                if let index = self.studyGroups.firstIndex(where: { $0.id == group.id }) {
+                    self.studyGroups[index].memberCount += 1
+                    self.studyGroups[index].isUserMember = true
+                }
+            }
+            
+            // Track analytics
+            Task { 
+                await analyticsManager.trackEvent("study_group_joined", parameters: [
+                    "group_id": group.id.uuidString,
+                    "group_name": group.name,
+                    "group_category": group.category.rawValue
+                ])
+            }
+            
+            // Cache updated data
+            coreDataManager.cacheStudyGroups(studyGroups)
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to join study group: \(error.localizedDescription)"
+            }
+            print("Error joining study group: \(error)")
         }
-        
-        // Track analytics - simplified for now
-        print("Analytics: study_group_joined - \(group.name)")
-        
-        // Cache updated data - simplified for now
-        print("Cached updated study groups")
     }
     
     func leaveStudyGroup(_ group: StudyGroup) async {
-        // Simulate API call for now
-        print("Leaving study group: \(group.name)")
-        
-        // Update group membership locally
-        if let index = studyGroups.firstIndex(where: { $0.id == group.id }) {
-            studyGroups[index].memberCount -= 1
-            studyGroups[index].isUserMember = false
+        do {
+            try await apiService.leaveStudyGroup(groupId: group.id)
+            
+            // Update group membership locally
+            DispatchQueue.main.async {
+                if let index = self.studyGroups.firstIndex(where: { $0.id == group.id }) {
+                    self.studyGroups[index].memberCount -= 1
+                    self.studyGroups[index].isUserMember = false
+                }
+            }
+            
+            // Track analytics
+            Task { 
+                await analyticsManager.trackEvent("study_group_left", parameters: [
+                    "group_id": group.id.uuidString,
+                    "group_name": group.name
+                ])
+            }
+            
+            // Cache updated data
+            coreDataManager.cacheStudyGroups(studyGroups)
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to leave study group: \(error.localizedDescription)"
+            }
+            print("Error leaving study group: \(error)")
         }
-        
-        // Cache updated data - simplified for now
-        print("Cached updated study groups")
     }
     
     func createStudyGroup(name: String, description: String, isPrivate: Bool, category: CourseCategory) async {
-        // Create mock study group for now
-        var newGroup = StudyGroup(
-            id: UUID(),
-            name: name,
-            description: description,
-            category: category,
-            memberCount: 1,
-            maxMembers: 20,
-            isPrivate: isPrivate,
-            createdBy: UUID(),
-            createdAt: Date(),
-            imageURL: nil,
-            tags: [],
-            membershipStatus: .member
-        )
-        newGroup.isUserMember = true
-        
-        // Add to beginning of list
-        studyGroups.insert(newGroup, at: 0)
-        
-        // Track analytics - simplified for now
-        print("Analytics: study_group_created - \(name)")
-        
-        // Cache updated data - simplified for now
-        print("Cached updated study groups")
+        do {
+            let newGroup = try await apiService.createStudyGroup(
+                name: name,
+                description: description,
+                isPrivate: isPrivate,
+                category: category,
+                maxMembers: 20
+            )
+            
+            // Add to beginning of list
+            DispatchQueue.main.async {
+                self.studyGroups.insert(newGroup, at: 0)
+            }
+            
+            // Track analytics
+            Task { 
+                await analyticsManager.trackEvent("study_group_created", parameters: [
+                    "name": name,
+                    "category": category.rawValue,
+                    "is_private": isPrivate ? "true" : "false"
+                ])
+            }
+            
+            // Cache updated data
+            coreDataManager.cacheStudyGroups(studyGroups)
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to create study group: \(error.localizedDescription)"
+            }
+            print("Error creating study group: \(error)")
+        }
     }
     
     func createEvent(
@@ -373,27 +461,41 @@ class CommunityViewModel: ObservableObject {
         maxAttendees: Int,
         category: EventCategory
     ) async {
-        // Create mock event for now
-        let newEvent = CommunityEvent(
-            title: title,
-            description: description,
-            date: date,
-            location: location,
-            category: category,
-            attendees: 1,
-            maxAttendees: maxAttendees,
-            isJoined: true,
-            isUserAttending: true
-        )
-        
-        // Add to beginning of list
-        localEvents.insert(newEvent, at: 0)
-        
-        // Track analytics - simplified for now
-        print("Analytics: community_event_created - \(title)")
-        
-        // Cache updated data - simplified for now
-        print("Cached updated events")
+        do {
+            let newEvent = try await apiService.createCommunityEvent(
+                title: title,
+                description: description,
+                date: date,
+                location: location,
+                isOnline: isOnline,
+                maxAttendees: maxAttendees,
+                category: category
+            )
+            
+            // Add to beginning of list
+            DispatchQueue.main.async {
+                self.localEvents.insert(newEvent, at: 0)
+            }
+            
+            // Track analytics
+            Task { 
+                await analyticsManager.trackEvent("community_event_created", parameters: [
+                    "title": title,
+                    "category": category.rawValue,
+                    "is_online": isOnline ? "true" : "false",
+                    "max_attendees": "\(maxAttendees)"
+                ])
+            }
+            
+            // Cache updated data
+            coreDataManager.cacheCommunityEvents(localEvents)
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to create event: \(error.localizedDescription)"
+            }
+            print("Error creating event: \(error)")
+        }
     }
     
     func updateLeaderboardTimeframe(_ timeframe: String) async {
@@ -403,42 +505,88 @@ class CommunityViewModel: ObservableObject {
     
     // MARK: - Private Methods
     private func loadEvents() async {
-        // Mock events for now
-        localEvents = []
-        print("Loaded community events")
+        do {
+            let events = try await apiService.getCommunityEvents()
+            DispatchQueue.main.async {
+                self.localEvents = events
+            }
+            
+            // Cache the events
+            coreDataManager.cacheCommunityEvents(events)
+            print("Loaded \(events.count) community events")
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to load events: \(error.localizedDescription)"
+            }
+            print("Error loading events: \(error)")
+            
+            // Fall back to cached data
+            loadCachedEvents()
+        }
     }
     
     private func loadStudyGroups() async {
-        // Mock study groups for now
-        studyGroups = []
-        print("Loaded study groups")
+        do {
+            let groups = try await apiService.getStudyGroups()
+            DispatchQueue.main.async {
+                self.studyGroups = groups
+            }
+            
+            // Cache the study groups
+            coreDataManager.cacheStudyGroups(groups)
+            print("Loaded \(groups.count) study groups")
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to load study groups: \(error.localizedDescription)"
+            }
+            print("Error loading study groups: \(error)")
+            
+            // Fall back to cached data
+            loadCachedStudyGroups()
+        }
     }
     
     private func loadLeaderboard() async {
-        // Mock leaderboard for now
-        leaderboard = []
-        print("Loaded leaderboard")
+        do {
+            let leaderboardData = try await apiService.getLeaderboard(timeframe: selectedTimeframe)
+            DispatchQueue.main.async {
+                self.leaderboard = leaderboardData
+            }
+            
+            // Cache the leaderboard
+            coreDataManager.cacheLeaderboard(leaderboardData)
+            print("Loaded leaderboard with \(leaderboardData.count) entries")
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to load leaderboard: \(error.localizedDescription)"
+            }
+            print("Error loading leaderboard: \(error)")
+            
+            // Fall back to cached data
+            loadCachedLeaderboard()
+        }
     }
     
     private func loadUserStats() async {
-        // Mock user stats for now using the canonical UserStats from AppModels
-        let mockUserId = UUID()
-        let mockStats: UserStats = .init(
-            totalStudyTime: 0.0,
-            coursesCompleted: 0,
-            eventsAttended: 0,
-            groupsJoined: 0,
-            postsCreated: 0,
-            currentStreak: 0,
-            longestStreak: 0,
-            totalPoints: 0,
-            level: 1,
-            rank: 1,
-            achievementsCount: 0,
-            userId: mockUserId
-        )
-        userStats = mockStats
-        print("Loaded user stats")
+        do {
+            let stats = try await apiService.getUserStats()
+            DispatchQueue.main.async {
+                self.userStats = stats
+            }
+            
+            // Cache the user stats
+            coreDataManager.cacheUserStats(stats)
+            print("Loaded user stats")
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to load user stats: \(error.localizedDescription)"
+            }
+            print("Error loading user stats: \(error)")
+        }
     }
     
     private func loadCachedEvents() {
@@ -456,12 +604,6 @@ class CommunityViewModel: ObservableObject {
     private func loadCachedLeaderboard() {
         if let cached = coreDataManager.fetchCachedLeaderboard() {
             leaderboard = cached
-        }
-    }
-    
-    private func loadCachedUserStats() {
-        if let cached = coreDataManager.fetchCachedUserStats() {
-            userStats = cached
         }
     }
 }
