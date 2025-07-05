@@ -130,7 +130,7 @@ struct EnhancedHomeFeedView: View {
     @StateObject private var viewModel = FeedViewModel()
     @State private var currentVideoIndex = 0
     @State private var dragOffset: CGFloat = 0
-    @State private var isLoading = true
+    
     
     var body: some View {
         ZStack {
@@ -145,7 +145,7 @@ struct EnhancedHomeFeedView: View {
             )
             .ignoresSafeArea()
             
-            if isLoading && viewModel.videos.isEmpty {
+            if viewModel.isLoading && viewModel.videos.isEmpty {
                 SkeletonLoader.feedList()
                     .transition(.opacity)
             } else {
@@ -190,21 +190,14 @@ struct EnhancedHomeFeedView: View {
         }
         .refreshable {
             // Use existing method or create simple refresh
-            isLoading = true
-            await loadContent()
+            viewModel.isLoading = true
+            await viewModel.loadContent()
         }
     }
     
     private func loadContent() async {
-        isLoading = true
         // Load videos using available method or mock data
-        
-        // Simulate loading delay for better UX
-        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        
-        withAnimation(.easeInOut) {
-            isLoading = false
-        }
+        await viewModel.loadContent()
     }
 }
 
