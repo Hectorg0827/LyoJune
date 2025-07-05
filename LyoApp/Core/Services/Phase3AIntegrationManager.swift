@@ -145,7 +145,7 @@ class Phase3AIntegrationManager: ObservableObject {
     @Published var overallHealth: SystemHealth = .unknown
     
     // MARK: - Managers
-    private var coreDataManager: EnhancedCoreDataManager?
+    private var coreDataManager: DataManager?
     private var biometricAuthManager: BiometricAuthManager?
     private var notificationManager: NotificationManager?
     private var siriShortcutsManager: SiriShortcutsManager?
@@ -292,7 +292,7 @@ class Phase3AIntegrationManager: ObservableObject {
     private func initializeFeature(_ feature: Phase3AFeature) async throws {
         switch feature {
         case .coreData:
-            coreDataManager = EnhancedCoreDataManager.shared
+            coreDataManager = DataManager.shared
             
         case .biometricAuth:
             biometricAuthManager = BiometricAuthManager()
@@ -573,6 +573,6 @@ extension EnhancedNetworkManager {
     static let shared = EnhancedNetworkManager()
 }
 
-extension EnhancedCoreDataManager {
-    static let shared = EnhancedCoreDataManager()
+extension DataManager {
+    static let shared = DataManager()
 }
