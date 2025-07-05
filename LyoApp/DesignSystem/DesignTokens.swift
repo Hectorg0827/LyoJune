@@ -65,51 +65,51 @@ public struct DesignTokens {
     public struct Colors {
         
         // Primary Brand Colors
-        public static let primary = Color("Primary")
-        public static let primaryVariant = Color("PrimaryVariant")
-        public static let secondary = Color("Secondary")
-        public static let secondaryVariant = Color("SecondaryVariant")
+        public static let primary = Color.blue
+        public static let primaryVariant = Color.blue.opacity(0.8)
+        public static let secondary = Color.purple
+        public static let secondaryVariant = Color.purple.opacity(0.8)
         
         // Surface Colors
-        public static let surface = Color("Surface")
-        public static let surfaceVariant = Color("SurfaceVariant")
-        public static let background = Color("Background")
-        public static let backgroundVariant = Color("BackgroundVariant")
+        public static let surface = Color(.systemBackground)
+        public static let surfaceVariant = Color(.secondarySystemBackground)
+        public static let background = Color(.systemBackground)
+        public static let backgroundVariant = Color(.secondarySystemBackground)
         
         // Content Colors
-        public static let onPrimary = Color("OnPrimary")
-        public static let onSecondary = Color("OnSecondary")
-        public static let onSurface = Color("OnSurface")
-        public static let onBackground = Color("OnBackground")
+        public static let onPrimary = Color.white
+        public static let onSecondary = Color.white
+        public static let onSurface = Color(.label)
+        public static let onBackground = Color(.label)
         
         // State Colors
-        public static let success = Color("Success")
-        public static let warning = Color("Warning")
-        public static let error = Color("Error")
-        public static let info = Color("Info")
+        public static let success = Color.green
+        public static let warning = Color.orange
+        public static let error = Color.red
+        public static let info = Color.blue
         
         // Neutral Colors
-        public static let neutral100 = Color("Neutral100")
-        public static let neutral200 = Color("Neutral200")
-        public static let neutral300 = Color("Neutral300")
-        public static let neutral400 = Color("Neutral400")
-        public static let neutral500 = Color("Neutral500")
-        public static let neutral600 = Color("Neutral600")
-        public static let neutral700 = Color("Neutral700")
-        public static let neutral800 = Color("Neutral800")
-        public static let neutral900 = Color("Neutral900")
+        public static let neutral100 = Color(.systemGray6)
+        public static let neutral200 = Color(.systemGray5)
+        public static let neutral300 = Color(.systemGray4)
+        public static let neutral400 = Color(.systemGray3)
+        public static let neutral500 = Color(.systemGray2)
+        public static let neutral600 = Color(.systemGray)
+        public static let neutral700 = Color(.systemGray2)
+        public static let neutral800 = Color(.systemGray3)
+        public static let neutral900 = Color(.systemGray4)
         
         // Text Colors (semantic)
-        public static let textPrimary = Color("TextPrimary")
-        public static let textSecondary = Color("TextSecondary")
-        public static let textTertiary = Color("TextTertiary")
-        public static let textDisabled = Color("TextDisabled")
+        public static let textPrimary = Color(.label)
+        public static let textSecondary = Color(.secondaryLabel)
+        public static let textTertiary = Color(.tertiaryLabel)
+        public static let textDisabled = Color(.quaternaryLabel)
         
         // Interactive Colors
-        public static let interactive = Color("Interactive")
-        public static let interactiveHover = Color("InteractiveHover")
-        public static let interactivePressed = Color("InteractivePressed")
-        public static let interactiveDisabled = Color("InteractiveDisabled")
+        public static let interactive = Color.blue
+        public static let interactiveHover = Color.blue.opacity(0.8)
+        public static let interactivePressed = Color.blue.opacity(0.6)
+        public static let interactiveDisabled = Color(.systemGray3)
         
         // Border and Outline Colors
         public static let border = neutral300
