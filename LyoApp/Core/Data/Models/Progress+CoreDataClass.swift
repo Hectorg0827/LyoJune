@@ -1,5 +1,5 @@
 //
-//  Progress+CoreDataClass.swift
+//  CDProgress+CoreDataClass.swift
 //  LyoApp
 //
 //  Created by LyoApp Development Team on 12/25/24.
@@ -10,14 +10,14 @@ import Foundation
 import CoreData
 import CloudKit
 
-@objc(Progress)
-public class Progress: NSManagedObject {
+@objc(CDProgress)
+public class CDProgress: NSManagedObject {
     
     // MARK: - Enums
     
-    enum ProgressStatus: String, CaseIterable, Codable {
+    enum CDProgressStatus: String, CaseIterable, Codable {
         case notStarted = "not_started"
-        case inProgress = "in_progress"
+        case inCDProgress = "in_progress"
         case completed = "completed"
         case paused = "paused"
         case failed = "failed"
@@ -25,7 +25,7 @@ public class Progress: NSManagedObject {
         var displayName: String {
             switch self {
             case .notStarted: return "Not Started"
-            case .inProgress: return "In Progress"
+            case .inCDProgress: return "In CDProgress"
             case .completed: return "Completed"
             case .paused: return "Paused"
             case .failed: return "Failed"
@@ -35,7 +35,7 @@ public class Progress: NSManagedObject {
         var emoji: String {
             switch self {
             case .notStarted: return "⏸️"
-            case .inProgress: return "🔄"
+            case .inCDProgress: return "🔄"
             case .completed: return "✅"
             case .paused: return "⏸️"
             case .failed: return "❌"
@@ -61,15 +61,15 @@ public class Progress: NSManagedObject {
     
     // MARK: - Computed Properties
     
-    /// Progress status as enum
-    var statusEnum: ProgressStatus {
+    /// CDProgress status as enum
+    var statusEnum: CDProgressStatus {
         get {
             if isCompleted {
                 return .completed
             } else if isPaused {
                 return .paused
             } else if completionPercentage > 0 {
-                return .inProgress
+                return .inCDProgress
             } else {
                 return .notStarted
             }
@@ -94,8 +94,8 @@ public class Progress: NSManagedObject {
         }
     }
     
-    /// Progress percentage as formatted string
-    var formattedProgress: String {
+    /// CDProgress percentage as formatted string
+    var formattedCDProgress: String {
         return String(format: "%.1f%%", completionPercentage)
     }
     
@@ -126,13 +126,13 @@ public class Progress: NSManagedObject {
     var estimatedTimeToComplete: TimeInterval {
         guard let lesson = lesson else {
             guard let course = course else { return 0 }
-            let remainingProgress = 100.0 - completionPercentage
+            let remainingCDProgress = 100.0 - completionPercentage
             let estimatedTotal = course.totalDuration
-            return estimatedTotal * (remainingProgress / 100.0)
+            return estimatedTotal * (remainingCDProgress / 100.0)
         }
         
-        let remainingProgress = 100.0 - completionPercentage
-        return lesson.duration * (remainingProgress / 100.0)
+        let remainingCDProgress = 100.0 - completionPercentage
+        return lesson.duration * (remainingCDProgress / 100.0)
     }
     
     /// Points earned from this progress
@@ -165,10 +165,10 @@ public class Progress: NSManagedObject {
                (lastModified != nil && lastModified! > cloudKitSyncDate!)
     }
     
-    // MARK: - Progress Management
+    // MARK: - CDProgress Management
     
     /// Update progress percentage
-    func updateProgress(_ percentage: Double) {
+    func updateCDProgress(_ percentage: Double) {
         let newPercentage = min(100.0, max(0.0, percentage))
         let previousPercentage = completionPercentage
         
@@ -290,7 +290,7 @@ public class Progress: NSManagedObject {
         
         // Store milestone data
         var milestones = getMilestones()
-        milestones.append(ProgressMilestone(
+        milestones.append(CDProgressMilestone(
             percentage: percentage,
             achievedAt: Date(),
             timeSpent: timeSpent
@@ -298,12 +298,12 @@ public class Progress: NSManagedObject {
         setMilestones(milestones)
     }
     
-    private func getMilestones() -> [ProgressMilestone] {
+    private func getMilestones() -> [CDProgressMilestone] {
         guard let data = milestonesData else { return [] }
-        return (try? JSONDecoder().decode([ProgressMilestone].self, from: data)) ?? []
+        return (try? JSONDecoder().decode([CDProgressMilestone].self, from: data)) ?? []
     }
     
-    private func setMilestones(_ milestones: [ProgressMilestone]) {
+    private func setMilestones(_ milestones: [CDProgressMilestone]) {
         milestonesData = try? JSONEncoder().encode(milestones)
     }
     
@@ -420,25 +420,25 @@ public class Progress: NSManagedObject {
     
     // MARK: - Data Validation
     
-    func validateProgressData() throws {
+    func validateCDProgressData() throws {
         guard completionPercentage >= 0 && completionPercentage <= 100 else {
-            throw ProgressValidationError.invalidCompletionPercentage
+            throw CDProgressValidationError.invalidCompletionPercentage
         }
         
         guard timeSpent >= 0 else {
-            throw ProgressValidationError.invalidTimeSpent
+            throw CDProgressValidationError.invalidTimeSpent
         }
         
         guard score >= 0 && score <= 100 else {
-            throw ProgressValidationError.invalidScore
+            throw CDProgressValidationError.invalidScore
         }
         
         guard attemptsCount >= 0 else {
-            throw ProgressValidationError.invalidAttemptsCount
+            throw CDProgressValidationError.invalidAttemptsCount
         }
         
         if isCompleted && completionPercentage < 100 {
-            throw ProgressValidationError.inconsistentCompletionState
+            throw CDProgressValidationError.inconsistentCompletionState
         }
     }
     
@@ -476,16 +476,16 @@ public class Progress: NSManagedObject {
         }
         
         do {
-            try validateProgressData()
+            try validateCDProgressData()
         } catch {
-            print("Progress validation failed: \(error)")
+            print("CDProgress validation failed: \(error)")
         }
     }
 }
 
 // MARK: - Supporting Data Structures
 
-struct ProgressMilestone: Codable {
+struct CDProgressMilestone: Codable {
     let percentage: Double
     let achievedAt: Date
     let timeSpent: TimeInterval
@@ -502,7 +502,7 @@ struct StudyPatternAnalysis {
 
 // MARK: - Custom Errors
 
-enum ProgressValidationError: Error, LocalizedError {
+enum CDProgressValidationError: Error, LocalizedError {
     case invalidCompletionPercentage
     case invalidTimeSpent
     case invalidScore
@@ -527,9 +527,9 @@ enum ProgressValidationError: Error, LocalizedError {
 
 // MARK: - Core Data Generated Properties
 
-extension Progress {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Progress> {
-        return NSFetchRequest<Progress>(entityName: "Progress")
+extension CDProgress {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDProgress> {
+        return NSFetchRequest<CDProgress>(entityName: "CDProgress")
     }
     
     // Basic Properties
@@ -570,13 +570,13 @@ extension Progress {
     @NSManaged public var cloudKitSyncDate: Date?
     
     // Relationships
-    @NSManaged public var user: User?
-    @NSManaged public var course: Course?
-    @NSManaged public var lesson: Lesson?
+    @NSManaged public var user: CDUser?
+    @NSManaged public var course: CDCourse?
+    @NSManaged public var lesson: CDLesson?
 }
 
 // MARK: - Identifiable Conformance
 
-extension Progress: Identifiable {
+extension CDProgress: Identifiable {
     // Uses the inherited id property from NSManagedObject
 }
