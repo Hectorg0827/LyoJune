@@ -111,22 +111,22 @@
 		E33C1E0C7ABF46B6AA100E72 /* DesignTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignTokens.swift; sourceTree = "<group>"; };
 		FC42C8404F2B4C14BA082E6C /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
 		2AD5D4F312ED4755ABD5A46F /* ModernViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModernViews.swift; sourceTree = "<group>"; };
-		AF7B66396C344915B485B780 /* EnhancedAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedAuthService.swift; sourceTree = "<group>"; };
-		E9E189FA07604541B2B6CF1C /* APIServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIServices.swift; sourceTree = "<group>"; };
-		C09E373CD5104E4E834870AB /* EnhancedServiceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedServiceFactory.swift; sourceTree = "<group>"; };
-		DBCE7A19C63A4696B7BD5771 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManager.swift; sourceTree = "<group>"; };
-		4A6C58BA28874B85B3589DE6 /* AnalyticsAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsAPIService.swift; sourceTree = "<group>"; };
-		FFD92DE6CC694C138DD0DB72 /* ErrorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorManager.swift; sourceTree = "<group>"; };
-		5B502295313145B8A40AB94E /* OfflineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfflineManager.swift; sourceTree = "<group>"; };
-		0BFF39D5A5EB4AD39AD00328 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIService.swift; sourceTree = "<group>"; };
-		4B2082CBF60744D29B203FE8 /* EnhancedAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedAIService.swift; sourceTree = "<group>"; };
-		2F6818EC564941BC94FCB3DC /* UserAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserAPIService.swift; sourceTree = "<group>"; };
-		56C223A2A2CF4E2B9CA491BD /* CommunityAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityAPIService.swift; sourceTree = "<group>"; };
-		0BAFF0A42B1A4093B3A7926A /* GamificationAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamificationAPIService.swift; sourceTree = "<group>"; };
-		0B951E33454842BD82E6ADFD /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketManager.swift; sourceTree = "<group>"; };
-		EB1AB25F7A8A449FB806F6BB /* EnhancedNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedNetworkManager.swift; sourceTree = "<group>"; };
-		0F6F7E6E43D54248B923A860 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
-		4B27A3EA7B1442599AF183CE /* ConfigurationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationManager.swift; sourceTree = "<group>"; };
+		AF7B66396C344915B485B780 /* EnhancedAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/EnhancedAuthService.swift; sourceTree = "<group>"; };
+		E9E189FA07604541B2B6CF1C /* APIServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/APIServices.swift; sourceTree = "<group>"; };
+		C09E373CD5104E4E834870AB /* EnhancedServiceFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/EnhancedServiceFactory.swift; sourceTree = "<group>"; };
+		DBCE7A19C63A4696B7BD5771 /* DataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/DataManager.swift; sourceTree = "<group>"; };
+		4A6C58BA28874B85B3589DE6 /* AnalyticsAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/AnalyticsAPIService.swift; sourceTree = "<group>"; };
+		FFD92DE6CC694C138DD0DB72 /* ErrorManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/ErrorManager.swift; sourceTree = "<group>"; };
+		5B502295313145B8A40AB94E /* OfflineManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/OfflineManager.swift; sourceTree = "<group>"; };
+		0BFF39D5A5EB4AD39AD00328 /* AIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/AIService.swift; sourceTree = "<group>"; };
+		4B2082CBF60744D29B203FE8 /* EnhancedAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/EnhancedAIService.swift; sourceTree = "<group>"; };
+		2F6818EC564941BC94FCB3DC /* UserAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/UserAPIService.swift; sourceTree = "<group>"; };
+		56C223A2A2CF4E2B9CA491BD /* CommunityAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/CommunityAPIService.swift; sourceTree = "<group>"; };
+		0BAFF0A42B1A4093B3A7926A /* GamificationAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Services/GamificationAPIService.swift; sourceTree = "<group>"; };
+		0B951E33454842BD82E6ADFD /* WebSocketManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Networking/WebSocketManager.swift; sourceTree = "<group>"; };
+		EB1AB25F7A8A449FB806F6BB /* EnhancedNetworkManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Networking/EnhancedNetworkManager.swift; sourceTree = "<group>"; };
+		0F6F7E6E43D54248B923A860 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Networking/APIClient.swift; sourceTree = "<group>"; };
+		4B27A3EA7B1442599AF183CE /* ConfigurationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LyoApp/Core/Configuration/ConfigurationManager.swift; sourceTree = "<group>"; };
 		AEE2CA7D2EF84D6087C38E31 /* ErrorTypes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ErrorTypes.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
