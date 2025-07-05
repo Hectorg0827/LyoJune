@@ -4,6 +4,12 @@ import Combine
 import UIKit
 import Security
 
+// Required types should be available in scope:
+// - APIEndpoint from NetworkingProtocols.swift or NetworkTypes.swift
+// - KeychainHelper from KeychainHelper.swift
+// - Bundle extensions from BundleExtensions.swift
+
+
 // MARK: - Enhanced Network Manager
 
 // MARK: - Enhanced Network Manager
@@ -264,7 +270,17 @@ final class EnhancedNetworkManager: NSObject, ObservableObject {
     func checkConnectivity() async {
         // Force check network connectivity status
         print("Checking network connectivity...")
-        // Implementation would perform actual connectivity test
+        
+        // Simple connectivity check - just update the current status
+        DispatchQueue.main.async {
+            // Use the current monitor status
+            self.isConnected = self.monitor.currentPath.status == .satisfied
+        }
+        
+        // Simulate a brief check delay
+        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+        
+        print("✅ Network connectivity check completed")
     }
     
     deinit {
