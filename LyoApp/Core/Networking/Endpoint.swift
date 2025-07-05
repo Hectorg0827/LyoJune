@@ -4,12 +4,12 @@ import Foundation
 // MARK: - Endpoint
 public struct Endpoint {
     let path: String
-    var method: HTTPMethod = .get
+    var method: HTTPMethod = .GET
     var body: Encodable? = nil
     var headers: [String: String] = [:]
     var queryParameters: [String: String] = [:]
     
-    public init(path: String, method: HTTPMethod = .get, body: Encodable? = nil, headers: [String: String] = [:], queryParameters: [String: String] = [:]) {
+    public init(path: String, method: HTTPMethod = .GET, body: Encodable? = nil, headers: [String: String] = [:], queryParameters: [String: String] = [:]) {
         self.path = path
         self.method = method
         self.body = body
@@ -49,7 +49,7 @@ public struct Endpoint {
             do {
                 request.httpBody = try JSONEncoder().encode(body)
             } catch {
-                throw APIError.encodingError
+                throw APIError.encodingError(error)
             }
         }
 
