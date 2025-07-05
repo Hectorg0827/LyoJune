@@ -13,11 +13,15 @@ struct DesignSystem {
         static let secondary = Color.purple
         static let accent = Color.cyan
         
-        // Modern semantic colors using DesignTokens
-        static let surfacePrimary = DesignTokens.Colors.surface
-        static let surfaceSecondary = DesignTokens.Colors.surfaceVariant
-        static let textPrimary = DesignTokens.Colors.textPrimary
-        static let textSecondary = DesignTokens.Colors.textSecondary
+        // Modern semantic colors
+        static let surfacePrimary = Color(.systemBackground)
+        static let surfaceSecondary = Color(.secondarySystemBackground)
+        static let textPrimary = Color(.label)
+        static let textSecondary = Color(.secondaryLabel)
+        
+        // Aliases for compatibility with DesignTokens
+        static let background = DesignTokens.Colors.background
+        static let surface = DesignTokens.Colors.surface
         
         // Glass effect colors - Enhanced
         static let glassPrimary = Color.white.opacity(0.1)
@@ -341,6 +345,31 @@ struct ShimmerEffect: ViewModifier {
                 phase = 300
             }
             .clipped()
+    }
+}
+
+// MARK: - Shimmer Extension for Views
+extension View {
+    func shimmer() -> some View {
+        overlay(
+            Rectangle()
+                .foregroundColor(.clear)
+                .background(
+                    LinearGradient(
+                        gradient: Gradient(colors: [
+                            Color.white.opacity(0),
+                            Color.white.opacity(0.4),
+                            Color.white.opacity(0)
+                        ]),
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .rotationEffect(.degrees(30))
+                .offset(x: -200)
+                .animation(.linear(duration: 1.5).repeatForever(autoreverses: false), value: UUID())
+        )
+        .clipped()
     }
 }
 
