@@ -1,5 +1,5 @@
 //
-//  Achievement+CoreDataClass.swift
+//  CDAchievement+CoreDataClass.swift
 //  LyoApp
 //
 //  Created by LyoApp Development Team on 12/25/24.
@@ -11,12 +11,12 @@ import CoreData
 import CloudKit
 import SwiftUI
 
-@objc(Achievement)
-public class Achievement: NSManagedObject {
+@objc(CDAchievement)
+public class CDAchievement: NSManagedObject {
     
     // MARK: - Enums
     
-    enum AchievementCategory: String, CaseIterable, Codable {
+    enum CDAchievementCategory: String, CaseIterable, Codable {
         case learning = "learning"
         case progress = "progress"
         case streak = "streak"
@@ -66,7 +66,7 @@ public class Achievement: NSManagedObject {
         }
     }
     
-    enum AchievementTier: String, CaseIterable, Codable {
+    enum CDAchievementTier: String, CaseIterable, Codable {
         case bronze = "bronze"
         case silver = "silver"
         case gold = "gold"
@@ -98,7 +98,7 @@ public class Achievement: NSManagedObject {
         }
     }
     
-    enum AchievementRarity: String, CaseIterable, Codable {
+    enum CDAchievementRarity: String, CaseIterable, Codable {
         case common = "common"
         case uncommon = "uncommon"
         case rare = "rare"
@@ -132,21 +132,21 @@ public class Achievement: NSManagedObject {
     
     // MARK: - Computed Properties
     
-    /// Achievement category as enum
-    var categoryEnum: AchievementCategory {
-        get { AchievementCategory(rawValue: category ?? "") ?? .learning }
+    /// CDAchievement category as enum
+    var categoryEnum: CDAchievementCategory {
+        get { CDAchievementCategory(rawValue: category ?? "") ?? .learning }
         set { category = newValue.rawValue }
     }
     
-    /// Achievement tier as enum
-    var tierEnum: AchievementTier {
-        get { AchievementTier(rawValue: tier ?? "") ?? .bronze }
+    /// CDAchievement tier as enum
+    var tierEnum: CDAchievementTier {
+        get { CDAchievementTier(rawValue: tier ?? "") ?? .bronze }
         set { tier = newValue.rawValue }
     }
     
-    /// Achievement rarity as enum
-    var rarityEnum: AchievementRarity {
-        get { AchievementRarity(rawValue: rarity ?? "") ?? .common }
+    /// CDAchievement rarity as enum
+    var rarityEnum: CDAchievementRarity {
+        get { CDAchievementRarity(rawValue: rarity ?? "") ?? .common }
         set { rarity = newValue.rawValue }
     }
     
@@ -166,7 +166,7 @@ public class Achievement: NSManagedObject {
         return Date().timeIntervalSince(unlockedDate)
     }
     
-    /// Achievement icon with tier overlay
+    /// CDAchievement icon with tier overlay
     var tieredIcon: String {
         if isUnlocked {
             return iconName ?? categoryEnum.icon
@@ -222,7 +222,7 @@ public class Achievement: NSManagedObject {
                (lastModified != nil && lastModified! > cloudKitSyncDate!)
     }
     
-    // MARK: - Achievement Management
+    // MARK: - CDAchievement Management
     
     /// Update progress towards achievement
     func updateProgress(_ newValue: Int32) {
@@ -263,7 +263,7 @@ public class Achievement: NSManagedObject {
         notifyUnlock()
         
         // Check for chain achievements
-        checkChainedAchievements()
+        checkChainedCDAchievements()
     }
     
     /// Force unlock achievement (for testing or special events)
@@ -292,8 +292,8 @@ public class Achievement: NSManagedObject {
         guard let user = user else { return }
         
         let content = UNMutableNotificationContent()
-        content.title = "Achievement Progress!"
-        content.body = "You're making progress on '\(title ?? "Unknown Achievement")' - \(progressString)"
+        content.title = "CDAchievement Progress!"
+        content.body = "You're making progress on '\(title ?? "Unknown CDAchievement")' - \(progressString)"
         content.sound = .default
         
         let request = UNNotificationRequest(
@@ -309,8 +309,8 @@ public class Achievement: NSManagedObject {
         guard let user = user else { return }
         
         let content = UNMutableNotificationContent()
-        content.title = "🏆 Achievement Unlocked!"
-        content.body = "\(title ?? "New Achievement") - \(achievementDescription ?? "")"
+        content.title = "🏆 CDAchievement Unlocked!"
+        content.body = "\(title ?? "New CDAchievement") - \(achievementDescription ?? "")"
         content.sound = .default
         content.categoryIdentifier = "ACHIEVEMENT"
         
@@ -328,9 +328,9 @@ public class Achievement: NSManagedObject {
         UNUserNotificationCenter.current().add(request)
     }
     
-    // MARK: - Achievement Chains
+    // MARK: - CDAchievement Chains
     
-    private func checkChainedAchievements() {
+    private func checkChainedCDAchievements() {
         // Implementation would check for achievements that unlock after this one
         // This is a placeholder for the chain system
         
@@ -346,14 +346,14 @@ public class Achievement: NSManagedObject {
         }
     }
     
-    // MARK: - Static Achievement Definitions
+    // MARK: - Static CDAchievement Definitions
     
     /// Create predefined learning achievements
-    static func createLearningAchievements(in context: NSManagedObjectContext) -> [Achievement] {
-        var achievements: [Achievement] = []
+    static func createLearningCDAchievements(in context: NSManagedObjectContext) -> [CDAchievement] {
+        var achievements: [CDAchievement] = []
         
         // First Lesson
-        let firstLesson = Achievement(context: context)
+        let firstLesson = CDAchievement(context: context)
         firstLesson.setupBasics(
             title: "First Steps",
             description: "Complete your first lesson",
@@ -366,7 +366,7 @@ public class Achievement: NSManagedObject {
         achievements.append(firstLesson)
         
         // Course Completion
-        let courseComplete = Achievement(context: context)
+        let courseComplete = CDAchievement(context: context)
         courseComplete.setupBasics(
             title: "Course Conqueror",
             description: "Complete your first course",
@@ -379,7 +379,7 @@ public class Achievement: NSManagedObject {
         achievements.append(courseComplete)
         
         // Perfect Score
-        let perfectScore = Achievement(context: context)
+        let perfectScore = CDAchievement(context: context)
         perfectScore.setupBasics(
             title: "Perfectionist",
             description: "Score 100% on a quiz",
@@ -395,19 +395,19 @@ public class Achievement: NSManagedObject {
     }
     
     /// Create predefined streak achievements
-    static func createStreakAchievements(in context: NSManagedObjectContext) -> [Achievement] {
-        var achievements: [Achievement] = []
+    static func createStreakCDAchievements(in context: NSManagedObjectContext) -> [CDAchievement] {
+        var achievements: [CDAchievement] = []
         
         let streakData = [
-            (days: 3, title: "Getting Started", tier: AchievementTier.bronze, rarity: AchievementRarity.common, points: 20),
-            (days: 7, title: "Week Warrior", tier: AchievementTier.silver, rarity: AchievementRarity.uncommon, points: 50),
-            (days: 30, title: "Monthly Master", tier: AchievementTier.gold, rarity: AchievementRarity.rare, points: 200),
-            (days: 100, title: "Century Scholar", tier: AchievementTier.platinum, rarity: AchievementRarity.epic, points: 500),
-            (days: 365, title: "Yearly Yogi", tier: AchievementTier.diamond, rarity: AchievementRarity.legendary, points: 1000)
+            (days: 3, title: "Getting Started", tier: CDAchievementTier.bronze, rarity: CDAchievementRarity.common, points: 20),
+            (days: 7, title: "Week Warrior", tier: CDAchievementTier.silver, rarity: CDAchievementRarity.uncommon, points: 50),
+            (days: 30, title: "Monthly Master", tier: CDAchievementTier.gold, rarity: CDAchievementRarity.rare, points: 200),
+            (days: 100, title: "Century Scholar", tier: CDAchievementTier.platinum, rarity: CDAchievementRarity.epic, points: 500),
+            (days: 365, title: "Yearly Yogi", tier: CDAchievementTier.diamond, rarity: CDAchievementRarity.legendary, points: 1000)
         ]
         
         for (days, title, tier, rarity, points) in streakData {
-            let achievement = Achievement(context: context)
+            let achievement = CDAchievement(context: context)
             achievement.setupBasics(
                 title: title,
                 description: "Maintain a \(days)-day learning streak",
@@ -427,9 +427,9 @@ public class Achievement: NSManagedObject {
     
     private func setupBasics(title: String,
                            description: String,
-                           category: AchievementCategory,
-                           tier: AchievementTier,
-                           rarity: AchievementRarity,
+                           category: CDAchievementCategory,
+                           tier: CDAchievementTier,
+                           rarity: CDAchievementRarity,
                            requiredValue: Int32,
                            points: Int32) {
         self.id = UUID()
@@ -448,25 +448,25 @@ public class Achievement: NSManagedObject {
     
     // MARK: - Data Validation
     
-    func validateAchievementData() throws {
+    func validateCDAchievementData() throws {
         guard let title = title, !title.trimmingCharacters(in: .whitespaces).isEmpty else {
-            throw AchievementValidationError.emptyTitle
+            throw CDAchievementValidationError.emptyTitle
         }
         
         guard requiredValue > 0 else {
-            throw AchievementValidationError.invalidRequiredValue
+            throw CDAchievementValidationError.invalidRequiredValue
         }
         
         guard basePoints >= 0 else {
-            throw AchievementValidationError.invalidPoints
+            throw CDAchievementValidationError.invalidPoints
         }
         
         guard currentValue >= 0 else {
-            throw AchievementValidationError.invalidCurrentValue
+            throw CDAchievementValidationError.invalidCurrentValue
         }
         
         if isUnlocked && currentValue < requiredValue {
-            throw AchievementValidationError.inconsistentUnlockState
+            throw CDAchievementValidationError.inconsistentUnlockState
         }
     }
     
@@ -478,9 +478,9 @@ public class Achievement: NSManagedObject {
         id = UUID()
         createdAt = Date()
         lastModified = Date()
-        category = AchievementCategory.learning.rawValue
-        tier = AchievementTier.bronze.rawValue
-        rarity = AchievementRarity.common.rawValue
+        category = CDAchievementCategory.learning.rawValue
+        tier = CDAchievementTier.bronze.rawValue
+        rarity = CDAchievementRarity.common.rawValue
         currentValue = 0
         requiredValue = 1
         basePoints = 10
@@ -495,16 +495,16 @@ public class Achievement: NSManagedObject {
         }
         
         do {
-            try validateAchievementData()
+            try validateCDAchievementData()
         } catch {
-            print("Achievement validation failed: \(error)")
+            print("CDAchievement validation failed: \(error)")
         }
     }
 }
 
 // MARK: - Custom Errors
 
-enum AchievementValidationError: Error, LocalizedError {
+enum CDAchievementValidationError: Error, LocalizedError {
     case emptyTitle
     case invalidRequiredValue
     case invalidPoints
@@ -514,7 +514,7 @@ enum AchievementValidationError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emptyTitle:
-            return "Achievement title cannot be empty."
+            return "CDAchievement title cannot be empty."
         case .invalidRequiredValue:
             return "Required value must be greater than 0."
         case .invalidPoints:
@@ -529,9 +529,9 @@ enum AchievementValidationError: Error, LocalizedError {
 
 // MARK: - Core Data Generated Properties
 
-extension Achievement {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Achievement> {
-        return NSFetchRequest<Achievement>(entityName: "Achievement")
+extension CDAchievement {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDAchievement> {
+        return NSFetchRequest<CDAchievement>(entityName: "CDAchievement")
     }
     
     // Basic Properties
@@ -563,12 +563,12 @@ extension Achievement {
     @NSManaged public var cloudKitSyncDate: Date?
     
     // Relationships
-    @NSManaged public var user: User?
-    @NSManaged public var course: Course?
+    @NSManaged public var user: CDUser?
+    @NSManaged public var course: CDCourse?
 }
 
 // MARK: - Identifiable Conformance
 
-extension Achievement: Identifiable {
+extension CDAchievement: Identifiable {
     // Uses the inherited id property from NSManagedObject
 }
