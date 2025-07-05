@@ -59,6 +59,89 @@ public enum NetworkError: Error, LocalizedError {
     }
 }
 
+// MARK: - Authentication Error Types
+public enum AuthError: Error, LocalizedError {
+    case invalidCredentials
+    case tokenExpired
+    case tokenInvalid
+    case refreshTokenExpired
+    case biometricAuthenticationFailed
+    case userNotFound
+    case accountLocked
+    case accountDisabled
+    case passwordTooWeak
+    case emailNotVerified
+    case twoFactorRequired
+    case invalidTwoFactorCode
+    case authenticationTimeout
+    case logoutFailed
+    case keychainError
+    case unknown(Error)
+    
+    // Additional cases needed by EnhancedAuthService
+    case passwordResetFailed
+    case loginFailed
+    case registrationFailed
+    case noRefreshToken
+    case tokenRefreshFailed
+    case biometricNotAvailable
+    case biometricAuthFailed
+    case biometricNotEnrolled
+    
+    public var errorDescription: String? {
+        switch self {
+        case .invalidCredentials:
+            return "Invalid username or password"
+        case .tokenExpired:
+            return "Authentication token has expired"
+        case .tokenInvalid:
+            return "Invalid authentication token"
+        case .refreshTokenExpired:
+            return "Refresh token has expired"
+        case .biometricAuthenticationFailed:
+            return "Biometric authentication failed"
+        case .userNotFound:
+            return "User account not found"
+        case .accountLocked:
+            return "Account is temporarily locked"
+        case .accountDisabled:
+            return "Account has been disabled"
+        case .passwordTooWeak:
+            return "Password does not meet requirements"
+        case .emailNotVerified:
+            return "Email address needs to be verified"
+        case .twoFactorRequired:
+            return "Two-factor authentication required"
+        case .invalidTwoFactorCode:
+            return "Invalid two-factor authentication code"
+        case .authenticationTimeout:
+            return "Authentication request timed out"
+        case .logoutFailed:
+            return "Failed to logout properly"
+        case .keychainError:
+            return "Keychain access error"
+        case .unknown(let error):
+            return error.localizedDescription
+        case .passwordResetFailed:
+            return "Password reset failed"
+        case .loginFailed:
+            return "Login failed"
+        case .registrationFailed:
+            return "Registration failed"
+        case .noRefreshToken:
+            return "No refresh token available"
+        case .tokenRefreshFailed:
+            return "Token refresh failed"
+        case .biometricNotAvailable:
+            return "Biometric authentication not available"
+        case .biometricAuthFailed:
+            return "Biometric authentication failed"
+        case .biometricNotEnrolled:
+            return "No biometric credentials enrolled"
+        }
+    }
+}
+
 // MARK: - API Error Types (Centralized)
 public enum APIError: Error, LocalizedError {
     case networkError(NetworkError)
@@ -72,6 +155,22 @@ public enum APIError: Error, LocalizedError {
     case serviceUnavailable
     case requestTimeout
     case unknown(Error)
+    
+    // Simple cases for backward compatibility
+    case invalidURL
+    case noInternetConnection
+    case networkError
+    case unauthorized
+    case decodingError
+    case encodingError
+    
+    public init(_ networkError: NetworkError) {
+        self = .networkError(networkError)
+    }
+    
+    public init(_ authError: AuthError) {
+        self = .authError(authError)
+    }
     
     public var errorDescription: String? {
         switch self {
@@ -97,6 +196,18 @@ public enum APIError: Error, LocalizedError {
             return "Request timed out"
         case .unknown(let error):
             return error.localizedDescription
+        case .invalidURL:
+            return "Invalid URL"
+        case .noInternetConnection:
+            return "No internet connection"
+        case .networkError:
+            return "Network error occurred"
+        case .unauthorized:
+            return "Unauthorized access"
+        case .decodingError:
+            return "Failed to decode response"
+        case .encodingError:
+            return "Failed to encode request"
         }
     }
     
@@ -112,7 +223,6 @@ public enum APIError: Error, LocalizedError {
             return false
         }
     }
-}
 
 // MARK: - WebSocket Error
 public enum WebSocketError: Error, LocalizedError {
