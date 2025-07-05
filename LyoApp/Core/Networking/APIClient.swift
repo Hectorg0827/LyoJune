@@ -3,6 +3,9 @@ import Network
 import Combine
 // Note: ErrorTypes and APIModels should be imported
 
+// Importing ErrorTypes for APIError and other error types
+// Importing APIModels for EmptyResponse and other API models
+
 // MARK: - Enhanced Production API Client
 @MainActor
 public class APIClient: APIClientProtocol, ObservableObject {
@@ -10,6 +13,7 @@ public class APIClient: APIClientProtocol, ObservableObject {
     @Published public var isOnline = true
     @Published public var isLoading = false
     @Published public var error: APIError?
+    @Published public var isConnected = true
     
     // MARK: - Private Properties
     private let session: URLSession
@@ -43,7 +47,9 @@ public class APIClient: APIClientProtocol, ObservableObject {
         self.session = URLSession(configuration: config)
         
         // Setup offline queue file
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        guard let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            fatalError("Documents directory not found.")
+        }
         self.offlineQueueFile = documentsPath.appendingPathComponent("offline_requests.json")
         
         // Configure JSON encoding/decoding
@@ -88,7 +94,7 @@ public class APIClient: APIClientProtocol, ObservableObject {
             case 400...499:
                 throw APIError.networkError
             case 500...599:
-                throw APIError.serverError(httpResponse.statusCode)
+                throw APIError.serverError(httpResponse.statusCode, nil)
             default:
                 throw APIError.networkError
             }
@@ -104,13 +110,38 @@ public class APIClient: APIClientProtocol, ObservableObject {
                 return try decoder.decode(T.self, from: data)
             } catch {
                 print("Decoding error: \(error)")
-                throw APIError.decodingError
+                throw APIError.decodingError(error)
             }
             
         } catch let error as APIError {
             throw error
         } catch {
             throw APIError.networkError
+        }
+    }
+    
+    // MARK: - Offline Queue Management
+    
+    private func loadOfflineQueue() {
+        guard FileManager.default.fileExists(atPath: offlineQueueFile.path) else {
+            return
+        }
+        
+        do {
+            let data = try Data(contentsOf: offlineQueueFile)
+            offlineRequestQueue = try decoder.decode([OfflineRequest].self, from: data)
+        } catch {
+            print("Failed to load offline queue: \(error)")
+            offlineRequestQueue = []
+        }
+    }
+    
+    private func saveOfflineQueue() {
+        do {
+            let data = try encoder.encode(offlineRequestQueue)
+            try data.write(to: offlineQueueFile)
+        } catch {
+            print("Failed to save offline queue: \(error)")
         }
     }
     
