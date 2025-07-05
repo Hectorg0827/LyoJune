@@ -1,56 +1,14 @@
 import Foundation
 import Combine
+import SwiftUI
 
-// Import model files for type definitions
-// These files contain the types used throughout the API services
-// Import CourseModels for UserCourse, Course, etc.
+// Models are now defined in their respective files under Core/Models
+// and are available project-wide. No direct imports are needed as
+// they are part of the same application target.
 
-// MARK: - Local Type Definitions
-// Define commonly used types locally to avoid import issues
-
-// MARK: - Analytics API Service
-@MainActor
-class AnalyticsAPIService: ObservableObject {
-    static let shared = AnalyticsAPIService()
-    
-    private init() {}
-    
-    func trackEvent(_ event: String, parameters: [String: Any] = [:]) async {
-        print("Analytics: \(event) - \(parameters)")
-    }
-}
-
-public struct LearningCourse: Codable, Identifiable {
-    public let id: UUID
-    public let title: String
-    public let description: String
-    
-    public init(id: UUID, title: String, description: String) {
-        self.id = id
-        self.title = title
-        self.description = description
-    }
-}
-
-public struct UserCourse: Codable, Identifiable {
-    public let id: UUID
-    public let courseId: UUID
-    public let userId: UUID
-    public let enrolledAt: Date
-    public let progress: Double
-    public let completedAt: Date?
-    public let lastAccessedAt: Date
-    
-    public init(id: UUID, courseId: UUID, userId: UUID, enrolledAt: Date, progress: Double, completedAt: Date? = nil, lastAccessedAt: Date) {
-        self.id = id
-        self.courseId = courseId
-        self.userId = userId
-        self.enrolledAt = enrolledAt
-        self.progress = progress
-        self.completedAt = completedAt
-        self.lastAccessedAt = lastAccessedAt
-    }
-}
+public struct EmptyRequest: Codable {}
+public struct EmptyRequest: Codable {}
+public struct EmptyResponse: Codable {}
 
 // MARK: - Course API Service
 @MainActor
@@ -109,7 +67,7 @@ class CourseAPIService: ObservableObject {
     }
 }
 
-// MARK: - Post API Service
+// MARK: - CDPost API Service
 @MainActor
 class PostAPIService: ObservableObject {
     static let shared = PostAPIService()
@@ -242,131 +200,6 @@ class VideoAPIService: ObservableObject {
 // Analytics service methods moved to the main AnalyticsAPIService class above
 
 // MARK: - Request/Response Models
-struct EnrollmentRequest: Codable {
-    let courseId: String
-}
-
-struct ProgressUpdateRequest: Codable {
-    let courseId: String
-    let lessonId: String
-    let progress: Double
-    let completedAt: Date?
-}
-
-struct ProgressResponse: Codable {
-    let success: Bool
-    let totalProgress: Double
-}
-
-struct CourseCompletionRequest: Codable {
-    let courseId: String
-    let completedAt: Date
-}
-
-struct CompletionResponse: Codable {
-    let success: Bool
-    let certificateUrl: String?
-    let points: Int
-}
-
-// Duplicate request/response models moved to LearningAPIService.swift
-// MediaType moved to PostModels.swift
-
-struct MediaUploadResponse: Codable {
-    let url: String
-    let id: String
-}
-
-struct FeedResponse: Codable {
-    let posts: [Post]
-    let pagination: PaginationInfo
-}
-
-struct CommentsResponse: Codable {
-    let comments: [Comment]
-    let pagination: PaginationInfo
-}
-
-struct LikeResponse: Codable {
-    let liked: Bool
-    let likeCount: Int
-}
-
-struct ShareResponse: Codable {
-    let shared: Bool
-    let shareCount: Int
-}
-
-struct ReportResponse: Codable {
-    let reported: Bool
-    let message: String
-}
-
-struct JoinGroupResponse: Codable {
-    let success: Bool
-    let memberCount: Int
-}
-
-struct JoinEventResponse: Codable {
-    let success: Bool
-    let attendeeCount: Int
-}
-
-struct LeaderboardResponse: Codable {
-    let users: [LeaderboardUser]
-    let currentUser: LeaderboardUser?
-    let totalUsers: Int
-    let timeframe: String
-}
-
-// LeaderboardUser moved to CommunityViewModel.swift to avoid duplication
-
-struct UpdateWatchProgressRequest: Codable {
-    let videoId: String
-    let progress: Double
-    let currentTime: Double
-    let watchedAt: Date
-}
-
-struct WatchProgressResponse: Codable {
-    let success: Bool
-    let totalWatchTime: Double
-}
-
-struct CreateVideoNoteRequest: Codable {
-    let content: String
-    let timestamp: Double
-}
-
-struct AnalyticsEventRequest: Codable {
-    let event: String
-    let parameters: [String: String] // Simplified to avoid AnyCodable complexity
-    let timestamp: Date
-    let sessionId: String
-}
-
-struct UserAnalytics: Codable {
-    let totalStudyTime: Double
-    let coursesCompleted: Int
-    let videosWatched: Int
-    let postsCreated: Int
-    let achievementsEarned: Int
-    let currentStreak: Int
-    let longestStreak: Int
-    let totalSessions: Int
-    let averageSessionLength: TimeInterval
-    let lastActiveDate: Date
-}
-
-// Note: AnalyticsEvent is now defined in Core/Models/AppModels.swift
-
-struct EngagementMetrics: Codable {
-    let dailyActiveUsers: Int
-    let weeklyActiveUsers: Int
-    let monthlyActiveUsers: Int
-    let averageSessionDuration: TimeInterval
-    let retentionRate: Double
-    let engagementScore: Double
-}
-
-// Note: AnyCodable is now defined in Core/Utilities/AnyCodable.swift
+// All request and response models have been moved to their respective
+// files in the LyoApp/Core/Models/ directory to ensure a single source of truth.
+// This file should only contain API service definitions.
