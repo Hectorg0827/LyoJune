@@ -41,7 +41,7 @@ struct MainTabView: View {
                 CommunityView()
                     .tabItem {
                         tabItemView(for: .community)
-                    Text(AppState.TabItem.community.title)
+                        Text(AppState.TabItem.community.title)
                 }
                 .tag(AppState.TabItem.community)
             
@@ -151,5 +151,4 @@ struct MainTabView: View {
 #Preview {
     MainTabView()
         .environmentObject(AppState())
-        .environmentObject(EnhancedAuthService.shared)
 }
