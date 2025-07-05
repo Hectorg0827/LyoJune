@@ -22,16 +22,19 @@ public class CoreDataStack: ObservableObject {
     private let logger = Logger(subsystem: "com.lyoapp.coredata", category: "CoreDataStack")
     
     /// The main persistent container
-    private var persistentContainer: NSPersistentCloudKitContainer!
+    private var persistentContainer: NSPersistentCloudKitContainer?
     
     /// Main context for UI operations (main queue)
     public var viewContext: NSManagedObjectContext {
-        return persistentContainer.viewContext
+        return persistentContainer?.viewContext
     }
     
     /// Background context for data operations
     public lazy var backgroundContext: NSManagedObjectContext = {
-        let context = persistentContainer.newBackgroundContext()
+        guard let container = persistentContainer else {
+            fatalError("Persistent container not initialized.")
+        }
+        let context = container.newBackgroundContext()
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         context.automaticallyMergesChangesFromParent = true
         return context
@@ -67,7 +70,8 @@ public class CoreDataStack: ObservableObject {
         
         guard let modelURL = Bundle.main.url(forResource: "LyoDataModel", withExtension: "momd"),
               let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
-            fatalError("Failed to load Core Data model")
+            logger.critical("Failed to load Core Data model")
+            return
         }
         
         persistentContainer = NSPersistentCloudKitContainer(name: "LyoDataModel", managedObjectModel: managedObjectModel)
@@ -85,8 +89,9 @@ public class CoreDataStack: ObservableObject {
     }
     
     private func configurePersistentStoreDescriptions() {
-        guard let description = persistentContainer.persistentStoreDescriptions.first else {
-            fatalError("Failed to retrieve persistent store description")
+        guard let description = persistentContainer?.persistentStoreDescriptions.first else {
+            logger.critical("Failed to retrieve persistent store description")
+            return
         }
         
         // Enable CloudKit
@@ -111,9 +116,10 @@ public class CoreDataStack: ObservableObject {
     private func loadPersistentStores() {
         var loadError: Error?
         
-        persistentContainer.loadPersistentStores { [weak self] (storeDescription, error) in
+        persistentContainer?.loadPersistentStores { [weak self] (storeDescription, error) in
             if let error = error {
                 self?.logger.error("Failed to load persistent store: \(error.localizedDescription)")
+                self?.persistentContainer = nil
                 loadError = error
             } else {
                 self?.logger.info("Persistent store loaded successfully: \(storeDescription.description)")
@@ -205,7 +211,10 @@ public class CoreDataStack: ObservableObject {
     
     /// Create a new background context for data operations
     public func newBackgroundContext() -> NSManagedObjectContext {
-        let context = persistentContainer.newBackgroundContext()
+        guard let container = persistentContainer else {
+            fatalError("Persistent container not initialized.")
+        }
+        let context = container.newBackgroundContext()
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         context.automaticallyMergesChangesFromParent = true
         return context
@@ -301,8 +310,8 @@ public class CoreDataStack: ObservableObject {
         batchUpdateRequest.resultType = .updatedObjectsCountResultType
         
         do {
-            let result = try viewContext.execute(batchUpdateRequest) as! NSBatchUpdateResult
-            let count = result.result as! Int
+            let result = try viewContext.execute(batchUpdateRequest) as? NSBatchUpdateResult
+            guard let count = result?.result as? Int else { throw CoreDataError.batchOperationFailed(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to get updated objects count"])) }
             logger.info("Batch updated \(count) \(entityName) objects")
         } catch {
             logger.error("Batch update failed: \(error.localizedDescription)")
@@ -323,8 +332,8 @@ public class CoreDataStack: ObservableObject {
         batchDeleteRequest.resultType = .resultTypeCount
         
         do {
-            let result = try viewContext.execute(batchDeleteRequest) as! NSBatchDeleteResult
-            let count = result.result as! Int
+            let result = try viewContext.execute(batchDeleteRequest) as? NSBatchDeleteResult
+            guard let count = result?.result as? Int else { throw CoreDataError.batchOperationFailed(NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Failed to get deleted objects count"])) }
             logger.info("Batch deleted \(count) \(entityName) objects")
         } catch {
             logger.error("Batch delete failed: \(error.localizedDescription)")
@@ -372,7 +381,7 @@ public class CoreDataStack: ObservableObject {
         
         do {
             try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-                persistentContainer.initializeCloudKitSchema { (_, error) in
+            persistentContainer?.initializeCloudKitSchema { (_, error) in
                     if let error = error {
                         self.logger.error("CloudKit schema initialization failed: \(error.localizedDescription)")
                         continuation.resume(throwing: error)
@@ -406,6 +415,10 @@ public class CoreDataStack: ObservableObject {
     
     /// Get Core Data performance metrics
     public func getPerformanceMetrics() -> CoreDataMetrics {
+        guard let persistentContainer = persistentContainer else {
+            logger.error("Persistent container is nil. Cannot get performance metrics.")
+            throw CoreDataError.contextNotAvailable
+        }
         let context = viewContext
         let registeredObjectsCount = context.registeredObjects.count
         let insertedObjectsCount = context.insertedObjects.count
@@ -424,7 +437,11 @@ public class CoreDataStack: ObservableObject {
     
     /// Reset performance metrics
     public func resetPerformanceMetrics() {
-        viewContext.reset()
+        guard let persistentContainer = persistentContainer else {
+            logger.error("Persistent container is nil. Cannot clear memory cache.")
+            return
+        }
+        persistentContainer.viewContext.reset()
         backgroundContext.reset()
         logger.info("Performance metrics reset")
     }
@@ -433,6 +450,10 @@ public class CoreDataStack: ObservableObject {
     
     /// Refresh all objects to reduce memory usage
     public func refreshAllObjects() {
+        guard let persistentContainer = persistentContainer else {
+            logger.error("Persistent container is nil. Cannot refresh all objects.")
+            return
+        }
         viewContext.refreshAllObjects()
         backgroundContext.refreshAllObjects()
         logger.info("Refreshed all objects to reduce memory usage")
@@ -440,7 +461,11 @@ public class CoreDataStack: ObservableObject {
     
     /// Clear memory cache
     public func clearMemoryCache() {
-        viewContext.reset()
+        guard let persistentContainer = persistentContainer else {
+            logger.error("Persistent container is nil. Cannot clear memory cache.")
+            return
+        }
+        persistentContainer.viewContext.reset()
         logger.info("Memory cache cleared")
     }
     
