@@ -130,7 +130,7 @@ class ProactiveAIManager: ObservableObject {
         learningContext = context
         
         // Update proactive AI with new context
-        let _ = UserActivity(
+        let _ = CDUserActivity(
             type: determineActivityType(from: context),
             duration: context.timeSpent,
             context: [
@@ -399,7 +399,7 @@ class ProactiveAIManager: ObservableObject {
         }
     }
     
-    private func determineActivityType(from context: LearningContext) -> UserActivity.ActivityType {
+    private func determineActivityType(from context: LearningContext) -> CDUserActivity.ActivityType {
         if context.accuracy < 0.5 && context.totalAttempts > 3 {
             return .struggling
         } else if context.accuracy >= 0.8 {
