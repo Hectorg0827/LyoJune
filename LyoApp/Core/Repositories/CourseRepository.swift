@@ -1,5 +1,5 @@
 //
-//  CourseRepository.swift
+//  CDCourseRepository.swift
 //  LyoApp
 //
 //  Created by LyoApp Development Team on 12/25/24.
@@ -11,17 +11,17 @@ import CoreData
 import Combine
 import OSLog
 
-/// Repository for managing Course entity operations with Core Data
+/// Repository for managing CDCourse entity operations with Core Data
 @MainActor
-public class CourseRepository: ObservableObject {
+public class CDCourseRepository: ObservableObject {
     
     // MARK: - Properties
     
     private let coreDataStack: CoreDataStack
-    private let logger = Logger(subsystem: "com.lyoapp.repositories", category: "CourseRepository")
+    private let logger = Logger(subsystem: "com.lyoapp.repositories", category: "CDCourseRepository")
     
-    @Published public private(set) var featuredCourses: [Course] = []
-    @Published public private(set) var recentCourses: [Course] = []
+    @Published public private(set) var featuredCDCourses: [CDCourse] = []
+    @Published public private(set) var recentCDCourses: [CDCourse] = []
     @Published public private(set) var isLoading = false
     @Published public private(set) var error: Error?
     
@@ -31,29 +31,29 @@ public class CourseRepository: ObservableObject {
     
     public init(coreDataStack: CoreDataStack = CoreDataStack.shared) {
         self.coreDataStack = coreDataStack
-        loadFeaturedCourses()
-        loadRecentCourses()
+        loadFeaturedCDCourses()
+        loadRecentCDCourses()
     }
     
-    // MARK: - Course Creation & Management
+    // MARK: - CDCourse Creation & Management
     
     /// Create a new course
-    public func createCourse(
+    public func createCDCourse(
         title: String,
         subtitle: String? = nil,
         description: String,
-        category: Course.Category,
-        difficulty: Course.DifficultyLevel,
-        instructor: User,
+        category: CDCourse.Category,
+        difficulty: CDCourse.DifficultyLevel,
+        instructor: CDUser,
         price: Double = 0.0,
         estimatedDuration: TimeInterval = 0
-    ) async throws -> Course {
+    ) async throws -> CDCourse {
         logger.info("Creating new course: \(title)")
         
         return try await coreDataStack.performBackgroundTask { context in
-            let instructorInContext = context.object(with: instructor.objectID) as! User
+            let instructorInContext = context.object(with: instructor.objectID) as! CDUser
             
-            let course = Course(context: context)
+            let course = CDCourse(context: context)
             course.title = title
             course.subtitle = subtitle
             course.courseDescription = description
@@ -74,20 +74,20 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Update course details
-    public func updateCourse(
-        _ course: Course,
+    public func updateCDCourse(
+        _ course: CDCourse,
         title: String? = nil,
         subtitle: String? = nil,
         description: String? = nil,
-        category: Course.Category? = nil,
-        difficulty: Course.DifficultyLevel? = nil,
+        category: CDCourse.Category? = nil,
+        difficulty: CDCourse.DifficultyLevel? = nil,
         price: Double? = nil,
         imageURL: String? = nil
     ) async throws {
         logger.info("Updating course: \(course.title ?? "unknown")")
         
         try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             
             if let title = title {
                 courseInContext.title = title
@@ -126,29 +126,29 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Delete course
-    public func deleteCourse(_ course: Course) async throws {
+    public func deleteCDCourse(_ course: CDCourse) async throws {
         logger.warning("Deleting course: \(course.title ?? "unknown")")
         
         try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             context.delete(courseInContext)
             
             try self.coreDataStack.save(context: context)
             
             DispatchQueue.main.async {
                 self.logger.info("Successfully deleted course")
-                self.refreshFeaturedCourses()
-                self.refreshRecentCourses()
+                self.refreshFeaturedCDCourses()
+                self.refreshRecentCDCourses()
             }
         }
     }
     
     /// Publish course
-    public func publishCourse(_ course: Course) async throws {
+    public func publishCDCourse(_ course: CDCourse) async throws {
         logger.info("Publishing course: \(course.title ?? "unknown")")
         
         try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             
             courseInContext.statusEnum = .published
             courseInContext.isPublished = true
@@ -158,17 +158,17 @@ public class CourseRepository: ObservableObject {
             
             DispatchQueue.main.async {
                 self.logger.info("Successfully published course")
-                self.refreshFeaturedCourses()
+                self.refreshFeaturedCDCourses()
             }
         }
     }
     
     /// Archive course
-    public func archiveCourse(_ course: Course) async throws {
+    public func archiveCDCourse(_ course: CDCourse) async throws {
         logger.info("Archiving course: \(course.title ?? "unknown")")
         
         try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             
             courseInContext.statusEnum = .archived
             courseInContext.isArchived = true
@@ -177,23 +177,23 @@ public class CourseRepository: ObservableObject {
             
             DispatchQueue.main.async {
                 self.logger.info("Successfully archived course")
-                self.refreshFeaturedCourses()
+                self.refreshFeaturedCDCourses()
             }
         }
     }
     
-    // MARK: - Course Discovery
+    // MARK: - CDCourse Discovery
     
     /// Get featured courses
-    public func getFeaturedCourses(limit: Int = 10) async throws -> [Course] {
+    public func getFeaturedCDCourses(limit: Int = 10) async throws -> [CDCourse] {
         return try await coreDataStack.performBackgroundTask { context in
-            let request: NSFetchRequest<Course> = Course.fetchRequest()
+            let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
-                NSPredicate(format: "status == %@", Course.Status.featured.rawValue),
+                NSPredicate(format: "status == %@", CDCourse.Status.featured.rawValue),
                 NSPredicate(format: "isPublished == YES")
             ])
             request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \Course.publishedAt, ascending: false)
+                NSSortDescriptor(keyPath: \CDCourse.publishedAt, ascending: false)
             ]
             request.fetchLimit = limit
             
@@ -202,14 +202,14 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Get courses by category
-    public func getCourses(
-        category: Course.Category,
-        difficulty: Course.DifficultyLevel? = nil,
+    public func getCDCourses(
+        category: CDCourse.Category,
+        difficulty: CDCourse.DifficultyLevel? = nil,
         limit: Int = 20,
         offset: Int = 0
-    ) async throws -> [Course] {
+    ) async throws -> [CDCourse] {
         return try await coreDataStack.performBackgroundTask { context in
-            let request: NSFetchRequest<Course> = Course.fetchRequest()
+            let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
             
             var predicates = [
                 NSPredicate(format: "category == %@", category.rawValue),
@@ -222,8 +222,8 @@ public class CourseRepository: ObservableObject {
             
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \Course.averageRating, ascending: false),
-                NSSortDescriptor(keyPath: \Course.publishedAt, ascending: false)
+                NSSortDescriptor(keyPath: \CDCourse.averageRating, ascending: false),
+                NSSortDescriptor(keyPath: \CDCourse.publishedAt, ascending: false)
             ]
             request.fetchLimit = limit
             request.fetchOffset = offset
@@ -233,15 +233,15 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Search courses
-    public func searchCourses(
+    public func searchCDCourses(
         query: String,
-        category: Course.Category? = nil,
-        difficulty: Course.DifficultyLevel? = nil,
+        category: CDCourse.Category? = nil,
+        difficulty: CDCourse.DifficultyLevel? = nil,
         priceRange: ClosedRange<Double>? = nil,
         limit: Int = 20
-    ) async throws -> [Course] {
+    ) async throws -> [CDCourse] {
         return try await coreDataStack.performBackgroundTask { context in
-            let request: NSFetchRequest<Course> = Course.fetchRequest()
+            let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
             
             var predicates = [NSPredicate(format: "isPublished == YES")]
             
@@ -285,8 +285,8 @@ public class CourseRepository: ObservableObject {
             
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \Course.averageRating, ascending: false),
-                NSSortDescriptor(keyPath: \Course.viewCount, ascending: false)
+                NSSortDescriptor(keyPath: \CDCourse.averageRating, ascending: false),
+                NSSortDescriptor(keyPath: \CDCourse.viewCount, ascending: false)
             ]
             request.fetchLimit = limit
             
@@ -295,13 +295,13 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Get popular courses
-    public func getPopularCourses(limit: Int = 10) async throws -> [Course] {
+    public func getPopularCDCourses(limit: Int = 10) async throws -> [CDCourse] {
         return try await coreDataStack.performBackgroundTask { context in
-            let request: NSFetchRequest<Course> = Course.fetchRequest()
+            let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
             request.predicate = NSPredicate(format: "isPublished == YES")
             request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \Course.viewCount, ascending: false),
-                NSSortDescriptor(keyPath: \Course.averageRating, ascending: false)
+                NSSortDescriptor(keyPath: \CDCourse.viewCount, ascending: false),
+                NSSortDescriptor(keyPath: \CDCourse.averageRating, ascending: false)
             ]
             request.fetchLimit = limit
             
@@ -310,23 +310,23 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Get recommended courses for user
-    public func getRecommendedCourses(for user: User, limit: Int = 10) async throws -> [Course] {
+    public func getRecommendedCDCourses(for user: CDUser, limit: Int = 10) async throws -> [CDCourse] {
         return try await coreDataStack.performBackgroundTask { context in
-            let userInContext = context.object(with: user.objectID) as! User
+            let userInContext = context.object(with: user.objectID) as! CDUser
             
             // Get user's learning preferences
             let preferences = userInContext.getLearningPreferences()
             let preferredTopics = preferences?.preferredTopics ?? []
             let preferredDifficulty = preferences?.preferredDifficulty ?? "intermediate"
             
-            let request: NSFetchRequest<Course> = Course.fetchRequest()
+            let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
             
             var predicates = [NSPredicate(format: "isPublished == YES")]
             
             // Exclude already enrolled courses
-            if let enrolledCourses = userInContext.enrolledCourses as? Set<Course>,
-               !enrolledCourses.isEmpty {
-                let enrolledIDs = enrolledCourses.compactMap { $0.id }
+            if let enrolledCDCourses = userInContext.enrolledCDCourses as? Set<CDCourse>,
+               !enrolledCDCourses.isEmpty {
+                let enrolledIDs = enrolledCDCourses.compactMap { $0.id }
                 predicates.append(NSPredicate(format: "NOT (id IN %@)", enrolledIDs))
             }
             
@@ -345,8 +345,8 @@ public class CourseRepository: ObservableObject {
             
             request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: predicates)
             request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \Course.averageRating, ascending: false),
-                NSSortDescriptor(keyPath: \Course.publishedAt, ascending: false)
+                NSSortDescriptor(keyPath: \CDCourse.averageRating, ascending: false),
+                NSSortDescriptor(keyPath: \CDCourse.publishedAt, ascending: false)
             ]
             request.fetchLimit = limit
             
@@ -354,20 +354,20 @@ public class CourseRepository: ObservableObject {
         }
     }
     
-    // MARK: - Course Enrollment
+    // MARK: - CDCourse Enrollment
     
     /// Enroll user in course
-    public func enrollUser(_ user: User, in course: Course) async throws {
+    public func enrollCDUser(_ user: CDUser, in course: CDCourse) async throws {
         logger.info("Enrolling user \(user.username ?? "unknown") in course \(course.title ?? "unknown")")
         
         try await coreDataStack.performBackgroundTask { context in
-            let userInContext = context.object(with: user.objectID) as! User
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let userInContext = context.object(with: user.objectID) as! CDUser
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             
-            let success = courseInContext.enrollUser(userInContext)
+            let success = courseInContext.enrollCDUser(userInContext)
             
             if !success {
-                throw CourseRepositoryError.enrollmentFailed
+                throw CDCourseRepositoryError.enrollmentFailed
             }
             
             try self.coreDataStack.save(context: context)
@@ -379,14 +379,14 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Unenroll user from course
-    public func unenrollUser(_ user: User, from course: Course) async throws {
+    public func unenrollCDUser(_ user: CDUser, from course: CDCourse) async throws {
         logger.info("Unenrolling user \(user.username ?? "unknown") from course \(course.title ?? "unknown")")
         
         try await coreDataStack.performBackgroundTask { context in
-            let userInContext = context.object(with: user.objectID) as! User
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let userInContext = context.object(with: user.objectID) as! CDUser
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             
-            courseInContext.unenrollUser(userInContext)
+            courseInContext.unenrollCDUser(userInContext)
             
             try self.coreDataStack.save(context: context)
             
@@ -397,27 +397,27 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Get user's enrolled courses
-    public func getEnrolledCourses(for user: User) async throws -> [Course] {
+    public func getEnrolledCDCourses(for user: CDUser) async throws -> [CDCourse] {
         return try await coreDataStack.performBackgroundTask { context in
-            let userInContext = context.object(with: user.objectID) as! User
+            let userInContext = context.object(with: user.objectID) as! CDUser
             
-            let request: NSFetchRequest<Course> = Course.fetchRequest()
-            request.predicate = NSPredicate(format: "SELF IN %@", userInContext.enrolledCourses ?? NSSet())
+            let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
+            request.predicate = NSPredicate(format: "SELF IN %@", userInContext.enrolledCDCourses ?? NSSet())
             request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \Course.lastViewedAt, ascending: false)
+                NSSortDescriptor(keyPath: \CDCourse.lastViewedAt, ascending: false)
             ]
             
             return try context.fetch(request)
         }
     }
     
-    // MARK: - Course Analytics
+    // MARK: - CDCourse Analytics
     
     /// Track course view
-    public func trackCourseView(_ course: Course, by user: User) async throws {
+    public func trackCDCourseView(_ course: CDCourse, by user: CDUser) async throws {
         try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
-            let userInContext = context.object(with: user.objectID) as! User
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
+            let userInContext = context.object(with: user.objectID) as! CDUser
             
             courseInContext.trackView(by: userInContext)
             
@@ -426,9 +426,9 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Get course statistics
-    public func getCourseStatistics(_ course: Course) async throws -> CourseStatistics {
+    public func getCDCourseStatistics(_ course: CDCourse) async throws -> CDCourseStatistics {
         return try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             
             let enrollmentCount = courseInContext.enrollmentCount
             let completionRate = courseInContext.averageCompletionRate
@@ -439,7 +439,7 @@ public class CourseRepository: ObservableObject {
             // Calculate revenue (for paid courses)
             let revenue = courseInContext.price * Double(enrollmentCount)
             
-            return CourseStatistics(
+            return CDCourseStatistics(
                 enrollmentCount: enrollmentCount,
                 completionRate: completionRate,
                 averageRating: averageRating,
@@ -451,36 +451,36 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Update course completion statistics
-    public func updateCourseCompletionStats(_ course: Course) async throws {
+    public func updateCDCourseCompletionStats(_ course: CDCourse) async throws {
         try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             courseInContext.updateCompletionStats()
             
             try self.coreDataStack.save(context: context)
         }
     }
     
-    // MARK: - Course Reviews
+    // MARK: - CDCourse Reviews
     
     /// Add course review
     public func addReview(
-        to course: Course,
-        by user: User,
+        to course: CDCourse,
+        by user: CDUser,
         rating: Double,
         comment: String?
     ) async throws {
         logger.info("Adding review for course: \(course.title ?? "unknown")")
         
         try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
-            let userInContext = context.object(with: user.objectID) as! User
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
+            let userInContext = context.object(with: user.objectID) as! CDUser
             
-            let review = CourseReview(context: context)
+            let review = CDCDCourseReview(context: context)
             review.course = courseInContext
             review.reviewer = userInContext
             review.rating = rating
             review.comment = comment
-            review.isVerified = courseInContext.isUserEnrolled(userInContext)
+            review.isVerified = courseInContext.isCDUserEnrolled(userInContext)
             
             try self.coreDataStack.save(context: context)
             
@@ -491,15 +491,15 @@ public class CourseRepository: ObservableObject {
     }
     
     /// Get course reviews
-    public func getReviews(for course: Course, limit: Int = 20) async throws -> [CourseReview] {
+    public func getReviews(for course: CDCourse, limit: Int = 20) async throws -> [CDCDCourseReview] {
         return try await coreDataStack.performBackgroundTask { context in
-            let courseInContext = context.object(with: course.objectID) as! Course
+            let courseInContext = context.object(with: course.objectID) as! CDCourse
             
-            let request: NSFetchRequest<CourseReview> = CourseReview.fetchRequest()
+            let request: NSFetchRequest<CDCDCourseReview> = CDCDCourseReview.fetchRequest()
             request.predicate = NSPredicate(format: "course == %@", courseInContext)
             request.sortDescriptors = [
-                NSSortDescriptor(keyPath: \CourseReview.isVerified, ascending: false),
-                NSSortDescriptor(keyPath: \CourseReview.createdAt, ascending: false)
+                NSSortDescriptor(keyPath: \CDCDCourseReview.isVerified, ascending: false),
+                NSSortDescriptor(keyPath: \CDCDCourseReview.createdAt, ascending: false)
             ]
             request.fetchLimit = limit
             
@@ -507,12 +507,12 @@ public class CourseRepository: ObservableObject {
         }
     }
     
-    // MARK: - Course Filtering & Sorting
+    // MARK: - CDCourse Filtering & Sorting
     
     /// Get courses with filters
-    public func getCoursesWithFilters(_ filters: CourseFilters) async throws -> [Course] {
+    public func getCDCoursesWithFilters(_ filters: CDCourseFilters) async throws -> [CDCourse] {
         return try await coreDataStack.performBackgroundTask { context in
-            let request: NSFetchRequest<Course> = Course.fetchRequest()
+            let request: NSFetchRequest<CDCourse> = CDCourse.fetchRequest()
             
             var predicates = [NSPredicate(format: "isPublished == YES")]
             
@@ -552,17 +552,17 @@ public class CourseRepository: ObservableObject {
             // Sorting
             switch filters.sortBy {
             case .newest:
-                request.sortDescriptors = [NSSortDescriptor(keyPath: \Course.publishedAt, ascending: false)]
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \CDCourse.publishedAt, ascending: false)]
             case .oldest:
-                request.sortDescriptors = [NSSortDescriptor(keyPath: \Course.publishedAt, ascending: true)]
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \CDCourse.publishedAt, ascending: true)]
             case .rating:
-                request.sortDescriptors = [NSSortDescriptor(keyPath: \Course.averageRating, ascending: false)]
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \CDCourse.averageRating, ascending: false)]
             case .popular:
-                request.sortDescriptors = [NSSortDescriptor(keyPath: \Course.viewCount, ascending: false)]
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \CDCourse.viewCount, ascending: false)]
             case .priceLowToHigh:
-                request.sortDescriptors = [NSSortDescriptor(keyPath: \Course.price, ascending: true)]
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \CDCourse.price, ascending: true)]
             case .priceHighToLow:
-                request.sortDescriptors = [NSSortDescriptor(keyPath: \Course.price, ascending: false)]
+                request.sortDescriptors = [NSSortDescriptor(keyPath: \CDCourse.price, ascending: false)]
             }
             
             request.fetchLimit = filters.limit
@@ -574,12 +574,12 @@ public class CourseRepository: ObservableObject {
     
     // MARK: - Private Methods
     
-    private func loadFeaturedCourses() {
+    private func loadFeaturedCDCourses() {
         Task {
             do {
-                let courses = try await getFeaturedCourses()
+                let courses = try await getFeaturedCDCourses()
                 DispatchQueue.main.async {
-                    self.featuredCourses = courses
+                    self.featuredCDCourses = courses
                 }
             } catch {
                 handleError(error)
@@ -587,12 +587,12 @@ public class CourseRepository: ObservableObject {
         }
     }
     
-    private func loadRecentCourses() {
+    private func loadRecentCDCourses() {
         Task {
             do {
-                let courses = try await getPopularCourses()
+                let courses = try await getPopularCDCourses()
                 DispatchQueue.main.async {
-                    self.recentCourses = courses
+                    self.recentCDCourses = courses
                 }
             } catch {
                 handleError(error)
@@ -600,12 +600,12 @@ public class CourseRepository: ObservableObject {
         }
     }
     
-    private func refreshFeaturedCourses() {
-        loadFeaturedCourses()
+    private func refreshFeaturedCDCourses() {
+        loadFeaturedCDCourses()
     }
     
-    private func refreshRecentCourses() {
-        loadRecentCourses()
+    private func refreshRecentCDCourses() {
+        loadRecentCDCourses()
     }
     
     private func handleError(_ error: Error) {
@@ -613,13 +613,13 @@ public class CourseRepository: ObservableObject {
             self.error = error
             self.isLoading = false
         }
-        logger.error("CourseRepository error: \(error.localizedDescription)")
+        logger.error("CDCourseRepository error: \(error.localizedDescription)")
     }
 }
 
 // MARK: - Supporting Types
 
-public struct CourseStatistics {
+public struct CDCourseStatistics {
     public let enrollmentCount: Int
     public let completionRate: Double
     public let averageRating: Double
@@ -628,21 +628,21 @@ public struct CourseStatistics {
     public let revenue: Double
 }
 
-public struct CourseFilters {
-    public var categories: [Course.Category] = []
-    public var difficulties: [Course.DifficultyLevel] = []
+public struct CDCourseFilters {
+    public var categories: [CDCourse.Category] = []
+    public var difficulties: [CDCourse.DifficultyLevel] = []
     public var priceRange: ClosedRange<Double>?
     public var durationRange: ClosedRange<TimeInterval>?
     public var minimumRating: Double = 0
     public var freeOnly: Bool = false
-    public var sortBy: CourseSortOption = .newest
+    public var sortBy: CDCourseSortOption = .newest
     public var limit: Int = 20
     public var offset: Int = 0
     
     public init() {}
 }
 
-public enum CourseSortOption {
+public enum CDCourseSortOption {
     case newest
     case oldest
     case rating
@@ -651,24 +651,24 @@ public enum CourseSortOption {
     case priceHighToLow
 }
 
-public enum CourseRepositoryError: Error, LocalizedError {
+public enum CDCourseRepositoryError: Error, LocalizedError {
     case courseNotFound
     case enrollmentFailed
     case alreadyEnrolled
     case prerequisitesNotMet
-    case invalidCourseData
+    case invalidCDCourseData
     
     public var errorDescription: String? {
         switch self {
         case .courseNotFound:
-            return "Course not found."
+            return "CDCourse not found."
         case .enrollmentFailed:
             return "Failed to enroll in course."
         case .alreadyEnrolled:
-            return "User is already enrolled in this course."
+            return "CDUser is already enrolled in this course."
         case .prerequisitesNotMet:
             return "Prerequisites for this course are not met."
-        case .invalidCourseData:
+        case .invalidCDCourseData:
             return "Invalid course data provided."
         }
     }
@@ -676,8 +676,8 @@ public enum CourseRepositoryError: Error, LocalizedError {
 
 // MARK: - Core Data Extensions
 
-extension CourseReview {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<CourseReview> {
-        return NSFetchRequest<CourseReview>(entityName: "CourseReview")
+extension CDCDCourseReview {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDCDCourseReview> {
+        return NSFetchRequest<CDCDCourseReview>(entityName: "CDCDCourseReview")
     }
 }
