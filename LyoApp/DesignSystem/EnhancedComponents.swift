@@ -83,17 +83,7 @@ public struct GlassBackground: View {
             
             // Glass effect layers
             Rectangle()
-                .fill(
-                    LinearGradient(
-                        gradient: Gradient(stops: [
-                            .init(color: ModernDesignSystem.Colors.backgroundSecondary.opacity(0.8), location: 0.0),
-                            .init(color: ModernDesignSystem.Colors.backgroundPrimary.opacity(0.6), location: 0.5),
-                            .init(color: ModernDesignSystem.Colors.backgroundSecondary.opacity(0.8), location: 1.0)
-                        ]),
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
+                .fill(.ultraThinMaterial)
             
             // Subtle pattern overlay
             PatternOverlay()
@@ -182,166 +172,6 @@ struct FloatingActionButton: View {
     }
 }
 
-// MARK: - Enhanced Loading Spinner
-struct ModernProgressView: View {
-    let style: Style
-    let size: Size
-    
-    enum Style {
-        case circular, linear
-    }
-    
-    enum Size {
-        case small, medium, large
-        
-        var dimension: CGFloat {
-            switch self {
-            case .small: return 16
-            case .medium: return 24
-            case .large: return 32
-            }
-        }
-    }
-    
-    @State private var isAnimating = false
-    
-    var body: some View {
-        Group {
-            if style == .circular {
-                Circle()
-                    .trim(from: 0, to: 0.8)
-                    .stroke(
-                        AngularGradient(
-                            gradient: Gradient(colors: [
-                                ModernDesignSystem.Colors.primary.opacity(0.2),
-                                ModernDesignSystem.Colors.primary
-                            ]),
-                            center: .center,
-                            startAngle: .degrees(0),
-                            endAngle: .degrees(360)
-                        ),
-                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                    )
-                    .frame(width: size.dimension, height: size.dimension)
-                    .rotationEffect(.degrees(isAnimating ? 360 : 0))
-                    .animation(
-                        Animation.linear(duration: 1)
-                            .repeatForever(autoreverses: false),
-                        value: isAnimating
-                    )
-                    .onAppear {
-                        isAnimating = true
-                    }
-            } else {
-                RoundedRectangle(cornerRadius: 2)
-                    .fill(ModernDesignSystem.Colors.neutral300.opacity(0.3))
-                    .frame(height: 4)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 2)
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        ModernDesignSystem.Colors.primary.opacity(0.5),
-                                        ModernDesignSystem.Colors.primary,
-                                        ModernDesignSystem.Colors.primary.opacity(0.5)
-                                    ]),
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: 60)
-                            .offset(x: isAnimating ? 200 : -200)
-                            .animation(
-                                Animation.linear(duration: 1.5)
-                                    .repeatForever(autoreverses: false),
-                                value: isAnimating
-                            )
-                    )
-                    .clipped()
-                    .onAppear {
-                        isAnimating = true
-                    }
-            }
-        }
-    }
-}
-
-// MARK: - Enhanced Card Component
-struct ModernCard<Content: View>: View {
-    let content: Content
-    let style: Style
-    let padding: EdgeInsets
-    
-    enum Style {
-        case elevated, outlined, filled
-    }
-    
-    init(
-        style: Style = .elevated,
-        padding: EdgeInsets = EdgeInsets(
-            top: ModernDesignSystem.Spacing.lg,
-            leading: ModernDesignSystem.Spacing.lg,
-            bottom: ModernDesignSystem.Spacing.lg,
-            trailing: ModernDesignSystem.Spacing.lg
-        ),
-        @ViewBuilder content: () -> Content
-    ) {
-        self.content = content()
-        self.style = style
-        self.padding = padding
-    }
-    
-    var body: some View {
-        content
-            .padding(padding)
-            .background(cardBackground)
-            .clipShape(RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.lg))
-            .overlay(
-                Group {
-                    if style == .outlined {
-                        RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.lg)
-                            .stroke(ModernDesignSystem.Colors.neutral300.opacity(0.3), lineWidth: 1)
-                    }
-                }
-            )
-            .shadow(
-                color: shadowColor,
-                radius: shadowRadius,
-                x: 0,
-                y: shadowOffset
-            )
-    }
-    
-    @ViewBuilder
-    private var cardBackground: some View {
-        switch style {
-        case .elevated:
-            ModernDesignSystem.Colors.backgroundSecondary
-        case .outlined:
-            Color.clear
-        case .filled:
-            ModernDesignSystem.Colors.backgroundSecondary.opacity(0.8)
-        }
-    }
-    
-    private var shadowColor: Color {
-        switch style {
-        case .elevated:
-            return ModernDesignSystem.Colors.backgroundPrimary.opacity(0.3)
-        case .outlined, .filled:
-            return Color.clear
-        }
-    }
-    
-    private var shadowRadius: CGFloat {
-        style == .elevated ? 10 : 0
-    }
-    
-    private var shadowOffset: CGFloat {
-        style == .elevated ? 4 : 0
-    }
-}
-
 #Preview {
     VStack(spacing: 20) {
         PatternOverlay()
@@ -358,13 +188,21 @@ struct ModernCard<Content: View>: View {
                 style: .primary
             )
             
-            ModernProgressView(style: .circular, size: .medium)
+            // Progress indicator placeholder
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle())
+                .scaleEffect(1.5)
         }
         
-        ModernCard(style: .elevated) {
+        VStack {
             Text("Sample Card Content")
                 .font(ModernDesignSystem.Typography.bodyMedium)
         }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: ModernDesignSystem.CornerRadius.lg)
+                .fill(ModernDesignSystem.Colors.backgroundSecondary)
+        )
     }
     .padding()
     .background(ModernDesignSystem.Colors.backgroundPrimary)
