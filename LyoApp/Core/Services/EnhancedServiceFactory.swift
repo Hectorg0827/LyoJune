@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import CoreData
 
 // MARK: - Enhanced Service Factory
 @MainActor
@@ -11,7 +12,7 @@ class EnhancedServiceFactory: ObservableObject {
     @Published private var _authService: EnhancedAuthService?
     @Published private var _apiService: EnhancedNetworkManager? // Using EnhancedNetworkManager as API service
     @Published private var _webSocketManager: WebSocketManager?
-    @Published private var _coreDataManager: BasicCoreDataManager?
+    @Published private var _coreDataManager: DataManager?
     
     private var isInitialized = false
     
@@ -46,7 +47,7 @@ class EnhancedServiceFactory: ObservableObject {
         return _webSocketManager!
     }
     
-    var coreDataManager: BasicCoreDataManager {
+    var coreDataManager: DataManager {
         if _coreDataManager == nil {
             initializeServices()
         }
@@ -59,7 +60,7 @@ class EnhancedServiceFactory: ObservableObject {
         
         // Initialize core services in dependency order
         _networkManager = EnhancedNetworkManager()
-        _coreDataManager = BasicCoreDataManager.shared
+        _coreDataManager = DataManager.shared
         _authService = EnhancedAuthService(
             networkManager: _networkManager!
         )
