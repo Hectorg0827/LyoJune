@@ -110,7 +110,10 @@ class EnhancedNetworkManager: NSObject, ObservableObject {
             return
         }
         
-        let healthURL = URL(string: "\(configManager.backendBaseURL)/health")!
+        guard let healthURL = URL(string: "\(configManager.backendBaseURL)/health") else {
+            self.apiHealthStatus = .error("Invalid health URL")
+            return
+        }
         var request = URLRequest(url: healthURL)
         request.httpMethod = "GET"
         request.timeoutInterval = 10.0
@@ -140,8 +143,10 @@ class EnhancedNetworkManager: NSObject, ObservableObject {
         method: HTTPMethod = .GET,
         body: Data? = nil,
         additionalHeaders: [String: String] = [:]
-    ) -> URLRequest {
-        let url = URL(string: "\(configManager.backendBaseURL)\(endpoint.path)")!
+    ) throws -> URLRequest {
+        guard let url = URL(string: "\(configManager.backendBaseURL)\(endpoint.path)") else {
+            throw NetworkError.invalidURL
+        }
         var request = URLRequest(url: url)
         
         request.httpMethod = method.rawValue
@@ -290,7 +295,10 @@ class EnhancedNetworkManager: NSObject, ObservableObject {
         progressHandler: @escaping (Double) -> Void = { _ in }
     ) -> Future<UploadResponse, NetworkError> {
         return Future<UploadResponse, NetworkError> { promise in
-            let url = URL(string: "\(self.configManager.backendBaseURL)\(endpoint.path)")!
+            guard let url = URL(string: "\(self.configManager.backendBaseURL)\(endpoint.path)") else {
+                promise(.failure(.invalidURL))
+                return
+            }
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             
@@ -304,11 +312,15 @@ class EnhancedNetworkManager: NSObject, ObservableObject {
             request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
             
             var body = Data()
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-            body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+            guard let data1 = "--\(boundary)\r\n".data(using: .utf8) else { promise(.failure(.encodingError)); return }
+            body.append(data1)
+            guard let data2 = "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8) else { promise(.failure(.encodingError)); return }
+            body.append(data2)
+            guard let data3 = "Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8) else { promise(.failure(.encodingError)); return }
+            body.append(data3)
             body.append(fileData)
-            body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+            guard let data4 = "\r\n--\(boundary)--\r\n".data(using: .utf8) else { promise(.failure(.encodingError)); return }
+            body.append(data4)
             
             let task = self.urlSession.uploadTask(with: request, from: body) { data, response, error in
                 if let error = error {
