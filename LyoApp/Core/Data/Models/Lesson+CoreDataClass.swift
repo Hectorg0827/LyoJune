@@ -1,5 +1,5 @@
 //
-//  Lesson+CoreDataClass.swift
+//  CDLesson+CoreDataClass.swift
 //  LyoApp
 //
 //  Created by LyoApp Development Team on 12/25/24.
@@ -11,12 +11,12 @@ import CoreData
 import CloudKit
 import SwiftUI
 
-@objc(Lesson)
-public class Lesson: NSManagedObject {
+@objc(CDLesson)
+public class CDLesson: NSManagedObject {
     
     // MARK: - Enums
     
-    enum LessonType: String, CaseIterable, Codable {
+    enum CDLessonType: String, CaseIterable, Codable {
         case video = "video"
         case text = "text"
         case audio = "audio"
@@ -104,9 +104,9 @@ public class Lesson: NSManagedObject {
     
     // MARK: - Computed Properties
     
-    /// Lesson type as enum
-    var typeEnum: LessonType {
-        get { LessonType(rawValue: type ?? "") ?? .text }
+    /// CDLesson type as enum
+    var typeEnum: CDLessonType {
+        get { CDLessonType(rawValue: type ?? "") ?? .text }
         set { type = newValue.rawValue }
     }
     
@@ -223,12 +223,12 @@ public class Lesson: NSManagedObject {
     // MARK: - Content Management
     
     /// Get parsed lesson content
-    func getParsedContent() -> LessonContent? {
+    func getParsedContent() -> CDLessonContent? {
         guard let contentData = contentData else { return nil }
         
         do {
             let decoder = JSONDecoder()
-            return try decoder.decode(LessonContent.self, from: contentData)
+            return try decoder.decode(CDLessonContent.self, from: contentData)
         } catch {
             print("Failed to decode lesson content: \(error)")
             return nil
@@ -236,7 +236,7 @@ public class Lesson: NSManagedObject {
     }
     
     /// Set lesson content
-    func setContent(_ content: LessonContent) {
+    func setContent(_ content: CDLessonContent) {
         do {
             let encoder = JSONEncoder()
             encoder.outputFormatting = .prettyPrinted
@@ -251,8 +251,8 @@ public class Lesson: NSManagedObject {
     func updateContent(title: String? = nil, 
                       body: String? = nil,
                       mediaURL: String? = nil,
-                      resources: [LessonResource]? = nil) {
-        var content = getParsedContent() ?? LessonContent()
+                      resources: [CDLessonResource]? = nil) {
+        var content = getParsedContent() ?? CDLessonContent()
         
         if let title = title { content.title = title }
         if let body = body { content.body = body }
@@ -328,11 +328,11 @@ public class Lesson: NSManagedObject {
         guard let course = course else { return }
         
         let courseProgress = user.progress(for: course)
-        let totalLessons = course.totalLessons
-        let completedLessons = user.completedLessonsCount(for: course)
+        let totalCDLessons = course.totalCDLessons
+        let completedCDLessons = user.completedCDLessonsCount(for: course)
         
-        let completionPercentage = totalLessons > 0 ? 
-            Double(completedLessons) / Double(totalLessons) * 100.0 : 0.0
+        let completionPercentage = totalCDLessons > 0 ? 
+            Double(completedCDLessons) / Double(totalCDLessons) * 100.0 : 0.0
         
         courseProgress?.completionPercentage = completionPercentage
         courseProgress?.isCompleted = completionPercentage >= 100.0
@@ -439,29 +439,29 @@ public class Lesson: NSManagedObject {
     
     // MARK: - Data Validation
     
-    func validateLessonData() throws {
+    func validateCDLessonData() throws {
         guard let title = title, !title.trimmingCharacters(in: .whitespaces).isEmpty else {
-            throw LessonValidationError.emptyTitle
+            throw CDLessonValidationError.emptyTitle
         }
         
         guard title.count <= 200 else {
-            throw LessonValidationError.titleTooLong
+            throw CDLessonValidationError.titleTooLong
         }
         
         guard duration >= 0 else {
-            throw LessonValidationError.invalidDuration
+            throw CDLessonValidationError.invalidDuration
         }
         
         guard order >= 0 else {
-            throw LessonValidationError.invalidOrder
+            throw CDLessonValidationError.invalidOrder
         }
         
         if typeEnum == .video && (videoURL?.isEmpty != false) {
-            throw LessonValidationError.missingVideoURL
+            throw CDLessonValidationError.missingVideoURL
         }
         
         if typeEnum == .audio && (audioURL?.isEmpty != false) {
-            throw LessonValidationError.missingAudioURL
+            throw CDLessonValidationError.missingAudioURL
         }
     }
     
@@ -473,7 +473,7 @@ public class Lesson: NSManagedObject {
         id = UUID()
         createdAt = Date()
         lastModified = Date()
-        type = LessonType.text.rawValue
+        type = CDLessonType.text.rawValue
         contentFormat = ContentFormat.markdown.rawValue
         difficulty = DifficultyLevel.beginner.rawValue
         isPublished = false
@@ -494,26 +494,26 @@ public class Lesson: NSManagedObject {
         }
         
         do {
-            try validateLessonData()
+            try validateCDLessonData()
         } catch {
-            print("Lesson validation failed: \(error)")
+            print("CDLesson validation failed: \(error)")
         }
     }
 }
 
 // MARK: - Supporting Data Structures
 
-struct LessonContent: Codable {
+struct CDLessonContent: Codable {
     var title: String = ""
     var body: String = ""
     var mediaURL: String? = nil
-    var resources: [LessonResource] = []
+    var resources: [CDLessonResource] = []
     var quiz: Quiz? = nil
     var assignment: Assignment? = nil
     var interactiveElements: [InteractiveElement] = []
 }
 
-struct LessonResource: Codable, Identifiable {
+struct CDLessonResource: Codable, Identifiable {
     let id = UUID()
     var title: String
     var type: String // "pdf", "link", "video", "audio", "image"
@@ -553,7 +553,7 @@ struct InteractiveElement: Codable, Identifiable {
 
 // MARK: - Custom Errors
 
-enum LessonValidationError: Error, LocalizedError {
+enum CDLessonValidationError: Error, LocalizedError {
     case emptyTitle
     case titleTooLong
     case invalidDuration
@@ -564,13 +564,13 @@ enum LessonValidationError: Error, LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emptyTitle:
-            return "Lesson title cannot be empty."
+            return "CDLesson title cannot be empty."
         case .titleTooLong:
-            return "Lesson title cannot exceed 200 characters."
+            return "CDLesson title cannot exceed 200 characters."
         case .invalidDuration:
-            return "Lesson duration cannot be negative."
+            return "CDLesson duration cannot be negative."
         case .invalidOrder:
-            return "Lesson order cannot be negative."
+            return "CDLesson order cannot be negative."
         case .missingVideoURL:
             return "Video lessons must have a video URL."
         case .missingAudioURL:
@@ -581,9 +581,9 @@ enum LessonValidationError: Error, LocalizedError {
 
 // MARK: - Core Data Generated Properties
 
-extension Lesson {
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<Lesson> {
-        return NSFetchRequest<Lesson>(entityName: "Lesson")
+extension CDLesson {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<CDLesson> {
+        return NSFetchRequest<CDLesson>(entityName: "CDLesson")
     }
     
     // Basic Properties
@@ -631,19 +631,19 @@ extension Lesson {
     @NSManaged public var cloudKitSyncDate: Date?
     
     // Relationships
-    @NSManaged public var course: Course?
+    @NSManaged public var course: CDCourse?
     @NSManaged public var progress: NSSet?
     @NSManaged public var prerequisites: NSSet?
 }
 
 // MARK: - Relationship Helpers
 
-extension Lesson {
+extension CDLesson {
     @objc(addProgressObject:)
-    @NSManaged public func addToProgress(_ value: Progress)
+    @NSManaged public func addToProgress(_ value: CDProgress)
     
     @objc(removeProgressObject:)
-    @NSManaged public func removeFromProgress(_ value: Progress)
+    @NSManaged public func removeFromProgress(_ value: CDProgress)
     
     @objc(addProgress:)
     @NSManaged public func addToProgress(_ values: NSSet)
@@ -652,10 +652,10 @@ extension Lesson {
     @NSManaged public func removeFromProgress(_ values: NSSet)
     
     @objc(addPrerequisitesObject:)
-    @NSManaged public func addToPrerequisites(_ value: Lesson)
+    @NSManaged public func addToPrerequisites(_ value: CDLesson)
     
     @objc(removePrerequisitesObject:)
-    @NSManaged public func removeFromPrerequisites(_ value: Lesson)
+    @NSManaged public func removeFromPrerequisites(_ value: CDLesson)
     
     @objc(addPrerequisites:)
     @NSManaged public func addToPrerequisites(_ values: NSSet)
