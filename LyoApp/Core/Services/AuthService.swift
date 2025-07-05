@@ -4,19 +4,26 @@ import Combine
 import Security
 import UIKit
 
+// Import required modules for types used in this service
+// AuthResponse, CDUser from AuthModels.swift
+// EmptyRequest, EmptyResponse from APIServices.swift 
+// APIClient from APIClient.swift
+// Endpoint from Endpoint.swift
+
 // MARK: - Auth Service
 @MainActor
 class AuthService: ObservableObject {
     static let shared = AuthService()
 
     @Published var isAuthenticated = false
-    @Published var currentUser: User?
+    @Published var currentCDUser: CDUser?
     @Published var isLoading = false
     @Published var errorMessage: String?
 
     private let keychain = KeychainHelper.shared
     private var cancellables = Set<AnyCancellable>()
     private let networkManager = EnhancedNetworkManager.shared
+    private let apiClient = APIClient.shared
 
     private init() {
         checkAuthStatus()
@@ -39,7 +46,7 @@ class AuthService: ObservableObject {
         do {
             let response: AuthResponse = try await apiClient.request(Endpoint(path: "/auth/login", method: .post, body: request))
             try saveTokens(response.accessToken, response.refreshToken)
-            self.currentUser = response.user
+            self.currentCDUser = response.user
             self.isAuthenticated = true
             NotificationCenter.default.post(name: Constants.NotificationNames.userDidLogin, object: nil)
         } catch {
@@ -66,7 +73,7 @@ class AuthService: ObservableObject {
         do {
             let response: AuthResponse = try await apiClient.request(Endpoint(path: "/auth/register", method: .post, body: request))
             try saveTokens(response.accessToken, response.refreshToken)
-            self.currentUser = response.user
+            self.currentCDUser = response.user
             self.isAuthenticated = true
             NotificationCenter.default.post(name: Constants.NotificationNames.userDidLogin, object: nil)
         } catch {
@@ -85,7 +92,7 @@ class AuthService: ObservableObject {
         }
 
         clearTokens()
-        self.currentUser = nil
+        self.currentCDUser = nil
         self.isAuthenticated = false
         NotificationCenter.default.post(name: Constants.NotificationNames.userDidLogout, object: nil)
         isLoading = false
@@ -101,7 +108,7 @@ class AuthService: ObservableObject {
         do {
             let response: AuthResponse = try await apiClient.request(Endpoint(path: "/auth/refresh", method: .post, body: request))
             try saveTokens(response.accessToken, response.refreshToken)
-            self.currentUser = response.user
+            self.currentCDUser = response.user
         } catch {
             await logout()
             throw NetworkError.unauthorized
@@ -120,8 +127,8 @@ class AuthService: ObservableObject {
         )
 
         do {
-            let response: User = try await apiClient.request(Endpoint(path: "/profile", method: .put, body: request))
-            self.currentUser = response
+            let response: CDUser = try await apiClient.request(Endpoint(path: "/profile", method: .put, body: request))
+            self.currentCDUser = response
         } catch {
             errorMessage = error.localizedDescription
             throw error
@@ -134,8 +141,8 @@ class AuthService: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let response: User = try await apiClient.request(Endpoint(path: "/profile/avatar", method: .post, body: imageData))
-            self.currentUser = response
+            let response: CDUser = try await apiClient.request(Endpoint(path: "/profile/avatar", method: .post, body: imageData))
+            self.currentCDUser = response
         } catch {
             errorMessage = error.localizedDescription
             throw error
@@ -181,9 +188,9 @@ class AuthService: ObservableObject {
         Task {
             if await getAccessToken() != nil {
                 do {
-                    let user: User = try await apiClient.request(Endpoint(path: "/profile"))
+                    let user: CDUser = try await apiClient.request(Endpoint(path: "/profile"))
                     await MainActor.run {
-                        self.currentUser = user
+                        self.currentCDUser = user
                         self.isAuthenticated = true
                     }
                 } catch {
@@ -202,11 +209,11 @@ class AuthService: ObservableObject {
     }
 
     private func getDeviceId() -> String {
-        if let deviceId = UserDefaults.standard.string(forKey: "deviceId") {
+        if let deviceId = CDUserDefaults.standard.string(forKey: "deviceId") {
             return deviceId
         } else {
             let deviceId = UUID().uuidString
-            UserDefaults.standard.set(deviceId, forKey: "deviceId")
+            CDUserDefaults.standard.set(deviceId, forKey: "deviceId")
             return deviceId
         }
     }
