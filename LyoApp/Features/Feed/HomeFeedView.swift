@@ -146,7 +146,7 @@ struct HomeFeedView: View {
     
     // MARK: - Computed Properties
     
-    private var currentVideo: Video? {
+    private var currentVideo: EducationalVideo? {
         guard currentVideoIndex < viewModel.videos.count else { return nil }
         return viewModel.videos[currentVideoIndex]
     }
