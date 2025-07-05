@@ -44,7 +44,7 @@ struct Constants {
         }
     }
     
-    // MARK: - User Defaults Keys
+    // MARK: - CDUser Defaults Keys
     
     struct UserDefaultsKeys {
         static let isOnboarded = "isOnboarded"
