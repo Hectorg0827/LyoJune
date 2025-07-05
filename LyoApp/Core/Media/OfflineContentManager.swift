@@ -29,7 +29,9 @@ public class OfflineContentManager: ObservableObject {
     // MARK: - Initialization
     public init() {
         // Setup directories
-        documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        guard let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first else {
+            fatalError("Documents directory not found.")
+        }
         offlineContentDirectory = documentsDirectory.appendingPathComponent("OfflineContent")
         metadataFile = offlineContentDirectory.appendingPathComponent("metadata.plist")
         
