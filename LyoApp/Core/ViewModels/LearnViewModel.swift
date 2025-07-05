@@ -56,22 +56,34 @@ final class LearnViewModel: ObservableObject {
         // Load from cache first for instant UI
         await loadCachedData()
         
-        // Mock data for now
-        let courses: [Course] = []
-        let userCoursesData: [UserCourse] = []
-        let progress: UserProgress? = nil
-        
-        featuredCourses = courses
-        userCourses = userCoursesData
-        userProgress = progress
-        
-        // Cache the new data
-        await cacheLearningData()
-        
-        isOffline = false
-        
-        // Always load cached data if no network data available
-        if featuredCourses.isEmpty {
+        do {
+            // Load courses, user courses, and progress from API
+            async let coursesResponse = apiClient.getCourses()
+            async let userCoursesResponse = apiClient.getUserCourses()
+            async let progressResponse = apiClient.getUserProgress()
+            
+            let courses = try await coursesResponse
+            let userCoursesData = try await userCoursesResponse
+            let progress = try await progressResponse
+            
+            DispatchQueue.main.async {
+                self.featuredCourses = courses
+                self.userCourses = userCoursesData
+                self.userProgress = progress
+                self.isOffline = false
+            }
+            
+            // Cache the new data
+            await cacheLearningData()
+            
+        } catch {
+            print("Error loading learning data: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to load courses: \(error.localizedDescription)"
+                self.isOffline = true
+            }
+            
+            // Fall back to cached data if API fails
             await loadCachedData()
         }
         
@@ -83,57 +95,65 @@ final class LearnViewModel: ObservableObject {
     }
     
     func enrollInCourse(_ courseId: String) async {
-        // Mock enrollment for now
-        print("Enrolling in course: \(courseId)")
-        
-        // Update local state
-        if let index = featuredCourses.firstIndex(where: { $0.id.uuidString == courseId }) {
-            let newUserCourse = UserCourse(
-                id: UUID(),
-                courseId: featuredCourses[index].id,
-                userId: UUID(), // Mock user ID
-                enrolledAt: Date(),
-                progress: 0.0,
-                completedAt: nil,
-                lastAccessedAt: Date()
-            )
-            userCourses.append(newUserCourse)
+        do {
+            let enrollment = try await apiClient.enrollInCourse(courseId: courseId)
+            
+            // Update local state
+            DispatchQueue.main.async {
+                self.userCourses.append(enrollment)
+            }
+            
+            // Cache updated data
+            await cacheLearningData()
+            
+            // Track analytics
+            await AnalyticsAPIService.shared.trackEvent("course_enrolled", parameters: [
+                "course_id": courseId,
+                "enrollment_method": "featured_courses"
+            ])
+            
+        } catch {
+            print("Error enrolling in course: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to enroll in course: \(error.localizedDescription)"
+            }
         }
-        
-        // Update cache - simplified for now
-        print("Saved enrollment to cache")
-        
-        // Track analytics
-        await AnalyticsAPIService.shared.trackEvent("course_enrolled", parameters: [
-            "course_id": courseId,
-            "enrollment_method": "featured_courses"
-        ])
     }
     
     func markLessonComplete(_ lessonId: String, courseId: String) async {
-        // Mock progress update since markLessonComplete is not available
-        let progressUpdate = ProgressUpdate(
-            courseId: courseId,
-            lessonId: lessonId,
-            progress: 1.0,
-            timestamp: Date()
-        )
-        
-        // Update local progress - simplified for now
-        print("Updated lesson progress for course: \(courseId), lesson: \(lessonId)")
-        
-        // Mock progress update - simplified for now
-        print("Updated user progress")
-        
-        // Update cache - simplified for now
-        print("Updated lesson progress in cache")
-        
-        // Track analytics
-        await AnalyticsAPIService.shared.trackEvent("lesson_completed", parameters: [
-            "lesson_id": lessonId,
-            "course_id": courseId,
-            "progress": String(progressUpdate.progress)
-        ])
+        do {
+            let progressUpdate = try await apiClient.markLessonComplete(
+                lessonId: lessonId,
+                courseId: courseId
+            )
+            
+            // Update local progress
+            DispatchQueue.main.async {
+                if let userCourseIndex = self.userCourses.firstIndex(where: { $0.courseId.uuidString == courseId }) {
+                    self.userCourses[userCourseIndex].progress = progressUpdate.progress
+                    self.userCourses[userCourseIndex].lastAccessedAt = Date()
+                }
+                
+                // Update overall user progress
+                self.userProgress = progressUpdate.userProgress
+            }
+            
+            // Cache updated data
+            await cacheLearningData()
+            
+            // Track analytics
+            await AnalyticsAPIService.shared.trackEvent("lesson_completed", parameters: [
+                "lesson_id": lessonId,
+                "course_id": courseId,
+                "progress": String(progressUpdate.progress)
+            ])
+            
+        } catch {
+            print("Error marking lesson complete: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to update lesson progress: \(error.localizedDescription)"
+            }
+        }
     }
     
     func searchCourses(_ query: String) async {
@@ -144,16 +164,25 @@ final class LearnViewModel: ObservableObject {
         
         isSearching = true
         
-        // Mock search results for now
-        let results: [Course] = []
-        searchResults = results
-        
-        // Track search analytics
-        await AnalyticsAPIService.shared.trackEvent("course_search", parameters: [
-            "query": query,
-            "category": selectedCategory ?? "all",
-            "results_count": String(results.count)
-        ])
+        do {
+            let results = try await apiClient.searchCourses(query: query)
+            DispatchQueue.main.async {
+                self.searchResults = results
+            }
+            
+            // Track search analytics
+            await AnalyticsAPIService.shared.trackEvent("course_search", parameters: [
+                "query": query,
+                "results_count": String(results.count)
+            ])
+            
+        } catch {
+            print("Error searching courses: \(error)")
+            DispatchQueue.main.async {
+                self.errorMessage = "Search failed: \(error.localizedDescription)"
+                self.searchResults = []
+            }
+        }
         
         isSearching = false
     }
@@ -184,11 +213,22 @@ final class LearnViewModel: ObservableObject {
     
     private func setupRealTimeUpdates() {
         // Listen for real-time progress updates
-        // Mock real-time updates - progressUpdatesPublisher not available
-        // Would implement when WebSocketManager has these publishers
+        if let progressPublisher = webSocketManager.progressUpdatesPublisher {
+            progressPublisher
+                .sink { [weak self] update in
+                    self?.handleRealTimeProgressUpdate(update)
+                }
+                .store(in: &cancellables)
+        }
         
-        // Mock course updates - courseUpdatesPublisher not available
-        // Would implement when WebSocketManager has these publishers
+        // Listen for course updates
+        if let coursePublisher = webSocketManager.courseUpdatesPublisher {
+            coursePublisher
+                .sink { [weak self] update in
+                    self?.handleRealTimeCourseUpdate(update)
+                }
+                .store(in: &cancellables)
+        }
     }
     
     private func setupSearchDebounce() {
@@ -204,43 +244,80 @@ final class LearnViewModel: ObservableObject {
     }
     
     private func handleRealTimeProgressUpdate(_ update: ProgressUpdate) {
-        // Mock implementation - UserProgress properties need to match
-        // Would update when progress model is properly defined
+        DispatchQueue.main.async {
+            // Update user course progress
+            if let userCourseIndex = self.userCourses.firstIndex(where: { $0.courseId.uuidString == update.courseId }) {
+                self.userCourses[userCourseIndex].progress = update.progress
+                self.userCourses[userCourseIndex].lastAccessedAt = update.timestamp
+            }
+            
+            // Refresh user progress from API to get latest data
+            Task {
+                do {
+                    let latestProgress = try await self.apiClient.getUserProgress()
+                    DispatchQueue.main.async {
+                        self.userProgress = latestProgress
+                    }
+                } catch {
+                    print("Error fetching updated progress: \(error)")
+                }
+            }
+        }
+        
         print("Progress update received for course: \(update.courseId)")
     }
     
     private func handleRealTimeCourseUpdate(_ update: CourseUpdate) {
-        // Mock implementation - CourseUpdate needs proper structure
+        DispatchQueue.main.async {
+            // Update course in featured courses list
+            if let courseIndex = self.featuredCourses.firstIndex(where: { $0.id.uuidString == update.courseId }) {
+                if let title = update.title {
+                    self.featuredCourses[courseIndex].title = title
+                }
+                // Update other course properties as needed
+            }
+            
+            // Update course in user courses list
+            if let userCourseIndex = self.userCourses.firstIndex(where: { $0.courseId.uuidString == update.courseId }) {
+                self.userCourses[userCourseIndex].lastAccessedAt = update.updatedAt
+            }
+        }
+        
         print("Course update received: \(update.courseId)")
     }
     
     private func loadCachedData() async {
-        // Mock cached data - these methods don't exist in CoreDataManager
-        let cachedCourses: [Course] = []
-        let cachedUserCourses: [UserCourse] = []
-        let cachedProgress: UserProgress? = nil
+        let cachedCourses = coreDataManager.fetchCachedCourses()
+        let cachedUserCourses = coreDataManager.fetchCachedUserCourses()
+        let cachedProgress = coreDataManager.fetchCachedUserProgress()
         
-        if !cachedCourses.isEmpty {
-            featuredCourses = cachedCourses
-            isOffline = true
-        }
-        
-        if !cachedUserCourses.isEmpty {
-            userCourses = cachedUserCourses
-        }
-        
-        if let progress = cachedProgress {
-            userProgress = progress
+        DispatchQueue.main.async {
+            if !cachedCourses.isEmpty {
+                self.featuredCourses = cachedCourses
+                self.isOffline = true
+            }
+            
+            if !cachedUserCourses.isEmpty {
+                self.userCourses = cachedUserCourses
+            }
+            
+            if let progress = cachedProgress {
+                self.userProgress = progress
+            }
         }
     }
     
     private func cacheLearningData() async {
-        // Mock caching - cacheCourses method doesn't exist
+        coreDataManager.cacheCourses(featuredCourses)
         print("Cached \(featuredCourses.count) featured courses")
-        // Mock caching - cacheUserCourses method doesn't exist
+        
+        coreDataManager.cacheUserCourses(userCourses)
         print("Cached \(userCourses.count) user courses")
-        // Mock caching - cacheUserProgress method doesn't exist
-        print("Cached user progress")
+        
+        if let progress = userProgress {
+            coreDataManager.cacheUserProgress(progress)
+            print("Cached user progress")
+        }
     }
     
     private func handleError(_ error: Error) {
