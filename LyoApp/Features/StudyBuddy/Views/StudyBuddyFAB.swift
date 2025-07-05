@@ -515,26 +515,38 @@ struct StudyBuddyFAB: View {
     private func sendTextMessage() {
         guard !textInput.isEmpty else { return }
         
+        let userMessage = textInput
+        
         // Record user interaction
         proactiveManager.recordUserInteraction()
         
         // Add user message
-        conversationSession.addUserMessage(textInput)
+        conversationSession.addUserMessage(userMessage)
         showingTranscript = true
         
         textInput = ""
         
         // Process with AI
         Task {
-            // Create simple mock response directly
-            let mockResponse = GemmaAPIResponse(
-                response: "Thanks for your question! I'm here to help you learn.",
-                confidence: 0.95,
-                suggestions: ["Try a practice quiz", "Review the lesson", "Ask for clarification"],
-                emotion: .encouraging,
-                actions: nil
-            )
-            handleAIResponse(mockResponse)
+            do {
+                let response = try await voiceManager.processText(userMessage)
+                await MainActor.run {
+                    handleAIResponse(response)
+                }
+            } catch {
+                print("Error processing text with AI: \(error)")
+                await MainActor.run {
+                    // Fallback response only if AI service fails
+                    let fallbackResponse = GemmaAPIResponse(
+                        response: "I'm having trouble processing your request right now. Please try again.",
+                        confidence: 0.5,
+                        suggestions: ["Try again", "Check your connection"],
+                        emotion: .neutral,
+                        actions: nil
+                    )
+                    handleAIResponse(fallbackResponse)
+                }
+            }
         }
     }
     
