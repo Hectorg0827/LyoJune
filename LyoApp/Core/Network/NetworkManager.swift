@@ -1,6 +1,6 @@
 import Foundation
 import Combine
-// Note: ErrorTypes should be imported
+import ErrorTypes
 
 // MARK: - Network Manager
 @MainActor
@@ -176,17 +176,24 @@ class NetworkManager: ObservableObject {
         
         // Add additional fields
         for (key, value) in additionalFields {
-            body.append("--\(boundary)\r\n".data(using: .utf8)!)
-            body.append("Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8)!)
-            body.append("\(value)\r\n".data(using: .utf8)!)
+            guard let data = "--\(boundary)\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+            body.append(data)
+            guard let data = "Content-Disposition: form-data; name=\"\(key)\"\r\n\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+            body.append(data)
+            guard let data = "\(value)\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+            body.append(data)
         }
         
         // Add file data
-        body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8)!)
-        body.append("Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8)!)
+        guard let data = "--\(boundary)\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data)
+        guard let data = "Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data)
+        guard let data = "Content-Type: \(mimeType)\r\n\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data)
         body.append(fileData)
-        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        guard let data = "\r\n--\(boundary)--\r\n".data(using: .utf8) else { throw NetworkError.encodingError }
+        body.append(data)
         
         request.httpBody = body
         
@@ -223,7 +230,7 @@ class NetworkManager: ObservableObject {
         // Simple network check - in production, use proper network monitoring
         Task {
             do {
-                let url = URL(string: "https://www.google.com")!
+                guard let url = URL(string: "https://www.google.com") else { return }
                 let (_, response) = try await URLSession.shared.data(from: url)
                 if let httpResponse = response as? HTTPURLResponse {
                     await MainActor.run {
