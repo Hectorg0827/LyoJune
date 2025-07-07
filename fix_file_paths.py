@@ -15,41 +15,42 @@ def fix_file_paths_in_xcode_project():
     # Define files that need their paths fixed
     files_to_fix = [
         # DesignSystem files
-        ("ModernViews.swift", "ModernViews.swift"),
-        ("HapticManager.swift", "HapticManager.swift"), 
-        ("DesignTokens.swift", "DesignTokens.swift"),
+        ("ModernViews.swift", "LyoApp/DesignSystem/ModernViews.swift"),
+        ("HapticManager.swift", "LyoApp/DesignSystem/HapticManager.swift"), 
+        ("DesignTokens.swift", "LyoApp/DesignSystem/DesignTokens.swift"),
         
         # Core/Shared files
-        ("ErrorTypes.swift", "Shared/ErrorTypes.swift"),
+        ("ErrorTypes.swift", "LyoApp/Core/Shared/ErrorTypes.swift"),
         
         # Core/Configuration files
-        ("ConfigurationManager.swift", "Configuration/ConfigurationManager.swift"),
+        ("ConfigurationManager.swift", "LyoApp/Core/Configuration/ConfigurationManager.swift"),
         
         # Core/Networking files
-        ("APIClient.swift", "Networking/APIClient.swift"),
-        ("EnhancedNetworkManager.swift", "Networking/EnhancedNetworkManager.swift"),
+        ("APIClient.swift", "LyoApp/Core/Networking/APIClient.swift"),
+        ("EnhancedNetworkManager.swift", "LyoApp/Core/Networking/EnhancedNetworkManager.swift"),
+        ("NetworkingProtocols.swift", "LyoApp/Core/Networking/NetworkingProtocols.swift"),
         
         # Core/Services files
-        ("WebSocketManager.swift", "Services/WebSocketManager.swift"),
-        ("GamificationAPIService.swift", "Services/GamificationAPIService.swift"),
-        ("CommunityAPIService.swift", "Services/CommunityAPIService.swift"),
-        ("UserAPIService.swift", "Services/UserAPIService.swift"),
-        ("EnhancedAIService.swift", "Services/EnhancedAIService.swift"),
-        ("AIService.swift", "Services/AIService.swift"),
-        ("OfflineManager.swift", "Services/OfflineManager.swift"),
-        ("ErrorManager.swift", "Services/ErrorManager.swift"),
-        ("AnalyticsAPIService.swift", "Services/AnalyticsAPIService.swift"),
-        ("DataManager.swift", "Services/DataManager.swift"),
-        ("EnhancedServiceFactory.swift", "Services/EnhancedServiceFactory.swift"),
-        ("APIServices.swift", "Services/APIServices.swift"),
-        ("EnhancedAuthService.swift", "Services/EnhancedAuthService.swift"),
+        ("WebSocketManager.swift", "LyoApp/Core/Services/WebSocketManager.swift"),
+        ("GamificationAPIService.swift", "LyoApp/Core/Services/GamificationAPIService.swift"),
+        ("CommunityAPIService.swift", "LyoApp/Core/Services/CommunityAPIService.swift"),
+        ("UserAPIService.swift", "LyoApp/Core/Services/UserAPIService.swift"),
+        ("EnhancedAIService.swift", "LyoApp/Core/Services/EnhancedAIService.swift"),
+        ("AIService.swift", "LyoApp/Core/Services/AIService.swift"),
+        ("OfflineManager.swift", "LyoApp/Core/Services/OfflineManager.swift"),
+        ("ErrorManager.swift", "LyoApp/Core/Services/ErrorManager.swift"),
+        ("AnalyticsAPIService.swift", "LyoApp/Core/Services/AnalyticsAPIService.swift"),
+        ("DataManager.swift", "LyoApp/Core/Services/DataManager.swift"),
+        ("EnhancedServiceFactory.swift", "LyoApp/Core/Services/EnhancedServiceFactory.swift"),
+        ("APIServices.swift", "LyoApp/Core/Services/APIServices.swift"),
+        ("EnhancedAuthService.swift", "LyoApp/Core/Services/EnhancedAuthService.swift"),
         
         # Core/Models files
-        ("CourseModels.swift", "Models/CourseModels.swift"),
-        ("CommunityModels.swift", "Models/CommunityModels.swift"),
-        ("AIModels.swift", "Models/AIModels.swift"),
-        ("AuthModels.swift", "Models/AuthModels.swift"),
-        ("AppModels.swift", "Models/AppModels.swift"),
+        ("CourseModels.swift", "LyoApp/Core/Models/CourseModels.swift"),
+        ("CommunityModels.swift", "LyoApp/Core/Models/CommunityModels.swift"),
+        ("AIModels.swift", "LyoApp/Core/Models/AIModels.swift"),
+        ("AuthModels.swift", "LyoApp/Core/Models/AuthModels.swift"),
+        ("AppModels.swift", "LyoApp/Core/Models/AppModels.swift"),
     ]
     
     # First, let's find all file references and fix just the ones with simple names
