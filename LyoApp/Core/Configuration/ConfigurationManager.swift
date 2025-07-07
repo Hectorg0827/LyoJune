@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 // MARK: - Configuration Manager
 struct ConfigurationManager {
