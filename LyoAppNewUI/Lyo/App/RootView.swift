@@ -3,6 +3,7 @@ import SwiftUI
 struct RootView: View {
 
     @StateObject private var router = Router()
+    @StateObject private var aiCoordinator = AICoordinator()
 
     // In a real app, these would be built by a dependency injection container.
     // For now, we construct them here at the top level.
@@ -11,6 +12,7 @@ struct RootView: View {
     private let tutorService: TutorServicing
     private let messagingService: MessagingServicing
     private let webSocketService: WebSocketServicing
+    private let profileService: ProfileAndSettingsServicing
 
     init() {
         // This is a simplified dependency setup for demonstration.
@@ -22,6 +24,7 @@ struct RootView: View {
         self.tutorService = TutorService(httpClient: httpClient)
         self.messagingService = MessagingService(httpClient: httpClient)
         self.webSocketService = WebSocketService(webSocketURL: AppConfig.webSocketURL)
+        self.profileService = ProfileAndSettingsService(httpClient: httpClient)
     }
 
     var body: some View {
@@ -42,13 +45,11 @@ struct RootView: View {
                 ThreadsListView(viewModel: .init(messagingService: messagingService))
                     .tabItem { Label("Messages", systemImage: "bubble.left.and.bubble.right") }
 
-                let notificationService = NotificationService(httpClient: httpClient)
+                let notificationService = NotificationService(httpClient: buildHttpClient())
                 NotificationsView(viewModel: .init(notificationService: notificationService))
                     .tabItem { Label("Notifications", systemImage: "bell") }
 
-                // This assumes we have a way to get the current user's ID.
                 let currentUserId = UUID() // Placeholder for the actual current user ID
-                let profileService = ProfileAndSettingsService(httpClient: httpClient)
                 let profileViewModel = ProfileViewModel(userId: currentUserId, profileService: profileService)
                 ProfileView(viewModel: profileViewModel)
                     .tabItem { Label("Profile", systemImage: "person.crop.circle") }
@@ -58,5 +59,13 @@ struct RootView: View {
             }
         }
         .environmentObject(router)
+        .environmentObject(aiCoordinator)
+        .globalAIAvatar()
+    }
+
+    // Helper to build a default HTTPClient.
+    private func buildHttpClient() -> HTTPClienting {
+        let tempAuthService = AuthService(baseURL: AppConfig.baseURL, session: .shared, storage: KeychainStorage())
+        return HTTPClient(baseURL: AppConfig.baseURL, authService: tempAuthService)
     }
 }
