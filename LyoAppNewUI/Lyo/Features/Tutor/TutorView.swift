@@ -61,7 +61,8 @@ struct TutorView: View {
                 TextMessageBubble(message: message)
             }
         default:
-            TextMessageBubble(message: message)
+            let senderType: SenderType = message.sender == .user ? .user : .other
+            TextMessageBubble(text: message.text, sender: senderType)
         }
     }
 

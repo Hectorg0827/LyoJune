@@ -1,22 +1,29 @@
 import SwiftUI
 
+/// An enum to represent the sender of a message in a generic way.
+public enum SenderType {
+    case user
+    case other
+}
+
 /// A view that displays a text message in a chat bubble.
 /// The style and alignment of the bubble change based on the sender.
-struct TextMessageBubble: View {
+public struct TextMessageBubble: View {
 
-    let message: TutorMessage
+    let text: String
+    let sender: SenderType
 
     private var isFromUser: Bool {
-        message.sender == .user
+        sender == .user
     }
 
-    var body: some View {
+    public var body: some View {
         HStack {
             if isFromUser {
-                Spacer()
+                Spacer(minLength: 50)
             }
 
-            Text(message.text)
+            Text(text)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(bubbleBackground)
@@ -25,7 +32,7 @@ struct TextMessageBubble: View {
                 .frame(maxWidth: 300, alignment: isFromUser ? .trailing : .leading)
 
             if !isFromUser {
-                Spacer()
+                Spacer(minLength: 50)
             }
         }
         .padding(.horizontal)
@@ -45,21 +52,15 @@ struct TextMessageBubble: View {
 struct TextMessageBubble_Previews: PreviewProvider {
     static var previews: some View {
         VStack(spacing: 12) {
-            TextMessageBubble(message: .init(
-                id: UUID(),
-                sender: .tutor,
-                type: .text,
-                text: "Hello! I'm your AI Tutor. What would you like to learn about today?",
-                question: nil
-            ))
+            TextMessageBubble(
+                text: "Hello! I'm a message from another user.",
+                sender: .other
+            )
 
-            TextMessageBubble(message: .init(
-                id: UUID(),
-                sender: .user,
-                type: .text,
-                text: "I want to learn about the history of the internet.",
-                question: nil
-            ))
+            TextMessageBubble(
+                text: "Hi there! This is my reply.",
+                sender: .user
+            )
         }
         .padding()
     }
