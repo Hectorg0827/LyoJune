@@ -1,0 +1,127 @@
+# Xcode
+#
+# gitignore contributors: remember to keep this file platform-agnostic
+# gitignore.io contributors: https://github.com/github/gitignore/blob/main/community/Swift/Xcode.gitignore
+
+## User-specific
+*.xcuserdatad
+*.xcworkspace
+
+## Build generated
+build/
+DerivedData/
+
+## Swift Package Manager
+.build/
+.swiftpm/
+
+## Carthage
+Carthage/Build
+Carthage/Checkouts
+
+## CocoaPods
+Pods/
+
+## Other
+*.app
+*.ipa
+
+# Other
+#
+# Created by https://www.toptal.com/developers/gitignore/api/swift,xcode
+# Edit at https://www.toptal.com/developers/gitignore?templates=swift,xcode
+
+### Xcode ###
+# Created by https://www.toptal.com/developers/gitignore/api/xcode
+# Edit at https://www.toptal.com/developers/gitignore?templates=xcode
+
+## General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must be committed
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+.Network Trash Folder
+Temporary Items
+.apdisk
+
+## Xcode
+# Xcode temporary files
+*.swp
+*~.nib/
+
+# Xcode Project files
+*.xcodeproj/project.xcworkspace
+*.xcodeproj/xcuserdata
+
+# Xcode Scheme files
+*.xcscheme
+
+# Xcode project files
+xcuserdata/
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
+
+# Workspace files
+*.xcworkspace
+
+# Swift Package Manager
+#
+# Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
+# Package.resolved
+# Package.pins
+# .swiftpm
+
+### Swift ###
+# Created by https://www.toptal.com/developers/gitignore/api/swift
+# Edit at https://www.toptal.com/developers/gitignore?templates=swift
+
+# Swift Package Manager
+.build
+.swiftpm
+
+# Carthage
+Carthage/Build
+Carthage/Checkouts
+
+# Accio
+Dependencies
+.accio
+
+# fastlane
+#
+# It is recommended to not store the screenshots in the git repo. Instead, use fastlane to re-generate the
+# screenshots whenever they are needed.
+# For more information about the recommended setup visit:
+# https://docs.fastlane.tools/best-practices/source-control/
+
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+# Code coverage
+*.gcno
+*.gcda
+*.profdata
+
+# End of https://www.toptal.com/developers/gitignore/api/swift,xcode
