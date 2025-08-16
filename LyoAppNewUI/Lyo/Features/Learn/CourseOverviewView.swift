@@ -71,7 +71,7 @@ struct CourseOverviewView: View {
             case .loaded:
                 ForEach(viewModel.lessons) { lesson in
                     VStack(alignment: .leading) {
-                        NavigationLink(destination: Text("Lesson Details for \(lesson.title)")) {
+                        NavigationLink(destination: LessonDetailView(lesson: lesson)) {
                             HStack {
                                 Text(lesson.title)
                                 Spacer()

@@ -61,6 +61,12 @@ final class Router: ObservableObject {
             let viewModel = CourseOverviewViewModel(course: course, learnService: learnService)
             CourseOverviewView(course: course, viewModel: viewModel)
 
+        case .lessonDetail(let lessonId):
+            // As with CourseOverview, a real router would fetch the Lesson object.
+            // We will use a placeholder for now.
+            let lesson = Lesson(id: UUID(uuidString: lessonId) ?? UUID(), title: "Lesson", contentBlocks: [])
+            LessonDetailView(lesson: lesson)
+
         case .profile(let userId):
             let profileService = ProfileAndSettingsService(httpClient: buildHttpClient())
             let viewModel = ProfileViewModel(userId: UUID(uuidString: userId) ?? UUID(), profileService: profileService)
