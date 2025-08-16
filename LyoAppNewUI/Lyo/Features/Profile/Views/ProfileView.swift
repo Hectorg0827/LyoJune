@@ -98,6 +98,7 @@ struct ProfileView: View {
             .buttonStyle(.bordered)
         } else {
             Button(profile.isFollowedByCurrentUser ? "Unfollow" : "Follow") {
+                HapticManager.impact(style: .light)
                 viewModel.toggleFollow()
             }
             .buttonStyle(profile.isFollowedByCurrentUser ? .bordered : .borderedProminent)

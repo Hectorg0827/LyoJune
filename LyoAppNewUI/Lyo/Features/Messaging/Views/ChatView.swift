@@ -76,6 +76,7 @@ struct ChatView: View {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
 
+        HapticManager.impact(style: .light)
         viewModel.sendMessage(text)
         inputText = ""
     }

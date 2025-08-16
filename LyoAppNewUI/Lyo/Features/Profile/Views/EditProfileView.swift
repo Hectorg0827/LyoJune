@@ -60,9 +60,11 @@ struct EditProfileView: View {
         Task {
             do {
                 try await viewModel.saveProfile()
+                HapticManager.notify(.success)
                 dismiss()
             } catch {
                 // In a real app, show an alert to the user.
+                HapticManager.notify(.error)
                 print("Failed to save profile: \(error)")
             }
         }

@@ -41,7 +41,10 @@ struct SettingsView: View {
         }
         .navigationTitle("Settings")
         .onAppear(perform: viewModel.fetchSettings)
-        .onDisappear(perform: viewModel.saveSettings)
+        .onDisappear {
+            HapticManager.notify(.success)
+            viewModel.saveSettings()
+        }
     }
 }
 

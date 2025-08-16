@@ -58,6 +58,7 @@ final class ComposerViewModel: ObservableObject {
                 _ = try await feedService.createPost(caption: caption, mediaAssetUrl: presignResponse.assetKey)
 
                 uploadState = .success
+                HapticManager.notify(.success)
 
             } catch {
                 errorToast = Toast(message: "Failed to create post: \(error.localizedDescription)", style: .error)

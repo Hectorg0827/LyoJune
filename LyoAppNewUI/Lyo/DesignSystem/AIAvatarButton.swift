@@ -8,8 +8,13 @@ public struct AIAvatarButton: View {
 
     @State private var isAnimating = false
 
+    private func tapped() {
+        HapticManager.impact(style: .light)
+        action()
+    }
+
     public var body: some View {
-        Button(action: action) {
+        Button(action: tapped) {
             ZStack {
                 // Outer pulsing glow
                 Circle()
