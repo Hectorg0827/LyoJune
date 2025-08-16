@@ -112,6 +112,12 @@ public final class HTTPClient: HTTPClienting {
         }
 
         // 6. Decode Response
+        // If the expected response type is EmptyResponse and the data is indeed empty,
+        // we can return a success without trying to decode.
+        if T.self == EmptyResponse.self && data.isEmpty {
+            return EmptyResponse() as! T
+        }
+
         do {
             let decoder = JSONDecoder()
             return try decoder.decode(T.self, from: data)
