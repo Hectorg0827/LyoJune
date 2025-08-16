@@ -8,11 +8,8 @@ struct LyoApp: App {
 
     var body: some Scene {
         WindowGroup {
-            // This is the root view of the application.
-            // It will be replaced by the main app router or tab controller.
-            // For now, it shows a placeholder text.
-            Text("Lyo App - Coming Soon!")
-                .font(.largeTitle)
+            // The RootView now manages the app's main navigation and tab structure.
+            RootView()
         }
     }
 }

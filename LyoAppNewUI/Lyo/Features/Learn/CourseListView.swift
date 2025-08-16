@@ -2,34 +2,29 @@ import SwiftUI
 
 struct CourseListView: View {
 
-    // In a real app, the ViewModel would be injected by a DI container or parent view.
-    // For simplicity here, we initialize it directly. A factory would be a good pattern.
     @StateObject private var viewModel: CourseListViewModel
+    @EnvironmentObject private var router: Router
 
-    // Custom initializer for dependency injection
     init(viewModel: CourseListViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     var body: some View {
-        NavigationStack {
-            content
-                .navigationTitle("Courses")
-                .toast(toast: $viewModel.errorToast)
-                .onAppear {
-                    // Fetch courses only if the list is empty, to avoid re-fetching on every view appearance.
-                    if viewModel.courses.isEmpty {
-                        viewModel.fetchCourses()
-                    }
+        // The NavigationStack is now provided by the RootView
+        content
+            .navigationTitle("Courses")
+            .toast(toast: $viewModel.errorToast)
+            .onAppear {
+                if viewModel.courses.isEmpty {
+                    viewModel.fetchCourses()
                 }
-        }
+            }
     }
 
     @ViewBuilder
     private var content: some View {
         switch viewModel.viewState {
         case .loading:
-            // Show skeleton placeholders while loading
             List {
                 ForEach(0..<5) { _ in
                     CourseRowView(course: .placeholder)
@@ -39,20 +34,17 @@ struct CourseListView: View {
             .listStyle(.plain)
 
         case .loaded:
-            // Show the list of courses
             List(viewModel.courses) { course in
-                let overviewViewModel = CourseOverviewViewModel(
-                    course: course,
-                    learnService: viewModel.learnService
-                )
-                NavigationLink(destination: CourseOverviewView(course: course, viewModel: overviewViewModel)) {
+                Button(action: {
+                    router.navigate(to: .courseOverview(courseId: course.id.uuidString))
+                }) {
                     CourseRowView(course: course)
                 }
+                .buttonStyle(.plain) // Use plain style to remove default button chrome
             }
             .listStyle(.plain)
 
         case .empty:
-            // Show empty state view
             EmptyStateView(
                 image: Image(systemName: "books.vertical.fill"),
                 title: "No Courses Available",
@@ -60,7 +52,6 @@ struct CourseListView: View {
             )
 
         case .error:
-            // Show error state with a retry button
             EmptyStateView(
                 image: Image(systemName: "wifi.slash"),
                 title: "An Error Occurred",
@@ -91,10 +82,7 @@ extension Course {
 // A mock service for previews
 private class MockLearnService_ForPreview: LearnServicing {
     func fetchAllCourses() async throws -> [Course] {
-        // Simulate a delay
         try await Task.sleep(nanoseconds: 1_500_000_000)
-
-        // Return sample data
         return [
             .init(id: UUID(), title: "Intro to SwiftUI", description: "Learn the basics.", thumbnailURL: nil),
             .init(id: UUID(), title: "Advanced Concurrency", description: "Go deep on async/await.", thumbnailURL: nil)
@@ -106,22 +94,13 @@ private class MockLearnService_ForPreview: LearnServicing {
 
 struct CourseListView_Previews: PreviewProvider {
     static var previews: some View {
-        // Preview for the loaded state
         let loadedViewModel = CourseListViewModel(learnService: MockLearnService_ForPreview())
-        CourseListView(viewModel: loadedViewModel)
-            .previewDisplayName("Loaded State")
 
-        // Preview for the empty state
-        let emptyService = MockLearnService_ForPreview()
-        // How to make it return empty? We need a more robust mock for previews.
-        // For now, we can just show the view with an empty array manually.
-
-        // Preview for the loading state
-        let loadingViewModel = CourseListViewModel(learnService: MockLearnService_ForPreview())
-        // Manually set the state for preview
-        // This is tricky. Let's just rely on the delay in the mock.
-        CourseListView(viewModel: loadingViewModel)
-            .previewDisplayName("Loading State")
+        NavigationStack { // Add a NavStack for previewing purposes
+            CourseListView(viewModel: loadedViewModel)
+        }
+        .environmentObject(Router()) // Add a dummy router for the preview
+        .previewDisplayName("Loaded State")
     }
 }
 #endif

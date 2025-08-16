@@ -3,32 +3,23 @@ import SwiftUI
 struct ThreadsListView: View {
 
     @StateObject private var viewModel: ThreadsListViewModel
+    @EnvironmentObject private var router: Router
 
-    // In a real app, the dependencies for the ChatView would be passed down
-    // from a higher-level coordinator or factory.
-    private let messagingService: MessagingServicing
-    private let webSocketService: WebSocketServicing
+    // The services are no longer needed here, as the Router constructs the destination view.
 
-    init(
-        viewModel: ThreadsListViewModel,
-        messagingService: MessagingServicing,
-        webSocketService: WebSocketServicing
-    ) {
+    init(viewModel: ThreadsListViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
-        self.messagingService = messagingService
-        self.webSocketService = webSocketService
     }
 
     var body: some View {
-        NavigationStack {
-            content
-                .navigationTitle("Messages")
-                .onAppear {
-                    if viewModel.threads.isEmpty {
-                        viewModel.fetchThreads()
-                    }
+        // The NavigationStack is now provided by the RootView
+        content
+            .navigationTitle("Messages")
+            .onAppear {
+                if viewModel.threads.isEmpty {
+                    viewModel.fetchThreads()
                 }
-        }
+            }
     }
 
     @ViewBuilder
@@ -45,15 +36,12 @@ struct ThreadsListView: View {
 
         case .loaded:
             List(viewModel.threads) { thread in
-                // This is where we create the dependencies for the next screen.
-                let chatViewModel = ChatViewModel(
-                    chatId: thread.id,
-                    messagingService: messagingService,
-                    webSocketService: webSocketService
-                )
-                NavigationLink(destination: ChatView(viewModel: chatViewModel)) {
+                Button(action: {
+                    router.navigate(to: .chat(chatId: thread.id))
+                }) {
                     ThreadRowView(thread: thread)
                 }
+                .buttonStyle(.plain)
             }
             .listStyle(.plain)
 
