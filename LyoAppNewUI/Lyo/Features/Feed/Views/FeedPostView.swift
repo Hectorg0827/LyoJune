@@ -39,11 +39,18 @@ struct FeedPostView: View {
 
     // MARK: - Subviews
 
+    @EnvironmentObject private var router: Router
+
     private var videoInfo: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("@\(post.user.username)")
-                .font(.headline)
-                .bold()
+            Button(action: {
+                router.navigate(to: .profile(userId: post.user.id.uuidString))
+            }) {
+                Text("@\(post.user.username)")
+                    .font(.headline)
+                    .bold()
+            }
+
             Text(post.caption)
                 .font(.subheadline)
         }

@@ -45,6 +45,13 @@ struct RootView: View {
                 let notificationService = NotificationService(httpClient: httpClient)
                 NotificationsView(viewModel: .init(notificationService: notificationService))
                     .tabItem { Label("Notifications", systemImage: "bell") }
+
+                // This assumes we have a way to get the current user's ID.
+                let currentUserId = UUID() // Placeholder for the actual current user ID
+                let profileService = ProfileAndSettingsService(httpClient: httpClient)
+                let profileViewModel = ProfileViewModel(userId: currentUserId, profileService: profileService)
+                ProfileView(viewModel: profileViewModel)
+                    .tabItem { Label("Profile", systemImage: "person.crop.circle") }
             }
             .navigationDestination(for: DeepLink.self) { destination in
                 router.view(for: destination)

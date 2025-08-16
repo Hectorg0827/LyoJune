@@ -56,13 +56,15 @@ final class Router: ObservableObject {
 
         case .courseOverview(let courseId):
             // In a real app, we would fetch the Course object from a cache or service.
-            // For now, we can't construct it easily here. This highlights a limitation
-            // of this simple router; a more robust one would fetch data for its destinations.
-            // We will pass a placeholder.
             let course = Course(id: UUID(uuidString: courseId) ?? UUID(), title: "Course", description: "Details...", thumbnailURL: nil)
             let learnService = LearnService(httpClient: buildHttpClient())
             let viewModel = CourseOverviewViewModel(course: course, learnService: learnService)
             CourseOverviewView(course: course, viewModel: viewModel)
+
+        case .profile(let userId):
+            let profileService = ProfileAndSettingsService(httpClient: buildHttpClient())
+            let viewModel = ProfileViewModel(userId: UUID(uuidString: userId) ?? UUID(), profileService: profileService)
+            ProfileView(viewModel: viewModel)
 
         default:
             Text("Unknown Destination: \(String(describing: destination))")
