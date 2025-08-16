@@ -20,6 +20,9 @@ public struct Endpoint<Response: Decodable> {
     /// The headers to be sent with the request.
     var headers: [String: String]?
 
+    /// The query items to be added to the URL.
+    let queryItems: [URLQueryItem]?
+
     /// The body of the request.
     var body: Data?
 
@@ -28,11 +31,13 @@ public struct Endpoint<Response: Decodable> {
     ///   - path: The path of the endpoint, relative to the base URL.
     ///   - method: The HTTP method to use.
     ///   - headers: Optional dictionary of headers.
+    ///   - queryItems: Optional array of URL query items.
     ///   - body: Optional request body as `Data`.
-    public init(path: String, method: HTTPMethod, headers: [String : String]? = nil, body: Data? = nil) {
+    public init(path: String, method: HTTPMethod, headers: [String : String]? = nil, queryItems: [URLQueryItem]? = nil, body: Data? = nil) {
         self.path = path
         self.method = method
         self.headers = headers
+        self.queryItems = queryItems
         self.body = body
     }
 }

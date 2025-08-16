@@ -80,7 +80,12 @@ public final class HTTPClient: HTTPClienting {
     /// Performs a single network request and handles its response.
     private func performSingleRequest<T>(_ endpoint: Endpoint<T>, authorization token: String?) async throws -> T where T : Decodable {
         // 1. Construct URL
-        let url = baseURL.appendingPathComponent(endpoint.path)
+        var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: false)
+        components?.queryItems = endpoint.queryItems
+
+        guard let url = components?.url else {
+            throw APIError.invalidURL
+        }
         var request = URLRequest(url: url)
 
         // 2. Set Method, Body, and Headers
