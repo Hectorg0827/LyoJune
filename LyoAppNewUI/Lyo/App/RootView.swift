@@ -27,6 +27,22 @@ struct RootView: View {
         self.profileService = ProfileAndSettingsService(httpClient: httpClient)
     }
 
+    private let aiGeneratorService: AIGeneratorServicing
+
+    init() {
+        // This is a simplified dependency setup for demonstration.
+        let authService = AuthService(baseURL: AppConfig.baseURL, session: .shared, storage: KeychainStorage())
+        let httpClient = HTTPClient(baseURL: AppConfig.baseURL, authService: authService)
+
+        self.feedService = FeedService(httpClient: httpClient)
+        self.learnService = LearnService(httpClient: httpClient)
+        self.tutorService = TutorService(httpClient: httpClient)
+        self.messagingService = MessagingService(httpClient: httpClient)
+        self.webSocketService = WebSocketService(webSocketURL: AppConfig.webSocketURL)
+        self.profileService = ProfileAndSettingsService(httpClient: httpClient)
+        self.aiGeneratorService = AIGeneratorService(httpClient: httpClient)
+    }
+
     var body: some View {
         NavigationStack(path: $router.path) {
             TabView {
@@ -39,8 +55,13 @@ struct RootView: View {
                 CourseListView(viewModel: .init(learnService: learnService))
                     .tabItem { Label("Learn", systemImage: "books.vertical") }
 
-                TutorView(viewModel: .init(tutorService: tutorService))
-                    .tabItem { Label("Tutor", systemImage: "message.circle") }
+                TutorView(viewModel: .init(
+                    tutorService: tutorService,
+                    aiGeneratorService: aiGeneratorService,
+                    router: router,
+                    aiCoordinator: aiCoordinator
+                ))
+                .tabItem { Label("Tutor", systemImage: "message.circle") }
 
                 ThreadsListView(viewModel: .init(messagingService: messagingService))
                     .tabItem { Label("Messages", systemImage: "bubble.left.and.bubble.right") }

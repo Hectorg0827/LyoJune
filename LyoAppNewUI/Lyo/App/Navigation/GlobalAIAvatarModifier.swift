@@ -4,16 +4,18 @@ import SwiftUI
 private struct GlobalAIAvatarModifier: ViewModifier {
 
     @EnvironmentObject private var coordinator: AICoordinator
+    @EnvironmentObject private var router: Router
 
-    // In a real app, the dependencies for the TutorView would be passed down
-    // from a higher-level coordinator or factory.
-    private var tutorService: TutorServicing
+    // In a real app, these dependencies would be passed down or provided by a DI container.
+    private let tutorService: TutorServicing
+    private let aiGeneratorService: AIGeneratorServicing
 
     init() {
         // This is a simplified dependency setup for demonstration.
         let authService = AuthService(baseURL: AppConfig.baseURL, session: .shared, storage: KeychainStorage())
         let httpClient = HTTPClient(baseURL: AppConfig.baseURL, authService: authService)
         self.tutorService = TutorService(httpClient: httpClient)
+        self.aiGeneratorService = AIGeneratorService(httpClient: httpClient)
     }
 
     func body(content: Content) -> some View {
@@ -24,8 +26,12 @@ private struct GlobalAIAvatarModifier: ViewModifier {
             }
             .sheet(isPresented: $coordinator.isChatPresented) {
                 // The sheet's content is the intent-gathering chat view.
-                // We are reusing the TutorView for this.
-                let viewModel = TutorViewModel(tutorService: tutorService)
+                let viewModel = TutorViewModel(
+                    tutorService: tutorService,
+                    aiGeneratorService: aiGeneratorService,
+                    router: router,
+                    aiCoordinator: coordinator
+                )
                 TutorView(viewModel: viewModel)
             }
     }

@@ -12,7 +12,7 @@ public struct TutorMessage: Codable, Identifiable, Equatable {
 
     /// The specific type of content contained in the message from the tutor.
     public enum ContentType: String, Codable {
-        case text, hint, explanation, question, planUpdate, remediation
+        case text, hint, explanation, question, planUpdate, remediation, tutorial, stepByStepGuide
     }
 
     public let id: UUID
@@ -20,8 +20,10 @@ public struct TutorMessage: Codable, Identifiable, Equatable {
     public let type: ContentType
     public let text: String
 
-    /// An optional question object, only present when `type` is `.question`.
+    // Optional content blocks
     public let question: Question?
+    public let tutorial: Tutorial?
+    public let stepByStepGuide: StepByStepGuide?
 }
 
 /// Represents a multiple-choice question sent by the Tutor.

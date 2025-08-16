@@ -56,9 +56,14 @@ struct TutorView: View {
                 QuestionBubbleView(question: question) { selectedOption in
                     viewModel.answerQuestion(questionId: question.id, option: selectedOption)
                 }
-            } else {
-                // Fallback for malformed data
-                TextMessageBubble(message: message)
+            }
+        case .tutorial:
+            if let tutorial = message.tutorial {
+                TutorialBubbleView(tutorial: tutorial)
+            }
+        case .stepByStepGuide:
+            if let guide = message.stepByStepGuide {
+                StepByStepGuideBubbleView(guide: guide)
             }
         default:
             let senderType: SenderType = message.sender == .user ? .user : .other
