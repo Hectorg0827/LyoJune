@@ -103,6 +103,7 @@ struct AuthView: View {
             .foregroundColor(.primary)
             .cornerRadius(8)
         }
+        .accessibilityLabel(text)
     }
 }
 

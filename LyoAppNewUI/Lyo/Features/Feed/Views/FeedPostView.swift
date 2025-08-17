@@ -66,16 +66,21 @@ struct FeedPostView: View {
 
     private struct ActionButton: View {
         let iconName: String
-        let text: String
+        let label: String
+        let value: String
 
         var body: some View {
-            VStack(spacing: 4) {
-                Image(systemName: iconName)
-                    .font(.title)
-                Text(text)
-                    .font(.caption)
-                    .bold()
+            Button(action: { /* Action would go here */ }) {
+                VStack(spacing: 4) {
+                    Image(systemName: iconName)
+                        .font(.title)
+                    Text(value)
+                        .font(.caption)
+                        .bold()
+                }
             }
+            .accessibilityLabel(label)
+            .accessibilityValue(value)
         }
     }
 

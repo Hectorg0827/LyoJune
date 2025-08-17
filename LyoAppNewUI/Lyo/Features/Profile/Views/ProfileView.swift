@@ -34,10 +34,8 @@ struct ProfileView: View {
         .onAppear(perform: viewModel.fetchProfile)
         .navigationTitle(viewModel.userProfile?.username ?? "Profile")
         .sheet(isPresented: $isShowingEditSheet) {
-            // This requires creating the dependencies for the sheet's view model.
-            // In a real app, a DI container would provide this.
             if let profile = viewModel.userProfile {
-                let service = ProfileAndSettingsService(httpClient: buildHttpClient()) // Helper needed
+                let service = ProfileAndSettingsService(httpClient: buildHttpClient())
                 let editViewModel = EditProfileViewModel(profile: profile, profileService: service)
                 EditProfileView(viewModel: editViewModel)
             }
@@ -48,7 +46,6 @@ struct ProfileView: View {
     private func profileContent(for profile: UserProfile) -> some View {
         ScrollView {
             VStack(spacing: 24) {
-                // Header, Stats, Bio... (as before)
                 VStack {
                     AsyncImage(url: profile.profileImageURL) { image in
                         image.resizable().scaledToFill()
@@ -57,13 +54,19 @@ struct ProfileView: View {
                     }
                     .frame(width: 100, height: 100)
                     .clipShape(Circle())
+                    .accessibilityLabel("Profile picture for \(profile.username)")
 
                     Text("@\(profile.username)").font(.title2).bold()
                 }
 
                 HStack(spacing: 32) {
                     VStack { Text("\(profile.followerCount)").bold(); Text("Followers") }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(profile.followerCount) Followers")
+
                     VStack { Text("\(profile.followingCount)").bold(); Text("Following") }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityLabel("\(profile.followingCount) Following")
                 }
                 .font(.subheadline)
 
@@ -80,9 +83,9 @@ struct ProfileView: View {
         .toolbar {
             if profile.isCurrentUser {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    // This should navigate to the SettingsView
                     NavigationLink(destination: settingsDestination) {
                         Image(systemName: "gearshape")
+                            .accessibilityLabel("Settings")
                     }
                 }
             }
@@ -96,24 +99,24 @@ struct ProfileView: View {
                 isShowingEditSheet = true
             }
             .buttonStyle(.bordered)
+            .accessibilityLabel("Edit your profile")
         } else {
             Button(profile.isFollowedByCurrentUser ? "Unfollow" : "Follow") {
                 HapticManager.impact(style: .light)
                 viewModel.toggleFollow()
             }
             .buttonStyle(profile.isFollowedByCurrentUser ? .bordered : .borderedProminent)
+            .accessibilityLabel(profile.isFollowedByCurrentUser ? "Unfollow \(profile.username)" : "Follow \(profile.username)")
             .animation(.default, value: profile.isFollowedByCurrentUser)
         }
     }
 
-    // Helper view for settings destination
     private var settingsDestination: some View {
         let service = ProfileAndSettingsService(httpClient: buildHttpClient())
         let viewModel = SettingsViewModel(settingsService: service)
         return SettingsView(viewModel: viewModel)
     }
 
-    // Helper to build a default HTTPClient.
     private func buildHttpClient() -> HTTPClienting {
         let tempAuthService = AuthService(baseURL: AppConfig.baseURL, session: .shared, storage: KeychainStorage())
         return HTTPClient(baseURL: AppConfig.baseURL, authService: tempAuthService)

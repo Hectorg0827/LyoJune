@@ -50,6 +50,9 @@ struct StoryCircleView: View {
                 .lineLimit(1)
         }
         .frame(width: 80) // Give the VStack a consistent frame
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(story.user.username)'s story")
+        .accessibilityHint("Tap to view")
     }
 }
 

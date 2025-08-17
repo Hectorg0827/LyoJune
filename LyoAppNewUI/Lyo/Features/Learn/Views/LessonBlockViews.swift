@@ -10,6 +10,7 @@ struct HeadingBlockView: View {
             .font(.title2)
             .fontWeight(.bold)
             .padding(.top)
+            .accessibilityAddTraits(.isHeader)
     }
 }
 
@@ -40,6 +41,7 @@ struct YouTubeBlockView: View {
             WebView(url: url)
                 .aspectRatio(16/9, contentMode: .fit)
                 .cornerRadius(12)
+                .accessibilityLabel("Embedded YouTube video player")
         } else {
             EmptyView()
         }

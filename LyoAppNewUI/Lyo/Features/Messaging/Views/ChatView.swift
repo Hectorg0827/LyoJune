@@ -34,7 +34,7 @@ struct ChatView: View {
                     case .loaded:
                         ForEach(viewModel.messages) { message in
                             let senderType: SenderType = message.sender.id.uuidString == currentUserId ? .user : .other
-                            TextMessageBubble(text: message.text, sender: senderType)
+                            TextMessageBubble(text: message.text, sender: senderType, senderName: message.sender.username)
                                 .id(message.id)
                         }
                     case .error:
@@ -67,6 +67,7 @@ struct ChatView: View {
                     .font(.title)
             }
             .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .accessibilityLabel("Send message")
         }
         .padding()
         .background(.thinMaterial)

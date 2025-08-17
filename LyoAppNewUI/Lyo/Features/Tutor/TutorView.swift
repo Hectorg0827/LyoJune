@@ -12,23 +12,28 @@ struct TutorView: View {
     var body: some View {
         VStack(spacing: 0) {
             ScrollViewReader { scrollViewProxy in
-                // ... (ScrollView content is the same)
+                ScrollView {
+                    LazyVStack(spacing: 12) {
+                        ForEach(viewModel.messages) { message in
+                            messageView(for: message).id(message.id)
+                        }
+                    }
+                    .padding(.vertical)
+                }
+                .onChange(of: viewModel.messages.count) { _ in
+                    if let lastMessage = viewModel.messages.last {
+                        withAnimation { scrollViewProxy.scrollTo(lastMessage.id, anchor: .bottom) }
+                    }
+                }
             }
-
-            if viewModel.isSending {
-                ProgressView().padding(8)
-            }
-
+            if viewModel.isSending { ProgressView().padding(8) }
             inputBar
         }
         .navigationTitle("AI Tutor")
         .background(Color(.systemBackground))
         .onAppear {
-            if viewModel.messages.isEmpty {
-                viewModel.loadInitialState()
-            }
+            if viewModel.messages.isEmpty { viewModel.loadInitialState() }
         }
-        // Update the text field with the live transcript
         .onChange(of: viewModel.liveTranscript) { newTranscript in
             inputText = newTranscript
         }
@@ -36,49 +41,51 @@ struct TutorView: View {
 
     @ViewBuilder
     private func messageView(for message: TutorMessage) -> some View {
-        // ... (same as before)
+        switch message.type {
+        case .question:
+            if let question = message.question {
+                QuestionBubbleView(question: question) { selectedOption in
+                    viewModel.answerQuestion(questionId: question.id, option: selectedOption)
+                }
+            }
+        case .tutorial:
+            if let tutorial = message.tutorial { TutorialBubbleView(tutorial: tutorial) }
+        case .stepByStepGuide:
+            if let guide = message.stepByStepGuide { StepByStepGuideBubbleView(guide: guide) }
+        default:
+            let senderType: SenderType = message.sender == .user ? .user : .other
+            let senderName: String? = senderType == .other ? "AI Tutor" : nil
+            TextMessageBubble(text: message.text, sender: senderType, senderName: senderName)
+        }
     }
 
     private var inputBar: some View {
         HStack(spacing: 12) {
             TextField("Ask a question...", text: $inputText, axis: .vertical)
-                .padding(10)
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(20)
-                .lineLimit(5)
-                .disabled(viewModel.isListening) // Disable while listening
+                .padding(10).background(Color(.secondarySystemBackground)).cornerRadius(20).lineLimit(5)
+                .disabled(viewModel.isListening)
 
             if viewModel.isListening {
-                // Show a listening indicator
-                ProgressView()
-                    .progressViewStyle(.circular)
-                    .tint(.red)
-
+                ProgressView().progressViewStyle(.circular).tint(.red)
                 Button(action: viewModel.toggleListening) {
-                    Image(systemName: "stop.circle.fill")
-                        .font(.title)
-                        .foregroundColor(.red)
+                    Image(systemName: "stop.circle.fill").font(.title).foregroundColor(.red)
                 }
+                .accessibilityLabel("Stop listening")
             } else {
-                // Show the microphone button
                 Button(action: {
-                    if viewModel.permissionManager.canUseSpeech {
-                        viewModel.toggleListening()
-                    } else {
-                        viewModel.permissionManager.requestPermissions()
-                    }
+                    if viewModel.permissionManager.canUseSpeech { viewModel.toggleListening() }
+                    else { viewModel.permissionManager.requestPermissions() }
                 }) {
-                    Image(systemName: "mic.circle.fill")
-                        .font(.title)
+                    Image(systemName: "mic.circle.fill").font(.title)
                 }
-                .disabled(!viewModel.permissionManager.canUseSpeech) // Disabled until permission granted
+                .disabled(!viewModel.permissionManager.canUseSpeech)
+                .accessibilityLabel("Start listening")
 
-                // Show the send button
                 Button(action: sendMessage) {
-                    Image(systemName: "arrow.up.circle.fill")
-                        .font(.title)
+                    Image(systemName: "arrow.up.circle.fill").font(.title)
                 }
                 .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                .accessibilityLabel("Send message")
             }
         }
         .padding()
@@ -89,7 +96,6 @@ struct TutorView: View {
     private func sendMessage() {
         let text = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-
         HapticManager.impact(style: .light)
         viewModel.sendMessage(text)
         inputText = ""
@@ -108,20 +114,11 @@ struct TutorView_Previews: PreviewProvider {
             tutorService: tutorService,
             aiGeneratorService: aiService,
             speechService: speechService,
+            onDeviceAIService: nil, // On-device not available in preview
             router: router,
             aiCoordinator: coordinator
         )
-
-        NavigationStack {
-            TutorView(viewModel: viewModel)
-        }
-    }
-
-    // A mock for previewing purposes
-    private class MockSpeechRecognitionService: SpeechRecognitionServicing {
-        var transcriptions: AsyncThrowingStream<String, Error> { .init { _ in } }
-        func startListening() throws {}
-        func stopListening() {}
+        NavigationStack { TutorView(viewModel: viewModel) }
     }
 }
 #endif

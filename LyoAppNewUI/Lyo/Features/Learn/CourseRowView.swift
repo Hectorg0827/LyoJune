@@ -28,6 +28,7 @@ struct CourseRowView: View {
                     EmptyView()
                 }
             }
+            .accessibilityLabel(Text("Thumbnail for \(course.title)"))
             .frame(width: 100, height: 100)
             .cornerRadius(12)
             .clipped()

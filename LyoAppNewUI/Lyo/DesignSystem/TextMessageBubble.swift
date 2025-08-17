@@ -12,6 +12,13 @@ public struct TextMessageBubble: View {
 
     let text: String
     let sender: SenderType
+    let senderName: String? // Optional name for accessibility
+
+    public init(text: String, sender: SenderType, senderName: String? = nil) {
+        self.text = text
+        self.sender = sender
+        self.senderName = senderName
+    }
 
     private var isFromUser: Bool {
         sender == .user
@@ -36,6 +43,16 @@ public struct TextMessageBubble: View {
             }
         }
         .padding(.horizontal)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityText)
+    }
+
+    private var accessibilityText: String {
+        if let senderName = senderName, !isFromUser {
+            return "Message from \(senderName): \(text)"
+        } else {
+            return text
+        }
     }
 
     @ViewBuilder
