@@ -56,6 +56,11 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<!-- Permissions for Voice Activation -->
+	<key>NSMicrophoneUsageDescription</key>
+	<string>We need access to your microphone to enable voice commands for the AI assistant.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>We need access to speech recognition to transcribe your voice commands for the AI assistant.</string>
 	<!-- Custom Keys from Config.plist would be referenced here via build settings -->
 	<!-- For example: -->
 	<!-- <key>LYO_BASE_URL</key> -->

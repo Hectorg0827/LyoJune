@@ -9,6 +9,8 @@ private struct GlobalAIAvatarModifier: ViewModifier {
     // In a real app, these dependencies would be passed down or provided by a DI container.
     private let tutorService: TutorServicing
     private let aiGeneratorService: AIGeneratorServicing
+    private let speechService: SpeechRecognitionServicing
+    private let onDeviceAIService: OnDeviceAIServicing?
 
     init() {
         // This is a simplified dependency setup for demonstration.
@@ -16,6 +18,8 @@ private struct GlobalAIAvatarModifier: ViewModifier {
         let httpClient = HTTPClient(baseURL: AppConfig.baseURL, authService: authService)
         self.tutorService = TutorService(httpClient: httpClient)
         self.aiGeneratorService = AIGeneratorService(httpClient: httpClient)
+        self.speechService = SpeechRecognitionService()
+        self.onDeviceAIService = OnDeviceAIService()
     }
 
     func body(content: Content) -> some View {
@@ -29,6 +33,8 @@ private struct GlobalAIAvatarModifier: ViewModifier {
                 let viewModel = TutorViewModel(
                     tutorService: tutorService,
                     aiGeneratorService: aiGeneratorService,
+                    speechService: speechService,
+                    onDeviceAIService: onDeviceAIService,
                     router: router,
                     aiCoordinator: coordinator
                 )

@@ -14,6 +14,9 @@ struct RootView: View {
     private let webSocketService: WebSocketServicing
     private let profileService: ProfileAndSettingsServicing
 
+    private let speechService: SpeechRecognitionServicing
+    private let onDeviceAIService: OnDeviceAIServicing?
+
     init() {
         // This is a simplified dependency setup for demonstration.
         let authService = AuthService(baseURL: AppConfig.baseURL, session: .shared, storage: KeychainStorage())
@@ -41,6 +44,8 @@ struct RootView: View {
         self.webSocketService = WebSocketService(webSocketURL: AppConfig.webSocketURL)
         self.profileService = ProfileAndSettingsService(httpClient: httpClient)
         self.aiGeneratorService = AIGeneratorService(httpClient: httpClient)
+        self.speechService = SpeechRecognitionService()
+        self.onDeviceAIService = OnDeviceAIService()
     }
 
     var body: some View {
@@ -58,6 +63,8 @@ struct RootView: View {
                 TutorView(viewModel: .init(
                     tutorService: tutorService,
                     aiGeneratorService: aiGeneratorService,
+                    speechService: speechService,
+                    onDeviceAIService: onDeviceAIService,
                     router: router,
                     aiCoordinator: aiCoordinator
                 ))
