@@ -1,0 +1,99 @@
+# GitHub Actions workflow for the LyoAppNewUI iOS project.
+#
+# This workflow automates the process of building, testing, and archiving the app.
+# It is configured to work with a Swift Package-based project structure.
+#
+# IMPORTANT PREREQUISITES:
+# 1. Open `Package.swift` in Xcode to generate the project context.
+# 2. As documented in the README, create and share a `LyoApp_Production` scheme for Release builds.
+# 3. Manually create and share a `UITests` scheme in Xcode, as SPM does not support them automatically.
+
+name: iOS CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build_and_test:
+    name: Build & Test
+    runs-on: macos-14 # Specify a runner with Xcode 15.4 or later
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+
+      - name: Resolve Swift Package Dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies -scheme LyoApp
+
+      - name: Build Debug Scheme
+        run: |
+          xcodebuild build \
+            -scheme LyoApp \
+            -destination 'generic/platform=iOS' \
+            -configuration Debug \
+            GCC_WARN_INHIBIT_ALL_WARNINGS=NO \
+            -Werror \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Run Unit Tests
+        run: |
+          # The -scheme flag should target the scheme that includes your test target.
+          # For an SPM project, running tests for the main app scheme often works.
+          xcodebuild test \
+            -scheme LyoApp \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' \
+            -configuration Debug
+
+      # Note: This step will fail until a UITests scheme is manually created and shared.
+      - name: Run UI Smoke Tests
+        run: |
+          xcodebuild test \
+            -scheme UITests \
+            -destination 'platform=iOS Simulator,name=iPhone 15 Pro,OS=17.5' \
+            -configuration Debug
+
+  archive_and_release:
+    name: Archive & Create IPA
+    needs: build_and_test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 15.4
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '15.4'
+
+      - name: Archive Production Build
+        run: |
+          # This step requires the LyoApp_Production scheme to be shared.
+          xcodebuild archive \
+            -scheme LyoApp_Production \
+            -configuration Release \
+            -archivePath ./build/LyoApp.xcarchive \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: Export IPA
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath ./build/LyoApp.xcarchive \
+            -exportPath ./build \
+            -exportOptionsPlist ./.github/ExportOptions.plist
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LyoApp-Release-IPA
+          path: ./build/*.ipa
