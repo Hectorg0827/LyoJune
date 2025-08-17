@@ -33,7 +33,9 @@ let package = Package(
             ],
             resources: [
                 // This makes Config.plist available to the app's bundle.
-                .process("Config/Config.plist")
+                .process("Config/Config.plist"),
+                // This copies the MLModels directory into the app's bundle.
+                .copy("Resources/MLModels")
             ]
         ),
         .testTarget(
