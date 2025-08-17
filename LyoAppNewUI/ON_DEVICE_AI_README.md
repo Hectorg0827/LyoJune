@@ -106,13 +106,24 @@ if __name__ == "__main__":
     main()
 ```
 
-### Step 4: Add the Model to Xcode
+### Step 4: Get the Tokenizer Vocabulary
 
-1.  After the script finishes, you will have a `gemma_2b.mlpackage` file.
+The Core ML model only understands integer Token IDs, not text. To convert text to tokens, we need the model's vocabulary. The easiest way to get this in a usable format is to save it as a JSON file.
+
+1.  Add `from transformers import AutoTokenizer` to your Python script if not already there.
+2.  After loading the tokenizer (`tokenizer = AutoTokenizer.from_pretrained(...)`), add the following line to save its vocabulary:
+    ```python
+    tokenizer.save_vocabulary("./")
+    ```
+3.  This will create a `tokenizer.json` file.
+
+### Step 5: Add the Model and Tokenizer to Xcode
+
+1.  You should now have two files: `gemma_2b.mlpackage` and `tokenizer.json`.
 2.  Open the `LyoAppNewUI` project in Xcode.
-3.  Drag the `gemma_2b.mlpackage` file directly into the Xcode project navigator.
+3.  Drag **both** files into the `Lyo/Resources/MLModels` directory in the Xcode project navigator.
 4.  A dialog will appear. Make sure "Copy items if needed" is checked and that your app's main target (`LyoApp`) is selected.
 5.  Click "Finish".
 
-The model is now part of your app bundle and can be loaded by the on-device inference service you will build next.
+The model and its tokenizer vocabulary are now part of your app bundle and can be loaded by the on-device inference service.
 ```
